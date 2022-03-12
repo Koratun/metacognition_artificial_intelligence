@@ -80,46 +80,60 @@ class _SelectionPanelState extends State<SelectionPanel> {
       controller: scrollController,
       shrinkWrap: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, crossAxisSpacing: 16, mainAxisSpacing: 24),
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisExtent: 80,
+      ),
       itemCount: 21,
       itemBuilder: (BuildContext context, int i) {
         // TODO: Placeholder code for when we have an actual list of layers
-        return Container(
-          decoration: BoxDecoration(
-            color: i ~/ 3 < 4
-                ? Colors.grey[100 * (i ~/ 3 + 1)]
-                : Colors.grey[100 * (i ~/ 3 + 2)],
-            border: Border.all(color: Colors.lightBlueAccent[700]!),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: Center(
-            child: Text(
-              "$_selectedCategory $i",
-              style: TextStyle(
-                  fontSize: 16.0,
-                  color: i ~/ 3 < 4 ? Colors.black : Colors.white),
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: i ~/ 3 < 4
+                    ? Colors.grey[100 * (i ~/ 3 + 1)]
+                    : Colors.grey[100 * (i ~/ 3 + 2)],
+                border: Border.all(color: Colors.lightBlueAccent[700]!),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Icon(
+                Icons.layers,
+                size: 48,
+                color: i ~/ 3 < 4 ? Colors.black : Colors.white,
+              ),
             ),
-          ),
+            Text(
+              "$_selectedCategory $i",
+              style: const TextStyle(
+                fontSize: 16.0,
+                color: Colors.white,
+              ),
+            ),
+          ],
         );
       },
     );
 
-    return Container(
-      padding: EdgeInsets.all(5),
-      child: LimitedBox(
-        maxHeight: MediaQuery.of(context).size.height,
-        maxWidth: 96 * 3,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          textDirection: TextDirection.ltr,
-          children: [
-            toolbar,
-            categories,
-            Expanded(
+    return LimitedBox(
+      maxHeight: MediaQuery.of(context).size.height,
+      maxWidth: 96 * 3,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        textDirection: TextDirection.ltr,
+        children: [
+          toolbar,
+          categories,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(
+                top: 8,
+              ),
               child: layerTiles,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
