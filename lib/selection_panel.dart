@@ -6,6 +6,7 @@ const categoryNames = <String>[
   "Core",
   "Preprocessing",
   "Convolutional",
+  "Recurrent",
 ];
 
 class SelectionPanel extends StatefulWidget {
