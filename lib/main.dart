@@ -64,7 +64,7 @@ class MainApp extends StatelessWidget {
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: SizedBox(
-                            width: 600,
+                            width: 800,
                             height: 200,
                             child: Container(
                               color: Colors.green,
@@ -81,7 +81,7 @@ class MainApp extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: 96 * 3,
+                    width: 128 * 3,
                     height: 600,
                     child: Container(
                       color: Colors.yellow,

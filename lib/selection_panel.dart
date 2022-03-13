@@ -82,7 +82,7 @@ class _SelectionPanelState extends State<SelectionPanel> {
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 8,
-        mainAxisExtent: 80,
+        mainAxisExtent: 100,
       ),
       itemCount: 21,
       itemBuilder: (BuildContext context, int i) {
@@ -100,7 +100,7 @@ class _SelectionPanelState extends State<SelectionPanel> {
               ),
               child: Icon(
                 Icons.layers,
-                size: 48,
+                size: 64,
                 color: i ~/ 3 < 4 ? Colors.black : Colors.white,
               ),
             ),
@@ -118,7 +118,7 @@ class _SelectionPanelState extends State<SelectionPanel> {
 
     return LimitedBox(
       maxHeight: MediaQuery.of(context).size.height,
-      maxWidth: 96 * 3,
+      maxWidth: 128 * 3,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         textDirection: TextDirection.ltr,
@@ -126,12 +126,7 @@ class _SelectionPanelState extends State<SelectionPanel> {
           toolbar,
           categories,
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                top: 8,
-              ),
-              child: layerTiles,
-            ),
+            child: layerTiles,
           ),
         ],
       ),
