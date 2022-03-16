@@ -1,16 +1,20 @@
-# metacognition_artificial_intelligence
+# Metacognition Artificial Intelligence
 
-A new Flutter project.
+A Flutter and Python project to visually educate users how to build AI using TensorFlow and Keras
 
-## Getting Started
+## Getting Started in Flutter
 
-This project is a starting point for a Flutter application.
+Follow the instructions on https://docs.flutter.dev/get-started/install for your system and then clone this repository into a directory of your choosing.
 
-A few resources to get you started if this is your first Flutter project:
+Verify that you have setup your environment correctly by running the application. (Note that the build process can take up to a minute)
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## Getting Started in Python
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Setup a Python 3.9 venv in your workspace and run `pip install -r requirements.txt`. 
+This will take care of most of the heavy lifting for you.
+
+## GPU Setup (Optional)
+
+If you have a GPU, please go to your GPU website and install the components necessary for Python to leverage your GPU in AI calculations. Note that this is not necessary but it will be beneficial if you are creating/testing anything beyond a very small model.
+
+Eventually we will want to natively detect if the system running our app has a TensorFlow compatible GPU for the AI and redirect the user to the appropriate website to install those components.
