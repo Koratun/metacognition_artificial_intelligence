@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:boxy/flex.dart';
+
+import 'layer_tile.dart';
 
 const categoryNames = <String>[
   "Tutorials",
@@ -87,33 +88,7 @@ class _SelectionPanelState extends State<SelectionPanel> {
       ),
       itemCount: 21,
       itemBuilder: (BuildContext context, int i) {
-        // TODO: Placeholder code for when we have an actual list of layers
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: i ~/ 3 < 4
-                    ? Colors.grey[100 * (i ~/ 3 + 1)]
-                    : Colors.grey[100 * (i ~/ 3 + 2)],
-                border: Border.all(color: Colors.lightBlueAccent[700]!),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Icon(
-                Icons.layers,
-                size: 64,
-                color: i ~/ 3 < 4 ? Colors.black : Colors.white,
-              ),
-            ),
-            Text(
-              "$_selectedCategory $i",
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        );
+        return LayerTile(i, _selectedCategory);
       },
     );
 
