@@ -4,13 +4,13 @@ A Flutter and Python project to visually educate users how to build AI using Ten
 
 ## Getting Started in Flutter
 
-Follow the instructions on https://docs.flutter.dev/get-started/install for your system and then clone this repository into a directory of your choosing.
+Follow the instructions on <https://docs.flutter.dev/get-started/install> for your system and then clone this repository into a directory of your choosing.
 
 Verify that you have setup your environment correctly by running the application. (Note that the build process can take up to a minute)
 
 ## Getting Started in Python
 
-Setup a Python 3.9 venv in your workspace and run `pip install -r requirements.txt`. 
+Setup a Python 3.9 venv in your workspace and run `pip install -r requirements.txt`.
 This will take care of most of the heavy lifting for you.
 
 ## GPU Setup (Optional)
