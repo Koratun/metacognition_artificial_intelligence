@@ -17,7 +17,8 @@ class SelectionPanel extends StatefulWidget {
   State<SelectionPanel> createState() => _SelectionPanelState();
 }
 
-class _SelectionPanelState extends State<SelectionPanel> {
+class _SelectionPanelState extends State<SelectionPanel>
+    with TickerProviderStateMixin {
   String _selectedCategory = categoryNames[0];
 
   Widget _buildLayerCategory(String title) {
@@ -88,7 +89,22 @@ class _SelectionPanelState extends State<SelectionPanel> {
       ),
       itemCount: 21,
       itemBuilder: (BuildContext context, int i) {
-        return LayerTile(i, _selectedCategory);
+        const _entranceTime = 500;
+        final _millesecondsToWait = i * 100;
+
+        final AnimationController _entranceController = AnimationController(
+          vsync: this,
+          duration: Duration(milliseconds: _millesecondsToWait + _entranceTime),
+        );
+
+        final Animation<double> _entranceAnimation = CurvedAnimation(
+          parent: _entranceController,
+          curve: DramaticEntrance(_millesecondsToWait / _entranceTime),
+        );
+
+        _entranceController.forward();
+
+        return LayerTile(i, _selectedCategory, _entranceAnimation);
       },
     );
 
@@ -107,5 +123,21 @@ class _SelectionPanelState extends State<SelectionPanel> {
         ],
       ),
     );
+  }
+}
+
+class DramaticEntrance extends Curve {
+  final double _percentToWait;
+
+  const DramaticEntrance(this._percentToWait);
+
+  @override
+  double transform(double t) {
+    if (t < _percentToWait / (1 + _percentToWait)) {
+      return 0;
+    }
+    t -= _percentToWait / (1 + _percentToWait);
+    t /= 1 - _percentToWait / (1 + _percentToWait);
+    return t * t * -2 + 3 * t; //-2t^2 + 3t
   }
 }
