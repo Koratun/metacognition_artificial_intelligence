@@ -18,7 +18,6 @@ class PyController extends InheritedWidget {
     );
     _python.stdout.transform(utf8.decoder).forEach(print);
     _python.stderr.transform(utf8.decoder).forEach(print);
-    _python.stdin.writeln("Init");
     initialized = true;
   }
 
