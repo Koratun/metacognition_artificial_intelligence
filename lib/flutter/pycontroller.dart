@@ -22,6 +22,14 @@ class PyController extends InheritedWidget {
     initialized = true;
   }
 
+  void bindInputCallback(void Function(String) callback) =>
+      _python.stdout.transform(utf8.decoder).forEach(callback);
+
+  void bindErrorCallback(void Function(String) callback) =>
+      _python.stderr.transform(utf8.decoder).forEach(callback);
+
+  void sendMessage(String message) => _python.stdin.writeln(message);
+
   static PyController of(BuildContext context) {
     final PyController? result =
         context.dependOnInheritedWidgetOfExactType<PyController>();
