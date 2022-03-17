@@ -1,10 +1,15 @@
 import fileinput
 
-print("Py Starting", flush=True)
+
+def write_back(s: str):
+    print(s, flush=True)
+
+
+write_back("Py Starting")
 
 for line in fileinput.input():
     if 'Exit' == line.rstrip():
         break
-    print("Py says "+line.strip(), flush=True)
+    write_back("Py says "+line.strip())
 
-print("Ended", flush=True)
+write_back("Ended")
