@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'layer_tile.dart';
+import 'main.dart';
 import 'pycontroller.dart';
 
 const categoryNames = <String>[
@@ -102,7 +103,6 @@ class _SelectionPanelState extends State<SelectionPanel>
       shrinkWrap: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 8,
         mainAxisExtent: 100,
       ),
       itemCount: 21,
@@ -129,7 +129,7 @@ class _SelectionPanelState extends State<SelectionPanel>
 
     return LimitedBox(
       maxHeight: MediaQuery.of(context).size.height,
-      maxWidth: 128 * 3,
+      maxWidth: Main.getSidePanelWidth(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         textDirection: TextDirection.ltr,

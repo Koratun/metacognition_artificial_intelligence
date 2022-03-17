@@ -4,11 +4,22 @@ import 'pycontroller.dart';
 import 'selection_panel.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(const Main());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({Key? key}) : super(key: key);
+class Main extends StatelessWidget {
+  const Main({Key? key}) : super(key: key);
+
+  static double getSidePanelWidth(BuildContext context) {
+    double totalWidth = MediaQuery.of(context).size.width;
+    if (totalWidth <= 1264) {
+      return 90 * 3;
+    } else if (totalWidth >= 1920) {
+      return 128 * 3;
+    } else {
+      return (totalWidth - 1264) / (1920 - 1264) * (128 * 3 - 90 * 3) + 90 * 3;
+    }
+  }
 
   // This widget is the root of the application.
   @override
@@ -23,33 +34,32 @@ class MainApp extends StatelessWidget {
       ),
       home: Scaffold(
         body: PyController(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black,
-                  child: Center(
-                    child: Text(
-                      'Creation',
-                      style: Theme.of(context).textTheme.headline4!.copyWith(
-                            color: Colors.white,
-                          ),
+          child: Builder(
+            builder: (context) => Stack(
+              children: [
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black,
+                    child: Center(
+                      child: Text(
+                        'Creation',
+                        style: Theme.of(context).textTheme.headline4!.copyWith(
+                              color: Colors.white,
+                            ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Positioned.fill(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SelectionPanel(),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Align(
-                            alignment: Alignment.topCenter,
-                            child: SizedBox(
+                Positioned.fill(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SelectionPanel(),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
                               width: 150,
                               height: 40,
                               child: Container(
@@ -63,10 +73,7 @@ class MainApp extends StatelessWidget {
                                 ),
                               ),
                             ),
-                          ),
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: SizedBox(
+                            SizedBox(
                               width: 800,
                               height: 200,
                               child: Container(
@@ -80,27 +87,27 @@ class MainApp extends StatelessWidget {
                                 ),
                               ),
                             ),
-                          )
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 128 * 3,
-                      height: 600,
-                      child: Container(
-                        color: Colors.yellow,
-                        child: Center(
-                          child: Text(
-                            'Dialogue',
-                            style: Theme.of(context).textTheme.headline6,
+                      SizedBox(
+                        width: Main.getSidePanelWidth(context),
+                        height: 600,
+                        child: Container(
+                          color: Colors.yellow,
+                          child: Center(
+                            child: Text(
+                              'Dialogue',
+                              style: Theme.of(context).textTheme.headline6,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
