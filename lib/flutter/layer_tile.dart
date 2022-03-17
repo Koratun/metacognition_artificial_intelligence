@@ -4,8 +4,11 @@ class LayerTile extends StatefulWidget {
   final int _i;
   final String _title;
   final Animation<double> _entranceAnimation;
+  final AnimationController _entranceController;
 
-  const LayerTile(this._i, this._title, this._entranceAnimation, {Key? key})
+  const LayerTile(
+      this._i, this._title, this._entranceAnimation, this._entranceController,
+      {Key? key})
       : super(key: key);
 
   @override
@@ -33,6 +36,7 @@ class _LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    widget._entranceController.dispose();
     _hoverController.dispose();
     super.dispose();
   }

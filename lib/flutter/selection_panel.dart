@@ -120,7 +120,8 @@ class _SelectionPanelState extends State<SelectionPanel>
 
         _entranceController.forward();
 
-        return LayerTile(i, _selectedCategory, _entranceAnimation);
+        return LayerTile(
+            i, _selectedCategory, _entranceAnimation, _entranceController);
       },
     );
 
