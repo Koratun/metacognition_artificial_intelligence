@@ -48,6 +48,8 @@ class _SelectionPanelState extends State<SelectionPanel>
             _selectedCategory = title;
           });
           print(title);
+          PyController.of(context)
+              .sendMessage("switched to $_selectedCategory");
         },
         child: Container(
           alignment: Alignment.centerLeft,
