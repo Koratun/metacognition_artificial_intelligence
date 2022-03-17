@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'layer_tile.dart';
+import 'pycontroller.dart';
 
 const categoryNames = <String>[
   "Tutorials",
@@ -20,6 +21,21 @@ class SelectionPanel extends StatefulWidget {
 class _SelectionPanelState extends State<SelectionPanel>
     with TickerProviderStateMixin {
   String _selectedCategory = categoryNames[0];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    var py = PyController.of(context);
+    if (!py.initialized) {
+      py.init();
+    }
+  }
+
+  @override
+  void dispose() {
+    PyController.of(context).dispose();
+    super.dispose();
+  }
 
   Widget _buildLayerCategory(String title) {
     return Material(
