@@ -1,46 +1,37 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/material.dart';
 
-class PyController extends InheritedWidget {
-  late final Process _python;
-  bool initialized = false;
+class PyController {
+  Process? _python;
 
-  // ignore: prefer_const_constructors_in_immutables
-  PyController({Key? key, required Widget child})
-      : super(key: key, child: child);
+  PyController() {
+    _init();
+  }
 
-  void init() async {
+  void _init() async {
     _python = await Process.start(
       "python",
       [".\\lib\\python\\main.py"],
       runInShell: true,
     );
-    _python.stdout.transform(utf8.decoder).forEach(print);
-    _python.stderr.transform(utf8.decoder).forEach(print);
-    initialized = true;
+    _python?.stdout.transform(utf8.decoder).forEach(print);
+    _python?.stderr.transform(utf8.decoder).forEach(print);
   }
+
+  static final PyController _theController = PyController();
+
+  static PyController get get => _theController;
 
   void bindInputCallback(void Function(String) callback) =>
-      _python.stdout.transform(utf8.decoder).forEach(callback);
+      _python?.stdout.transform(utf8.decoder).forEach(callback);
 
   void bindErrorCallback(void Function(String) callback) =>
-      _python.stderr.transform(utf8.decoder).forEach(callback);
+      _python?.stderr.transform(utf8.decoder).forEach(callback);
 
-  void sendMessage(String message) => _python.stdin.writeln(message);
-
-  static PyController of(BuildContext context) {
-    final PyController? result =
-        context.dependOnInheritedWidgetOfExactType<PyController>();
-    assert(result != null, "No PyController found");
-    return result!;
-  }
+  void sendMessage(String message) => _python?.stdin.writeln(message);
 
   void dispose() {
-    _python.stdin.writeln("Exit");
-    _python.kill();
+    _python?.stdin.writeln("Exit");
+    _python?.kill();
   }
-
-  @override
-  bool updateShouldNotify(PyController oldWidget) => false;
 }

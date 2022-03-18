@@ -63,37 +63,34 @@ class _LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return UnconstrainedBox(
-      child: LimitedBox(
-        child: ScaleTransition(
-          scale: widget._entranceAnimation,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _mouseDetector(Container(
-                decoration: BoxDecoration(
-                  color: widget._i ~/ 3 < 4
-                      ? Colors.grey[100 * (widget._i ~/ 3 + 1)]
-                      : Colors.grey[100 * (widget._i ~/ 3 + 2)],
-                  border: Border.all(color: Colors.lightBlueAccent[700]!),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Icon(
-                  Icons.layers,
-                  size: 64 + _sizeAnimation.value,
-                  color: widget._i ~/ 3 < 4 ? Colors.black : Colors.white,
-                ),
-              )),
-              Text(
-                "${widget._title} ${widget._i}",
-                style: const TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+    return ScaleTransition(
+      scale: widget._entranceAnimation,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _mouseDetector(Container(
+            decoration: BoxDecoration(
+              color: widget._i ~/ 3 < 4
+                  ? Colors.grey[100 * (widget._i ~/ 3 + 1)]
+                  : Colors.grey[100 * (widget._i ~/ 3 + 2)],
+              border: Border.all(color: Colors.lightBlueAccent[700]!),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Icon(
+              Icons.layers,
+              size: 64 + _sizeAnimation.value,
+              color: widget._i ~/ 3 < 4 ? Colors.black : Colors.white,
+            ),
+          )),
+          Text(
+            "${widget._title} ${widget._i}",
+            style: const TextStyle(
+              fontSize: 16.0,
+              color: Colors.white,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
+        ],
       ),
     );
   }
