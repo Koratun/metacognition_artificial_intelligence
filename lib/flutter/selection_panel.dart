@@ -24,17 +24,14 @@ class _SelectionPanelState extends State<SelectionPanel>
   String _selectedCategory = categoryNames[0];
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    var py = PyController.of(context);
-    if (!py.initialized) {
-      py.init();
-    }
+  void initState() {
+    super.initState();
+    PyController.get.sendMessage("Init");
   }
 
   @override
   void dispose() {
-    PyController.of(context).dispose();
+    PyController.get.dispose();
     super.dispose();
   }
 
@@ -49,8 +46,7 @@ class _SelectionPanelState extends State<SelectionPanel>
             _selectedCategory = title;
           });
           print(title);
-          PyController.of(context)
-              .sendMessage("switched to $_selectedCategory");
+          PyController.get.sendMessage("switched to $_selectedCategory");
         },
         child: Container(
           alignment: Alignment.centerLeft,
@@ -122,8 +118,10 @@ class _SelectionPanelState extends State<SelectionPanel>
 
         _entranceController.forward();
 
-        return LayerTile(
-            i, _selectedCategory, _entranceAnimation, _entranceController);
+        return Center(
+          child: LayerTile(
+              i, _selectedCategory, _entranceAnimation, _entranceController),
+        );
       },
     );
 
