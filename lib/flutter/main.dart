@@ -144,3 +144,23 @@ class _MainState extends State<Main> {
     );
   }
 }
+
+// Might need this later to make a manual hit test against the back canvas
+// when we drop a tile into it
+
+// SchedulerBinding.instance?.addPostFrameCallback((_) {
+//   if (_lastClick == null) {
+//     print("Event was null");
+//     return;
+//   }
+//   BoxHitTestResult result = BoxHitTestResult();
+//   final renderBox = context.findRenderObject();
+//   if (renderBox is RenderBox) {
+//     renderBox.hitTest(result, position: huggerLocation);
+//     for (final hitEntry in result.path) {
+//       if (hitEntry.target is RenderPointerListener) {
+//         hitEntry.target.handleEvent(_lastClick!, hitEntry);
+//       }
+//     }
+//   }
+// });
