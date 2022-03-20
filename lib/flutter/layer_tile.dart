@@ -72,7 +72,7 @@ class _LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
       ),
       child: Icon(
         Icons.layers,
-        size: 64 + (hovering ? 0 : _sizeAnimation.value),
+        size: 64 + (hovering ? 8 : _sizeAnimation.value),
         color: widget._i ~/ 3 < 4 ? Colors.black : Colors.white,
       ),
     );
