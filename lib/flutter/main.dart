@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/rendering.dart';
 
 import 'mouse_hugger.dart';
 import 'selection_panel.dart';
 import 'floating_widget_layout.dart';
+import 'layer_tile.dart';
+import 'creation_canvas.dart';
 
 void main() {
   runApp(const Main());
@@ -26,9 +30,13 @@ class Main extends StatefulWidget {
   State<Main> createState() => _MainState();
 }
 
-class _MainState extends State<Main> {
+class _MainState extends State<Main> with TickerProviderStateMixin {
   Widget? _hugger;
   Offset mousePos = Offset.zero;
+  LayerTile? _huggerParent;
+  final CreationCanvasNotifier _canvasNotifier = CreationCanvasNotifier();
+  late final CreationCanvasDelegate _creationCanvasDelegate =
+      CreationCanvasDelegate(this, _canvasNotifier);
 
   // This widget is the root of the application.
   @override
@@ -43,24 +51,31 @@ class _MainState extends State<Main> {
       ),
       home: Scaffold(
         body: MouseHugger(
-          huggerChange: (hugger, event) => setState(() {
+          huggerChange: (hugger, event, layerTileState) => setState(() {
             mousePos = event.position;
             _hugger = hugger;
+            _huggerParent = layerTileState;
           }),
           child: Builder(
             builder: (context) => Stack(
               children: [
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black,
-                    child: Center(
-                      child: Text(
-                        'Creation',
-                        style: Theme.of(context).textTheme.headline4!.copyWith(
-                              color: Colors.white,
-                            ),
-                      ),
+                    child: CustomMultiChildLayout(
+                      delegate: _creationCanvasDelegate,
+                      children: [
+                        for (var i = 0;
+                            i < _creationCanvasDelegate.childCount();
+                            i++)
+                          LayoutId(
+                            id: i,
+                            child: _creationCanvasDelegate
+                                .childList()
+                                .elementAt(i),
+                          )
+                      ],
                     ),
+                    color: Colors.black,
                   ),
                 ),
                 Positioned.fill(
@@ -123,8 +138,24 @@ class _MainState extends State<Main> {
                   child: Listener(
                     behavior: HitTestBehavior.translucent,
                     onPointerDown: (_) {},
-                    onPointerUp: (_) => setState(() => _hugger = null),
-                    onPointerCancel: (_) => setState(() => _hugger = null),
+                    onPointerUp: (event) {
+                      SchedulerBinding.instance?.addPostFrameCallback((_) {
+                        BoxHitTestResult result = BoxHitTestResult();
+                        final renderBox = context.findRenderObject();
+                        if (renderBox is RenderBox) {
+                          renderBox.hitTest(result, position: event.position);
+                          for (final hitEntry in result.path) {
+                            if (hitEntry.target is RenderBox) {
+                              var target = hitEntry.target as RenderBox;
+                              // hitEntry.target.handleEvent(event, hitEntry);
+                            }
+                          }
+                        }
+                      });
+                      setState(() {
+                        _hugger = null;
+                      });
+                    },
                     onPointerMove: _hugger == null
                         ? (_) {}
                         : (details) =>

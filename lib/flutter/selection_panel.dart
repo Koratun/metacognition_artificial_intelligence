@@ -120,7 +120,12 @@ class _SelectionPanelState extends State<SelectionPanel>
 
         return Center(
           child: LayerTile(
-              i, _selectedCategory, _entranceAnimation, _entranceController),
+            i,
+            _selectedCategory,
+            _entranceAnimation,
+            _entranceController,
+            isGridChild: true,
+          ),
         );
       },
     );

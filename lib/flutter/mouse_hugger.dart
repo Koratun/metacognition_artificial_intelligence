@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'layer_tile.dart';
+
 class MouseHugger extends InheritedWidget {
-  final void Function(Widget hugger, PointerDownEvent event) huggerChange;
+  final void Function(
+      Widget hugger, PointerDownEvent event, LayerTile layerTile) huggerChange;
 
   const MouseHugger(
       {Key? key, required Widget child, required this.huggerChange})
@@ -17,6 +20,6 @@ class MouseHugger extends InheritedWidget {
     return result!;
   }
 
-  void setHugger(Widget hugger, PointerDownEvent event) =>
-      huggerChange(hugger, event);
+  void setHugger(Widget hugger, PointerDownEvent event, LayerTile layerTile) =>
+      huggerChange(hugger, event, layerTile);
 }
