@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:metacognition_artificial_intelligence/flutter/mouse_hugger.dart';
-
-import 'creation_canvas.dart';
 
 class LayerTile extends StatefulWidget {
   final int i;
@@ -9,11 +6,11 @@ class LayerTile extends StatefulWidget {
   final Animation<double> _entranceAnimation;
   final AnimationController _entranceController;
   final bool isGridChild;
-  final CreationCanvasNotifier? notifier;
+  final void Function()? changeNotifyCallback;
 
   const LayerTile(
       this.i, this.title, this._entranceAnimation, this._entranceController,
-      {Key? key, required this.isGridChild, this.notifier})
+      {Key? key, required this.isGridChild, this.changeNotifyCallback})
       : super(key: key);
 
   @override
@@ -38,10 +35,10 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
       setState(() {});
     });
     if (!widget.isGridChild) {
-      _hoverController.value = 1.0;
-      if (widget.notifier != null) {
-        _sizeAnimation.addListener(() => widget.notifier!.notify());
-        widget._entranceAnimation.addListener(() => widget.notifier!.notify());
+      if (widget.changeNotifyCallback != null) {
+        _sizeAnimation.addListener((() => widget.changeNotifyCallback!()));
+        widget._entranceAnimation
+            .addListener(() => setState(() => widget.changeNotifyCallback!()));
       }
     }
   }
@@ -54,13 +51,13 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
   }
 
   Widget _mouseDetector(Widget child) {
-    return Listener(
-      onPointerDown: (event) => MouseHugger.of(context).setHugger(
-          LimitedBox(
-            child: _imageTile(hovering: true),
-          ),
-          event,
-          widget),
+    return Draggable<LayerTile>(
+      data: widget,
+      feedback: LimitedBox(
+        child: _imageTile(hovering: true),
+      ),
+      hitTestBehavior: HitTestBehavior.translucent,
+      // dragAnchorStrategy: DragAnchorStrategy,
       child: MouseRegion(
         onEnter: (event) {
           _hoverController.forward();

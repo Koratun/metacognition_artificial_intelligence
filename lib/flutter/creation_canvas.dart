@@ -2,20 +2,23 @@ import 'package:flutter/material.dart';
 
 import 'layer_tile.dart';
 
-class CreationCanvasDelegate extends MultiChildLayoutDelegate {
+class CreationCanvas extends StatefulWidget {
+  const CreationCanvas({Key? key}) : super(key: key);
+
+  @override
+  State<CreationCanvas> createState() => _CreationCanvasState();
+}
+
+class _CreationCanvasState extends State<CreationCanvas>
+    with TickerProviderStateMixin, ChangeNotifier {
   final List<LayerTile> tiles = <LayerTile>[];
   final List<Offset> positions = <Offset>[];
   final List<Text> tileScripts = <Text>[];
-  final TickerProvider _ticker;
-  final CreationCanvasNotifier _changeNotifier;
-
-  CreationCanvasDelegate(this._ticker, this._changeNotifier)
-      : super(relayout: _changeNotifier);
 
   void addTile(LayerTile layerTile, Offset pos) {
     final AnimationController _entranceController = AnimationController(
-      vsync: _ticker,
-      duration: const Duration(seconds: 2),
+      vsync: this,
+      duration: const Duration(seconds: 1),
     );
 
     final Animation<double> _steadyFall = CurvedAnimation(
@@ -24,7 +27,7 @@ class CreationCanvasDelegate extends MultiChildLayoutDelegate {
     );
 
     final Animation<double> _entranceAnimation =
-        Tween(begin: 8.0, end: 0.0).animate(_steadyFall);
+        Tween(begin: 16.0, end: 0.0).animate(_steadyFall);
 
     _entranceController.forward();
 
@@ -34,7 +37,7 @@ class CreationCanvasDelegate extends MultiChildLayoutDelegate {
       _entranceAnimation,
       _entranceController,
       isGridChild: false,
-      notifier: _changeNotifier,
+      changeNotifyCallback: () => setState(() => notifyListeners()),
     ));
     positions.add(pos);
     tileScripts.add(Text(
@@ -44,7 +47,6 @@ class CreationCanvasDelegate extends MultiChildLayoutDelegate {
         color: Colors.white,
       ),
     ));
-    _changeNotifier.notify();
   }
 
   Iterable<Widget> childList() sync* {
@@ -57,8 +59,39 @@ class CreationCanvasDelegate extends MultiChildLayoutDelegate {
   int childCount() => tiles.length * 2;
 
   @override
+  Widget build(BuildContext context) {
+    return DragTarget<LayerTile>(
+      builder: (context, candidateData, rejectedData) {
+        return Container(
+          child: CustomMultiChildLayout(
+            delegate: CreationCanvasDelegate(
+                changeNotifier: this, positions: positions),
+            children: [
+              for (var i = 0; i < childCount(); i++)
+                LayoutId(
+                  id: i,
+                  child: childList().elementAt(i),
+                )
+            ],
+          ),
+          color: Colors.black,
+        );
+      },
+      onAcceptWithDetails: (DragTargetDetails details) =>
+          setState(() => addTile(details.data, details.offset)),
+    );
+  }
+}
+
+class CreationCanvasDelegate extends MultiChildLayoutDelegate {
+  final List<Offset> positions;
+
+  CreationCanvasDelegate({required changeNotifier, required this.positions})
+      : super(relayout: changeNotifier);
+
+  @override
   void performLayout(Size size) {
-    for (var i = 0; i < tiles.length; i++) {
+    for (var i = 0; i < positions.length; i++) {
       var tileID = i * 2;
       var textID = i * 2 + 1;
       Size tileSize = Size.zero;
@@ -79,7 +112,6 @@ class CreationCanvasDelegate extends MultiChildLayoutDelegate {
 
   @override
   bool shouldRelayout(CreationCanvasDelegate oldDelegate) {
-    print("Canvas relayout?");
     if (positions.length != oldDelegate.positions.length) {
       return true;
     }
@@ -89,11 +121,5 @@ class CreationCanvasDelegate extends MultiChildLayoutDelegate {
       }
     }
     return false;
-  }
-}
-
-class CreationCanvasNotifier extends ChangeNotifier {
-  void notify() {
-    notifyListeners();
   }
 }
