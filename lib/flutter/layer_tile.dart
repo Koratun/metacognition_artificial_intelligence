@@ -35,6 +35,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
       setState(() {});
     });
     if (!widget.isGridChild) {
+      _hoverController.forward(from: 1.0);
       if (widget.changeNotifyCallback != null) {
         _sizeAnimation.addListener((() => widget.changeNotifyCallback!()));
         widget._entranceAnimation
