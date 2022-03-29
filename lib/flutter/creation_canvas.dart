@@ -37,7 +37,7 @@ class _CreationCanvasState extends State<CreationCanvas>
       _entranceAnimation,
       _entranceController,
       isGridChild: false,
-      changeNotifyCallback: () => setState(() => notifyListeners()),
+      changeNotifyCallback: notifyListeners,
     ));
     positions.add(pos);
     tileScripts.add(Text(
