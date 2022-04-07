@@ -15,6 +15,7 @@ Setup a Python 3.9.10 venv in your workspace by running `python -m venv .venv` i
 If you are on Windows and VS Code, close all your terminals and open a new terminal. If an error appears open a PowerShell window in Administrator mode and execute the following command: `Set-ExecutionPolicy RemoteSigned`. Then reopen a terminal window.
 
 ### Install required Python packages
+
 Run `python -m pip install --upgrade pip`. Technically this is not required, but it looks cooler.
 Then run `pip install -r requirements.txt`.
 This will take care of most of the heavy lifting for you.
