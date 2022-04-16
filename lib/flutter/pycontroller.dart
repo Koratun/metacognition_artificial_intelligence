@@ -11,7 +11,7 @@ class PyController {
   void _init() async {
     _python = await Process.start(
       "python",
-      [".\\lib\\python\\main.py"],
+      [".\\lib\\python\\dart_endpoint.py"],
       runInShell: true,
     );
     _python?.stdout.transform(utf8.decoder).forEach(print);
