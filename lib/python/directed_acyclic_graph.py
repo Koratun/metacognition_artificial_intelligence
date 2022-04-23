@@ -46,7 +46,7 @@ class DirectedAcyclicGraph:
         self.inputs: list[DagNode] = []
 
 
-    def _unsee(self, construct = False):
+    def _unsee(self, construct=False):
         for n in self.nodes:
             n.seen = False
             if construct:
