@@ -1,6 +1,5 @@
-from pydantic import BaseModel
-from layer import Layer
-from lib.python.directed_acyclic_graph import DagNode
+from pydantic import BaseModel, ValidationError
+from python.directed_acyclic_graph import Layer, DagNode
 
 
 class InputSettings(BaseModel):
@@ -10,7 +9,7 @@ class InputSettings(BaseModel):
 class Input(Layer):
     def __init__(self):
         super().__init__()
-        self.settings = InputSettings()
+        self.make_settings_data_fields(InputSettings)
         
 
     @property
@@ -19,3 +18,15 @@ class Input(Layer):
 
     # def validate_syntax(self, node_being_built: DagNode):
         
+
+
+if __name__ == "__main__":
+    def test(cls, **data):
+        try:
+            cls(**data)
+        except ValidationError as e:
+            print(e.errors())
+            print(e.raw_errors)
+
+    test(InputSettings, shape='')
+    

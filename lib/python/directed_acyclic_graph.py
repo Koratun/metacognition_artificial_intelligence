@@ -1,5 +1,60 @@
 from uuid import uuid4
-from layers.layer import Layer
+import abc
+from typing import Type
+from uuid import uuid4
+from pydantic import BaseModel, ValidationError
+from pydantic.schema import schema as get_schema
+
+
+class LayerSyntaxException(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+
+class Layer(metaclass=abc.ABCMeta):
+    def __init__(self):
+        self.layer_id = uuid4()
+        self.name = self.type
+        self.constructed = False
+        self.settings_validator: Type[BaseModel] = None
+
+    def make_settings_data_fields(self, validator: Type[BaseModel]):
+        self.settings_validator = validator
+        response = get_schema([validator])['definitions']
+        response: dict = response[validator.__name__]['properties']
+        self.settings_data = {k: '' for k in response.keys()}
+
+    def validate_settings(self):
+        try:
+            self.settings_validator(self.settings_data)
+        except ValidationError as e:
+            e.json()
+
+    def reset_construct(self):
+        self.constructed = False
+
+    @property
+    @abc.abstractmethod
+    def type() -> str:
+        return 'base_layer'
+
+    @abc.abstractmethod
+    def validate_syntax(self, node_being_built: 'DagNode'):
+        """
+        This method must check if the settings and node 
+        connections are correct for this layer.
+        """
+        raise LayerSyntaxException("Not implemented")
+
+    @abc.abstractmethod
+    def generate_code_line(self, node_being_built: 'DagNode') -> str:
+        """
+        Generate the code line for this layer.
+        This method must be implemented by the subclasses.
+        It must validate the syntax first before continuing.
+        It must set the `constructed` attribute to True.
+        """
+        raise NotImplementedError()
 
 
 class DagException(Exception):
