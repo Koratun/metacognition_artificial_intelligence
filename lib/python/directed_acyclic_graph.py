@@ -28,10 +28,32 @@ class Layer(metaclass=abc.ABCMeta):
         try:
             self.settings_validator(self.settings_data)
         except ValidationError as e:
-            e.json()
+            return e.errors()
 
     def reset_construct(self):
         self.constructed = False
+
+    @property
+    def min_upstream_nodes() -> int:
+        return 1
+
+    @property
+    def max_upstream_nodes() -> int:
+        return 1
+
+    def check_number_upstream_nodes(self, n: int) -> bool:
+        return self.min_upstream_nodes <= n and n <= self.max_upstream_nodes 
+
+    @property
+    def min_downstream_nodes() -> int:
+        return 1
+
+    @property
+    def max_downstream_nodes() -> int:
+        return 1
+
+    def check_number_downstream_nodes(self, n: int) -> bool:
+        return self.min_downstream_nodes <= n and n <= self.max_downstream_nodes 
 
     @property
     @abc.abstractmethod
