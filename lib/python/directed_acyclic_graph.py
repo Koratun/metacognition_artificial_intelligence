@@ -2,6 +2,7 @@ from uuid import uuid4
 import abc
 from typing import Type
 from uuid import uuid4
+from wsgiref.validate import validator
 from pydantic import BaseModel, ValidationError
 from pydantic.schema import schema as get_schema
 
@@ -11,18 +12,31 @@ class LayerSyntaxException(Exception):
         super().__init__(*args)
 
 
+class LayerSettings(BaseModel):
+    @validator('*', always=True)
+    def null_string_validator(cls, v):
+        if v == '':
+            return None
+        return v
+
+
 class Layer(metaclass=abc.ABCMeta):
     def __init__(self):
         self.layer_id = uuid4()
         self.name = self.type
         self.constructed = False
-        self.settings_validator: Type[BaseModel] = None
+        self.settings_validator: Type[LayerSettings] = None
 
-    def make_settings_data_fields(self, validator: Type[BaseModel]):
+    def make_settings_data_fields(self, validator: Type[LayerSettings]):
         self.settings_validator = validator
         response = get_schema([validator])['definitions']
         response: dict = response[validator.__name__]['properties']
         self.settings_data = {k: '' for k in response.keys()}
+
+    def update_settings(self, settings: dict):
+        """This method assumes that the settings match this layer's schema"""
+        self.settings_data.update(settings)
+        return self.validate_settings()
 
     def validate_settings(self):
         try:
@@ -60,13 +74,15 @@ class Layer(metaclass=abc.ABCMeta):
     def type() -> str:
         return 'base_layer'
 
-    @abc.abstractmethod
     def validate_syntax(self, node_being_built: 'DagNode'):
-        """
-        This method must check if the settings and node 
-        connections are correct for this layer.
-        """
-        raise LayerSyntaxException("Not implemented")
+        errors = {}
+        errors['setting_errors'] = self.validate_settings()
+        errors['node_errors'] = []
+        if not self.check_number_upstream_nodes(len(node_being_built.upstream_nodes)):
+            errors['node_errors'].append('upstream count out of bounds')
+        if not self.check_number_downstream_nodes(len(node_being_built.downstream_nodes)):
+            errors['node_errors'].append('downstream count out of bounds')
+        return {k: v for k, v in errors.items() if v}
 
     @abc.abstractmethod
     def generate_code_line(self, node_being_built: 'DagNode') -> str:
@@ -136,6 +152,13 @@ class DirectedAcyclicGraph:
         head_nodes = [n for n in self.nodes if not n.seen]
         self._unsee()
         return head_nodes
+
+
+    def get_node(self, node_id: uuid4) -> DagNode:
+        for n in self.nodes:
+            if n.id == node_id:
+                return n
+        raise DagException("Node not found")
 
 
     def _is_acyclic(self) -> bool:
