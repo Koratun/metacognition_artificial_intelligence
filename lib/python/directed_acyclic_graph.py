@@ -4,7 +4,6 @@ from typing import Type
 from uuid import uuid4
 from wsgiref.validate import validator
 from pydantic import BaseModel, ValidationError
-from pydantic.schema import schema as get_schema
 
 
 class LayerSyntaxException(Exception):
@@ -21,17 +20,18 @@ class LayerSettings(BaseModel):
 
 
 class Layer(metaclass=abc.ABCMeta):
+    settings_validator: Type[LayerSettings] = None
+
     def __init__(self):
         self.layer_id = uuid4()
         self.name = self.type
         self.constructed = False
-        self.settings_validator: Type[LayerSettings] = None
+        self.settings_data = {k: '' for k in self.get_settings_data_fields()}
 
-    def make_settings_data_fields(self, validator: Type[LayerSettings]):
-        self.settings_validator = validator
-        response = get_schema([validator])['definitions']
-        response: dict = response[validator.__name__]['properties']
-        self.settings_data = {k: '' for k in response.keys()}
+    @classmethod
+    def get_settings_data_fields(cls):
+        response: dict = cls.settings_validator.schema()['properties']
+        return list(response.keys())
 
     def update_settings(self, settings: dict):
         """This method assumes that the settings match this layer's schema"""
