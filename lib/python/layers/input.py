@@ -8,9 +8,7 @@ class InputSettings(LayerSettings):
 
 
 class Input(Layer, metaclass=abc.ABCMeta):
-    def __init__(self):
-        super().__init__()
-        self.make_settings_data_fields(InputSettings)
+    settings_validator = InputSettings
 
     @property
     def min_upstream_nodes() -> int:
