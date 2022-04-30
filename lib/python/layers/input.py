@@ -1,13 +1,14 @@
-import abc
+from typing import Optional
+from python.layers.layers import Dtype
 from python.directed_acyclic_graph import LayerSettings, Layer
 
 
 class InputSettings(LayerSettings):
-    shape: list[int]
-    # dtype: Optional[Dtype]
+    shape: tuple[int, ...]
+    dtype: Optional[Dtype] = None
 
 
-class Input(Layer, metaclass=abc.ABCMeta):
+class Input(Layer):
     settings_validator = InputSettings
 
     @property

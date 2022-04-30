@@ -1,9 +1,9 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 import abc
+import re
 from typing import Type
-from uuid import uuid4
-from wsgiref.validate import validator
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, validator
+from pydantic.fields import ModelField
 
 
 class LayerSyntaxException(Exception):
@@ -12,11 +12,21 @@ class LayerSyntaxException(Exception):
 
 
 class LayerSettings(BaseModel):
-    @validator('*', always=True)
-    def null_string_validator(cls, v):
+    @validator('*', pre=True)
+    def string_validator(cls, v, field: ModelField):
         if v == '':
             return None
-        return v
+        if field.outer_type_ is str:
+            return v
+        try:
+            # The empty dictionary is to prevent security threats 
+            # in the form of injection attacks
+            return eval(v, {})
+        except Exception:
+            raise ValueError("Invalid formatting")
+
+    class Config:
+        use_enum_values = True
 
 
 class Layer(metaclass=abc.ABCMeta):
@@ -40,7 +50,7 @@ class Layer(metaclass=abc.ABCMeta):
 
     def validate_settings(self):
         try:
-            self.settings_validator(self.settings_data)
+            self.settings_validator(**self.settings_data)
         except ValidationError as e:
             return e.errors()
 
@@ -84,15 +94,34 @@ class Layer(metaclass=abc.ABCMeta):
             errors['node_errors'].append('downstream count out of bounds')
         return {k: v for k, v in errors.items() if v}
 
+    def construct_settings(self):
+        set_settings = self.settings_validator(**self.settings_data).dict(exclude_defaults=True)
+        return ', '.join(f'{k}={v}' for k, v in set_settings.items())
+
     @abc.abstractmethod
     def generate_code_line(self, node_being_built: 'DagNode') -> str:
         """
         Generate the code line for this layer.
-        This method must be implemented by the subclasses.
         It must validate the syntax first before continuing.
         It must set the `constructed` attribute to True.
         """
-        raise NotImplementedError()
+        try:
+            line = self.name + ' = layers.' + self.__name__ + '(' + self.construct_settings() + ')'
+            if len(node_being_built.upstream_nodes) != 1:
+                raise LayerSyntaxException({
+                    'node_id': str(node_being_built.id), 
+                    'reason': "upstream_node_count", 
+                    'errors': 'Layer must have exactly one upstream node'
+                })
+            line += '(' + node_being_built.upstream_nodes[0].layer.name + ')'
+            self.constructed = True
+            return line
+        except ValidationError as e:
+            raise LayerSyntaxException({
+                'node_id': str(node_being_built.id), 
+                'reason': "settings_validation", 
+                'errors': e.errors()
+            })
 
 
 class DagException(Exception):
@@ -118,6 +147,9 @@ class DagNode:
     def disconnect_from(self, node: 'DagNode'):
         self.remove_downstream_node(node)
         node.remove_upstream_node(self)
+
+    def check_node_connection_limits(self):
+        return self.layer.check_number_upstream_nodes() and self.layer.check_number_downstream_nodes()
 
     def add_upstream_node(self, node: 'DagNode'):
         self.upstream_nodes.append(node)
@@ -154,67 +186,76 @@ class DirectedAcyclicGraph:
         return head_nodes
 
 
-    def get_node(self, node_id: uuid4) -> DagNode:
+    def get_node(self, node_id: UUID) -> DagNode:
         for n in self.nodes:
             if n.id == node_id:
                 return n
         raise DagException("Node not found")
 
 
-    def _is_acyclic(self) -> bool:
+    def _check_cyclic(self) -> bool:
         if len(self.edges) < 2:
             return True
         for head in self.get_head_nodes():
             head.seen = True
-            if not self._is_acyclic(head):
+            if not self._check_cyclic(head):
                 head.seen = False
                 return False
             head.seen = False
         return True
 
     
-    def _is_acyclic(self, node: DagNode) -> bool:
+    def _check_cyclic(self, node: DagNode) -> bool:
         for n in node.downstream_nodes:
             if n.seen:
                 return False
             n.seen = True
-            if not self._is_acyclic(n):
+            if not self._check_cyclic(n):
                 n.seen = False
                 return False
             n.seen = False
         return True
 
 
-    def connect_nodes(self, source_node: DagNode, dest_node: DagNode):
+    def connect_nodes(self, source_id: UUID, dest_id: UUID):
+        source_node, dest_node = self.get_node(source_id), self.get_node(dest_id)
         if (source_node, dest_node) in self.edges:
             raise DagException("Connection already exists")
         else:
             self.edges.append((source_node, dest_node))
             source_node.connect_to(dest_node)
-            if not self._is_acyclic():
+            if not source_node.check_node_connection_limits():
+                self.edges.pop()
+                source_node.disconnect_from(dest_node)
+                raise DagException("Source node has too many connections")
+            elif not dest_node.check_node_connection_limits():
+                self.edges.pop()
+                source_node.disconnect_from(dest_node)
+                raise DagException("Destination node has too many connections")
+            elif not self._check_cyclic(): 
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
                 raise DagException("Circular graphs not allowed")
 
 
-    def disconnect_nodes(self, source_node: DagNode, dest_node: DagNode):
+    def disconnect_nodes(self, source_id: UUID, dest_id: UUID):
+        source_node, dest_node = self.get_node(source_id), self.get_node(dest_id)
         if (source_node, dest_node) in self.edges:
             self.edges.remove((source_node, dest_node))
             source_node.disconnect_from(dest_node)
+        raise DagException("Connection not found")
 
 
     def add_node(self, layer: Layer) -> DagNode:
         node = DagNode(layer)
-        if not node in self.nodes:
-            if layer.type == 'input':
-                self.inputs.append(node)
-            self.nodes.append(node)
-            return node
-        else:
-            raise DagException("Node already added")
+        if layer.type == 'input':
+            self.inputs.append(node)
+        self.nodes.append(node)
+        return node
 
 
-    def remove_node(self, node: DagNode):
+    def remove_node(self, node_id: UUID):
+        node = self.get_node(node_id)
         for e in list(self.edges):
             if node in e:
                 self.edges.remove(e)
@@ -226,6 +267,8 @@ class DirectedAcyclicGraph:
             raise DagException("The graph has no connections")
 
         model_file = "##~ Model code generated by MAI: DO NOT TOUCH! ~Mai\n\n"
+        model_file += "import keras\n"
+        model_file += "from keras import layers\n\n"
 
         for head in self.get_head_nodes():
             head.seen = True
