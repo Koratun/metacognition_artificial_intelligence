@@ -6,7 +6,7 @@ import traceback
 from typing import Any, Type
 from uuid import UUID
 from pydantic import BaseModel, ValidationError, validator
-from lib.python.directed_acyclic_graph import LayerSettings, LayerSyntaxException
+from lib.python.directed_acyclic_graph import LayerSettings, CompileException
 from python.directed_acyclic_graph import DagException, DirectedAcyclicGraph, Layer
 
 # When a new layer is created, add it to the list!
@@ -178,7 +178,7 @@ def process(command: str, payload: str):
         return e.json()
     except DagException as e:
         return format_response(errors=str(e))
-    except LayerSyntaxException as e:
+    except CompileException as e:
         return format_response(**e.args[0])
     
 
