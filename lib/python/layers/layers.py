@@ -1,10 +1,19 @@
 from enum import Enum
+import abc
 
 # This file handles general utilities that all layers will need to access 
 # outside the base layer class
 
+class FormatEnum(Enum):
+    """
+    This is a base class for all special settings formats.
+    """
+    @abc.abstractmethod
+    def __str__(self):
+        raise NotImplementedError()
 
-class Dtype(Enum):
+
+class Dtype(FormatEnum):
     bfloat16 = 'bfloat16'       # 16-bit bfloat (brain floating point).
     bool = 'bool'               # Boolean.
     complex128 = 'complex128'   # 128-bit complex.
@@ -30,3 +39,6 @@ class Dtype(Enum):
     uint64 = 'uint64'           # Unsigned 64-bit (qword) integer.
     uint8 = 'uint8'             # Unsigned 8-bit (byte) integer.
     variant = 'variant'         # Data of arbitrary type (known at runtime).
+
+    def __str__(self):
+        return 'tf.' + self.value
