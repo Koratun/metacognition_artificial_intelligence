@@ -274,10 +274,10 @@ class DirectedAcyclicGraph:
         start_node.seen = True
         for n in start_node.upstream_nodes:
             n.seen = True
-            self._check_graph_whole_recurse(start_node, up=True)
+            self._check_graph_whole_recurse(n, up=True)
         for n in start_node.downstream_nodes:
             n.seen = True
-            self._check_graph_whole_recurse(start_node, up=False)
+            self._check_graph_whole_recurse(n, up=False)
         # Now check if there are any nodes in the graph that have not been seen
         disjointed_node_ids = [str(n.id) for n in self.nodes if not n.seen]
         self._unsee()
@@ -297,6 +297,7 @@ class DirectedAcyclicGraph:
         for n in nodes:
             n.seen = True
             self._check_graph_whole_recurse(n, up=up)
+
 
     def construct_keras(self):
         if not self.edges:
