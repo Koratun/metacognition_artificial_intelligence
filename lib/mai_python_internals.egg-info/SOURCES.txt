@@ -11,6 +11,5 @@ lib/python/pydantic_dart_converter.py
 lib/python/layers/__init__.py
 lib/python/layers/dense.py
 lib/python/layers/input.py
-lib/python/layers/layer.py
 lib/python/layers/layers.py
 lib/python/layers/output.py
