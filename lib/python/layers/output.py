@@ -74,7 +74,8 @@ class Output(Layer):
             line += "[" + ', '.join(n.layer.name for n in node_being_built.upstream_nodes) + "]" 
         else:
             line += node_being_built.upstream_nodes[0].layer.name
-        # TODO: IN PROGESS
-        line += ')'
+        line += ')\n'
+        # TODO: This will need to be reworked after losses, optimizations, and metrics are implemented.
+        line += self.name + '.compile(' + self.construct_settings() + ')'
         self.constructed = True
         return line
