@@ -1,13 +1,12 @@
 from enum import Enum
 import fileinput
-import json
 from sys import stderr
 import traceback
 from typing import Any, Type
 from uuid import UUID
 from pydantic import BaseModel, ValidationError, validator
-from lib.python.directed_acyclic_graph import LayerSettings, CompileException
-from python.directed_acyclic_graph import DagException, DirectedAcyclicGraph, Layer
+from python.directed_acyclic_graph import CompileErrorReason, DagException, DirectedAcyclicGraph, Layer, CompileException
+from python.response_schemas import ResponseType
 from pathlib import Path
 
 # When a new layer is created, add it to the list!
@@ -77,8 +76,7 @@ def main():
 
     compile{}
     """
-    write_back("Py Starting")
-    write_back(format_response(category_list=layer_packages))
+    write_back(format_response(ResponseType.STARTUP, category_list=layer_packages))
 
     for line in fileinput.input():
         inp = line.rstrip()
@@ -93,8 +91,6 @@ def main():
             response = "Fatal exception occurred:\n"+traceback.format_exc()
             error = True
         write_back(response, error=error)
-
-    write_back("Ended")
 
 
 class Command(Enum):
@@ -149,17 +145,19 @@ class Connection(BaseModel):
     dest_id: UUID
 
 
-def format_response(errors=None, **kwargs):
-    return json.dumps(dict(errors=errors, **kwargs))
+def format_response(response_type: ResponseType, **kwargs):
+    return response_type.value + response_type.get_model()(**kwargs).json()
 
 
 def process(command: str, payload: str):
     try:
         if command == Command.CREATE.value:
             request = CreateLayer.parse_raw(payload)
-            dag.add_node(request.layer())
+            node = dag.add_node(request.layer())
 
             return format_response(
+                ResponseType.CREATION,
+                node_id=node.id,
                 layer_settings=request.layer.get_settings_data_fields(),
                 node_connection_limits=dict(
                     min_upstream=request.layer.min_upstream_nodes,
@@ -170,29 +168,34 @@ def process(command: str, payload: str):
             )
         elif command == Command.UPDATE.value:
             request = UpdateLayer.parse_raw(payload)
-            errors = dag.get_node(request.id).layer.update_settings(request.settings)
+            error = dag.get_node(request.id).layer.update_settings(request.settings)
             
-            return format_response(errors=errors)
+            return format_response(ResponseType.SUCCESS_FAIL, error=error)
         elif command == Command.DELETE.value:
             request = DeleteNode.parse_raw(payload)
             dag.remove_node(request.id)
             
-            return format_response()
+            return format_response(ResponseType.SUCCESS_FAIL)
         elif command == Command.CONNECT.value or command == Command.DISCONNECT.value:
             request = Connection.parse_raw(payload)
             if 'd' in command:
                 dag.disconnect_nodes(request.source_id, request.dest_id)
             else:
                 dag.connect_nodes(request.source_id, request.dest_id)
-            return format_response()
+            return format_response(ResponseType.SUCCESS_FAIL)
         elif command == Command.COMPILE.value:
-            return format_response(py_file=dag.construct_keras())
+            return format_response(ResponseType.COMPILE_SUCCESS, py_file=dag.construct_keras())
     except ValidationError as e:
-        return e.json()
+        return format_response(ResponseType.VALIDATION_ERROR, __root__=e.errors())
     except DagException as e:
-        return format_response(errors=str(e))
+        return format_response(ResponseType.GRAPH_EXCEPTION, error=str(e))
     except CompileException as e:
-        return format_response(**e.args[0])
+        if e.error_data['reason'] == CompileErrorReason.DISJOINTED_GRAPH.value:
+            return format_response(ResponseType.COMPILE_ERROR_DISJOINTED, **e.error_data)
+        elif e.error_data['reason'] == CompileErrorReason.SETTINGS_VALIDATION.value:
+            return format_response(ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION, **e.error_data)
+        else:
+            return format_response(ResponseType.COMPILE_ERROR, **e.error_data)
     
 
 

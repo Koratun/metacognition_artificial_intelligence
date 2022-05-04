@@ -7,8 +7,9 @@ from pydantic.fields import ModelField
 
 
 class CompileException(Exception):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
+    def __init__(self, error_data: dict, *args: object) -> None:
+        self.error_data = error_data
+        super().__init__(error_data, *args)
 
 
 class CompileErrorReason(Enum):
