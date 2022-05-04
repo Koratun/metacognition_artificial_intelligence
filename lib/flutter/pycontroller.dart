@@ -30,6 +30,8 @@ class PyController {
 
   void sendMessage(String message) => _python?.stdin.writeln(message);
 
+  void pyInputHandler(String data) {}
+
   void dispose() {
     _python?.stdin.writeln("Exit");
     _python?.kill();
