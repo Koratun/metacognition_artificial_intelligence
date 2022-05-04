@@ -115,7 +115,7 @@ class CreateLayer(BaseModel):
 class MetaSchema(BaseModel):
     title: str
     type: str
-    properties: dict[str, Any]
+    properties: dict[str, dict[str, Any]]
     required: list[str]
 
 
@@ -133,7 +133,7 @@ class UpdateLayer(CreateLayer):
         for given_field in v.keys():
             if given_field not in all_fields:
                 raise ValueError(f"{given_field} is not a valid setting field for: {layer.__name__}")
-        raise v
+        return v
 
 
 class DeleteNode(BaseModel):

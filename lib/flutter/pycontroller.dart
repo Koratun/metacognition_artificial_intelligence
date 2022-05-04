@@ -30,7 +30,13 @@ class PyController {
 
   void sendMessage(String message) => _python?.stdin.writeln(message);
 
-  void pyInputHandler(String data) {}
+  void pyInputHandler(String data) {
+    // Separate the text preceding the first [ or {
+    // and the rest of the text.
+    final String responseType =
+        data.substring(0, data.indexOf(RegExp(r'[[{]')));
+    final String responseData = data.substring(data.indexOf(RegExp(r'[[{]')));
+  }
 
   void dispose() {
     _python?.stdin.writeln("Exit");
