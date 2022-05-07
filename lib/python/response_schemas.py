@@ -1,12 +1,12 @@
 from enum import Enum
 from uuid import UUID
-from typing import Union, Optional, Type
-from pydantic import BaseModel, validator
+from typing import Optional, Type
+from pydantic import BaseModel
 from python.directed_acyclic_graph import CompileErrorReason
-from math import inf
 
 # Note that __root__ is not allowed to be used in these schemas
 # dart conversion will fail if it is used
+# Dart also cannot convert Union types
 
 
 class ResponseType(Enum):
@@ -40,6 +40,19 @@ class ResponseType(Enum):
         elif self == self.COMPILE_SUCCESS:
             return CompileSuccessResponse
 
+    def camel(self) -> str:
+        s = self.value
+        camel_string = ''
+        for i, c in enumerate(s):
+            if i == 0:
+                camel_string += c
+            elif c == '_':
+                camel_string += s[i + 1].upper()
+            elif s[i - 1] == '_':
+                continue
+            else:
+                camel_string += c
+        return camel_string
 
 
 class StartupResponse(BaseModel):
@@ -47,16 +60,13 @@ class StartupResponse(BaseModel):
 
 
 class NodeConnectionLimits(BaseModel):
-    @validator('*', pre=True)
-    def infinity_check(cls, v):
-        if v is inf:
-            return 'inf'
-        return v
-
-    min_upstream: Union[int, str]
-    max_upstream: Union[int, str]
-    min_downstream: Union[int, str]
-    max_downstream: Union[int, str]
+    # These must be strings because pydantic can convert int to str
+    # But dart cannot store a Union type where pydantic can,
+    # Dart will have to check if the value is an int or a str
+    min_upstream: str
+    max_upstream: str
+    min_downstream: str
+    max_downstream: str
 
 
 class CreationResponse(BaseModel):
