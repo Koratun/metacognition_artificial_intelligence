@@ -9,10 +9,11 @@ from lib.python.dart_endpoint import MetaSchema
 
 def main():
     for obj in response_schemas.__dict__.values():
-        if issubclass(obj, BaseModel) and obj != BaseModel:
-            make_dart_schema(obj)
-        elif issubclass(obj, Enum) and obj != Enum:
-            make_dart_enum(obj)
+        if isinstance(obj, type):
+            if issubclass(obj, BaseModel) and obj != BaseModel:
+                make_dart_schema(obj)
+            elif issubclass(obj, Enum) and obj != Enum:
+                make_dart_enum(obj)
 
 
 def pascal_to_snake(s: str):
@@ -34,7 +35,7 @@ def snake_to_camel(s: str):
             camel_string += c
         elif c == '_':
             camel_string += s[i + 1].upper()
-        elif camel_string[-1].isupper():
+        elif s[i - 1] == '_':
             continue
         else:
             camel_string += c
@@ -96,7 +97,7 @@ def make_dart_schema(model_cls: Type[BaseModel]):
                     properties[prop_name] = properties[prop_name].replace('dynamic', pydantic_dart_type_map.get(prop_schema[prop_getter]['type']))
                     prop_schema = prop_schema[prop_getter]
 
-    required_camels = [snake_to_camel(prop_name) for prop_name in model_schema.required]
+    required_camels = [snake_to_camel(prop_name) for prop_name in model_schema.required] if model_schema.required else []
 
     with open('lib/flutter/response_schemas/{}.dart'.format(pascal_to_snake(model_cls.__name__)), 'w') as f:
         f.write("import 'package:json_annotation/json_annotation.dart';\n")
@@ -105,9 +106,24 @@ def make_dart_schema(model_cls: Type[BaseModel]):
         f.write("\n")
         f.write(f"part '{pascal_to_snake(model_cls.__name__)}.g.dart';\n")
         f.write("\n")
+
         f.write("@JsonSerializable(fieldRename: FieldRename.snake)\n")
-        f.write(f"class {model_cls.__name__} {{")
+        f.write(f"class {model_cls.__name__} {{\n")
+        f.write(f"\t{model_cls.__name__}(")
+        for prop_name in properties.keys():
+            f.write(f"this.{prop_name}, ")
+        f.write(");\n")
+        f.write("\n")
 
-        for field in model_cls.__fields__:
-            f.write(f"\n  {field.type.__name__} {field.name};")
+        for prop_name, prop_type in properties.items():
+            f.write(f"\t{prop_type}{'?' if prop_name not in required_camels else ''} {prop_name};\n")
+        f.write("\n")
 
+        f.write(f"\tfactory {model_cls.__name__}.fromJson(Map<String, dynamic> json) => _${model_cls.__name__}FromJson(json);\n")
+        f.write("\n")
+        f.write(f"\tMap<String, dynamic> toJson() => _${model_cls.__name__}ToJson(this);\n")
+        f.write("}\n")
+        
+
+if __name__ == '__main__':
+    main()
