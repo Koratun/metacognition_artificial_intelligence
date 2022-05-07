@@ -49,24 +49,59 @@ def make_dart_enum(enum_cls: Type[Enum]):
         f.write("\n}")
 
 
-python_dart_type_map = {
-    'int': 'int',
-    'float': 'double',
-    'bool': 'bool',
-    'str': 'String',
-    'UUID': 'Uuid',
-    'list': 'List<dynamic>',
-    'dict': 'Map<String, dynamic>',
-    'tuple': 'List<dynamic>',
+pydantic_dart_type_map = {
+    'integer': 'int',
+    'number': 'double',
+    'string': 'String',
+    'boolean': 'bool',
+    'array': 'List<dynamic>',
+    'object': 'Map<String, dynamic>'
 }
 
 
 # Write a dart class conforming with json_serializable code generation format in dart
 def make_dart_schema(model_cls: Type[BaseModel]):
     model_schema = MetaSchema.parse_obj(model_cls.schema())
+    # Gather all properties of the schema and their types
+    properties: dict[str, str] = {}
+    # For enums and pydantic submodels, we need to import those as well from the dart files
+    additional_imports: list[str] = []
+    for prop_name, prop_schema in model_schema.properties.items():
+        prop_name = snake_to_camel(prop_name)
+        if '$ref' in prop_schema:
+            # This is a reference to another schema, so the foreign schema is the type
+            properties[prop_name] = prop_schema['$ref'].split('/')[-1]
+            # Add the foreign schema to the imports
+            snake_case_name = pascal_to_snake(properties[prop_name])
+            if 'enum' in model_schema.definitions[properties[prop_name]]:
+                snake_case_name += '_enum'
+            additional_imports.append(snake_case_name)
+        else:
+            properties[prop_name] = pydantic_dart_type_map.get(prop_schema['type'])
+            while 'dynamic' in properties[prop_name]:
+                # To enter this loop the prop_schema type must be of type array or object
+                if prop_schema['type'] == 'array':
+                    prop_getter = 'items'
+                elif prop_schema['type'] == 'object':
+                    prop_getter = 'additionalProperties'
+                if '$ref' in prop_schema[prop_getter]:
+                    sub_prop_name = prop_schema[prop_getter]['$ref'].split('/')[-1]
+                    properties[prop_name] = properties[prop_name].replace('dynamic', sub_prop_name)
+                    # Add the foreign schema to the imports
+                    snake_case_name = pascal_to_snake(sub_prop_name)
+                    if 'enum' in model_schema.definitions[sub_prop_name]:
+                        snake_case_name += '_enum'
+                    additional_imports.append(snake_case_name)
+                else:
+                    properties[prop_name] = properties[prop_name].replace('dynamic', pydantic_dart_type_map.get(prop_schema[prop_getter]['type']))
+                    prop_schema = prop_schema[prop_getter]
+
+    required_camels = [snake_to_camel(prop_name) for prop_name in model_schema.required]
 
     with open('lib/flutter/response_schemas/{}.dart'.format(pascal_to_snake(model_cls.__name__)), 'w') as f:
         f.write("import 'package:json_annotation/json_annotation.dart';\n")
+        for import_name in additional_imports:
+            f.write(f"import '{import_name}.dart';\n")
         f.write("\n")
         f.write(f"part '{pascal_to_snake(model_cls.__name__)}.g.dart';\n")
         f.write("\n")

@@ -5,6 +5,9 @@ from pydantic import BaseModel, validator
 from python.directed_acyclic_graph import CompileErrorReason
 from math import inf
 
+# Note that __root__ is not allowed to be used in these schemas
+# dart conversion will fail if it is used
+
 
 class ResponseType(Enum):
     STARTUP = "startup"
@@ -77,7 +80,7 @@ class ValidationError(BaseModel):
 
 
 class ValidationErrorResponse(BaseModel):
-    __root__: list[ValidationError]
+    errors: list[ValidationError]
 
 
 class CompileErrorResponse(BaseModel):
@@ -98,10 +101,9 @@ class CompileErrorDisjointedResponse(BaseModel):
         use_enum_values = True
 
 
-class CompileErrorSettingsValidationResponse(BaseModel):
+class CompileErrorSettingsValidationResponse(ValidationErrorResponse):
     node_id: UUID
     reason: CompileErrorReason
-    errors: ValidationErrorResponse
 
     class Config:
         use_enum_values = True
