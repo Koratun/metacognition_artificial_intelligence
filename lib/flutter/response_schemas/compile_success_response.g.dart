@@ -9,11 +9,11 @@ part of 'compile_success_response.dart';
 CompileSuccessResponse _$CompileSuccessResponseFromJson(
         Map<String, dynamic> json) =>
     CompileSuccessResponse(
-      json['py_file'] as String,
+      json['pyFile'] as String,
     );
 
 Map<String, dynamic> _$CompileSuccessResponseToJson(
         CompileSuccessResponse instance) =>
     <String, dynamic>{
-      'py_file': instance.pyFile,
+      'pyFile': instance.pyFile,
     };

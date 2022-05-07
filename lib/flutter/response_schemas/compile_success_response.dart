@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'compile_success_response.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class CompileSuccessResponse {
 	CompileSuccessResponse(this.pyFile, );
 

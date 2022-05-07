@@ -3,7 +3,7 @@ import 'compile_error_reason_enum.dart';
 
 part 'compile_error_response.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class CompileErrorResponse {
 	CompileErrorResponse(this.nodeId, this.reason, this.errors, );
 

@@ -9,17 +9,17 @@ part of 'node_connection_limits.dart';
 NodeConnectionLimits _$NodeConnectionLimitsFromJson(
         Map<String, dynamic> json) =>
     NodeConnectionLimits(
-      json['min_upstream'] as String,
-      json['max_upstream'] as String,
-      json['min_downstream'] as String,
-      json['max_downstream'] as String,
+      json['minUpstream'] as String,
+      json['maxUpstream'] as String,
+      json['minDownstream'] as String,
+      json['maxDownstream'] as String,
     );
 
 Map<String, dynamic> _$NodeConnectionLimitsToJson(
         NodeConnectionLimits instance) =>
     <String, dynamic>{
-      'min_upstream': instance.minUpstream,
-      'max_upstream': instance.maxUpstream,
-      'min_downstream': instance.minDownstream,
-      'max_downstream': instance.maxDownstream,
+      'minUpstream': instance.minUpstream,
+      'maxUpstream': instance.maxUpstream,
+      'minDownstream': instance.minDownstream,
+      'maxDownstream': instance.maxDownstream,
     };

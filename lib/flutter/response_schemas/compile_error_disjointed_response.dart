@@ -3,7 +3,7 @@ import 'compile_error_reason_enum.dart';
 
 part 'compile_error_disjointed_response.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class CompileErrorDisjointedResponse {
 	CompileErrorDisjointedResponse(this.nodeIds, this.reason, this.errors, );
 

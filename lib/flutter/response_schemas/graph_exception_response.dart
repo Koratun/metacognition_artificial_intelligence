@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'graph_exception_response.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class GraphExceptionResponse {
 	GraphExceptionResponse(this.error, );
 

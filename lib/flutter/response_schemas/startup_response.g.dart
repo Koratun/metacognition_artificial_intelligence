@@ -8,7 +8,7 @@ part of 'startup_response.dart';
 
 StartupResponse _$StartupResponseFromJson(Map<String, dynamic> json) =>
     StartupResponse(
-      (json['category_list'] as Map<String, dynamic>).map(
+      (json['categoryList'] as Map<String, dynamic>).map(
         (k, e) =>
             MapEntry(k, (e as List<dynamic>).map((e) => e as String).toList()),
       ),
@@ -16,5 +16,5 @@ StartupResponse _$StartupResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$StartupResponseToJson(StartupResponse instance) =>
     <String, dynamic>{
-      'category_list': instance.categoryList,
+      'categoryList': instance.categoryList,
     };

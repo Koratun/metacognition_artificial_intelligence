@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'node_connection_limits.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class NodeConnectionLimits {
 	NodeConnectionLimits(this.minUpstream, this.maxUpstream, this.minDownstream, this.maxDownstream, );
 

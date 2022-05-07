@@ -3,7 +3,7 @@ import 'validation_error.dart';
 
 part 'validation_error_response.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class ValidationErrorResponse {
 	ValidationErrorResponse(this.errors, );
 

@@ -8,17 +8,15 @@ part of 'creation_response.dart';
 
 CreationResponse _$CreationResponseFromJson(Map<String, dynamic> json) =>
     CreationResponse(
-      json['node_id'] as String,
-      (json['layer_settings'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+      json['nodeId'] as String,
+      (json['layerSettings'] as List<dynamic>).map((e) => e as String).toList(),
       NodeConnectionLimits.fromJson(
-          json['node_connection_limits'] as Map<String, dynamic>),
+          json['nodeConnectionLimits'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$CreationResponseToJson(CreationResponse instance) =>
     <String, dynamic>{
-      'node_id': instance.nodeId,
-      'layer_settings': instance.layerSettings,
-      'node_connection_limits': instance.nodeConnectionLimits,
+      'nodeId': instance.nodeId,
+      'layerSettings': instance.layerSettings,
+      'nodeConnectionLimits': instance.nodeConnectionLimits,
     };
