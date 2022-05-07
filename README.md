@@ -1,6 +1,10 @@
 # Metacognition Artificial Intelligence
 
-A Flutter and Python project to visually educate users how to build AI using TensorFlow and Keras
+A Flutter and Python project to visually educate users how to build AI using TensorFlow and Keras. 
+
+Note that even if you are only working on Flutter, you still need to setup python even if you don't write code in it.
+
+Python devs also need to setup Flutter so they can test their backend changes through the UI (as well as testing through the code).
 
 ## Getting Started in Flutter
 
