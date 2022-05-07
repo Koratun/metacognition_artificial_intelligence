@@ -2,7 +2,7 @@ from enum import Enum
 import fileinput
 from sys import stderr
 import traceback
-from typing import Any, Type
+from typing import Any, Optional, Type
 from uuid import UUID
 from pydantic import BaseModel, ValidationError, validator
 from python.directed_acyclic_graph import CompileErrorReason, DagException, DirectedAcyclicGraph, Layer, CompileException
@@ -117,6 +117,7 @@ class MetaSchema(BaseModel):
     type: str
     properties: dict[str, dict[str, Any]]
     required: list[str]
+    definitions: Optional[dict[str, dict[str, Any]]]
 
 
 class UpdateLayer(CreateLayer):
