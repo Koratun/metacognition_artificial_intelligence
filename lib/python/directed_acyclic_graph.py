@@ -21,6 +21,20 @@ class CompileErrorReason(Enum):
     INPUT_MISSING = 'input_missing'
     DISJOINTED_GRAPH = 'disjointed_graph'
 
+    def camel(self) -> str:
+        s = self.value
+        camel_string = ''
+        for i, c in enumerate(s):
+            if i == 0:
+                camel_string += c
+            elif c == '_':
+                camel_string += s[i + 1].upper()
+            elif s[i - 1] == '_':
+                continue
+            else:
+                camel_string += c
+        return camel_string
+
 
 class LayerSettings(BaseModel):
     @validator('*', pre=True)
@@ -108,7 +122,7 @@ class Layer(metaclass=abc.ABCMeta):
             if len(node_being_built.upstream_nodes) != 1:
                 raise CompileException({
                     'node_id': str(node_being_built.id), 
-                    'reason': CompileErrorReason.UPSTREAM_NODE_COUNT.value, 
+                    'reason': CompileErrorReason.UPSTREAM_NODE_COUNT.camel(), 
                     'errors': 'Layer must have exactly one upstream node'
                 })
             line += '(' + node_being_built.upstream_nodes[0].layer.name + ')'
@@ -117,7 +131,7 @@ class Layer(metaclass=abc.ABCMeta):
         except ValidationError as e:
             raise CompileException({
                 'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.SETTINGS_VALIDATION.value, 
+                'reason': CompileErrorReason.SETTINGS_VALIDATION.camel(), 
                 'errors': e.errors()
             })
 
@@ -272,7 +286,7 @@ class DirectedAcyclicGraph:
         if disjointed_node_ids:
             raise CompileException({
                 'node_ids': disjointed_node_ids,
-                'reason': CompileErrorReason.DISJOINTED_GRAPH.value,
+                'reason': CompileErrorReason.DISJOINTED_GRAPH.camel(),
                 'errors': 'The graph must be connected. If you are not using a node, disconnect it from all other nodes. The graph ignores fully disconnected nodes.'
             })
             
