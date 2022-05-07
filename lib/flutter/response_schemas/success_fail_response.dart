@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'success_fail_response.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class SuccessFailResponse {
 	SuccessFailResponse(this.error, );
 

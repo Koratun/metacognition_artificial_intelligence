@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'validation_error.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class ValidationError {
 	ValidationError(this.loc, this.msg, this.type, );
 

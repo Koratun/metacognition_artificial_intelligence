@@ -13,7 +13,7 @@ CompileErrorSettingsValidationResponse
           (json['errors'] as List<dynamic>)
               .map((e) => ValidationError.fromJson(e as Map<String, dynamic>))
               .toList(),
-          json['node_id'] as String,
+          json['nodeId'] as String,
           $enumDecode(_$CompileErrorReasonEnumMap, json['reason']),
         );
 
@@ -21,7 +21,7 @@ Map<String, dynamic> _$CompileErrorSettingsValidationResponseToJson(
         CompileErrorSettingsValidationResponse instance) =>
     <String, dynamic>{
       'errors': instance.errors,
-      'node_id': instance.nodeId,
+      'nodeId': instance.nodeId,
       'reason': _$CompileErrorReasonEnumMap[instance.reason],
     };
 

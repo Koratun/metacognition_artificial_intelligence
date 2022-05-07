@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'startup_response.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class StartupResponse {
 	StartupResponse(this.categoryList, );
 

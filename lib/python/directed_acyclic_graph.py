@@ -22,7 +22,7 @@ class CompileErrorReason(Enum):
     DISJOINTED_GRAPH = 'disjointed_graph'
 
     def camel(self) -> str:
-        s = self.value
+        s: str = self.value
         camel_string = ''
         for i, c in enumerate(s):
             if i == 0:

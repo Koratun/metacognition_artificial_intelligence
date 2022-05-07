@@ -3,7 +3,7 @@ import 'node_connection_limits.dart';
 
 part 'creation_response.g.dart';
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class CreationResponse {
 	CreationResponse(this.nodeId, this.layerSettings, this.nodeConnectionLimits, );
 

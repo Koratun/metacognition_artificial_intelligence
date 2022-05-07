@@ -1,16 +1,15 @@
 from pydantic import BaseModel
 from enum import Enum
 from typing import Type
-import lib.python.response_schemas as response_schemas
-from lib.python.dart_endpoint import MetaSchema
+import python.schemas as schemas
 
 # This script is used to convert the pydantic schemas and enums to Dart schemas and enums.
 
 
 def main():
-    for obj in response_schemas.__dict__.values():
+    for obj in schemas.__dict__.values():
         if isinstance(obj, type):
-            if issubclass(obj, BaseModel) and obj != BaseModel:
+            if issubclass(obj, BaseModel) and obj != BaseModel and obj != schemas.MetaSchema and obj != schemas.CamelModel:
                 make_dart_schema(obj)
             elif issubclass(obj, Enum) and obj != Enum:
                 make_dart_enum(obj)
@@ -62,13 +61,12 @@ pydantic_dart_type_map = {
 
 # Write a dart class conforming with json_serializable code generation format in dart
 def make_dart_schema(model_cls: Type[BaseModel]):
-    model_schema = MetaSchema.parse_obj(model_cls.schema())
+    model_schema = schemas.MetaSchema.parse_obj(model_cls.schema())
     # Gather all properties of the schema and their types
     properties: dict[str, str] = {}
     # For enums and pydantic submodels, we need to import those as well from the dart files
     additional_imports: list[str] = []
     for prop_name, prop_schema in model_schema.properties.items():
-        prop_name = snake_to_camel(prop_name)
         if '$ref' in prop_schema:
             # This is a reference to another schema, so the foreign schema is the type
             properties[prop_name] = prop_schema['$ref'].split('/')[-1]
@@ -97,7 +95,7 @@ def make_dart_schema(model_cls: Type[BaseModel]):
                     properties[prop_name] = properties[prop_name].replace('dynamic', pydantic_dart_type_map.get(prop_schema[prop_getter]['type']))
                     prop_schema = prop_schema[prop_getter]
 
-    required_camels = [snake_to_camel(prop_name) for prop_name in model_schema.required] if model_schema.required else []
+    required_camels = model_schema.required if model_schema.required else []
 
     with open('lib/flutter/response_schemas/{}.dart'.format(pascal_to_snake(model_cls.__name__)), 'w') as f:
         f.write("import 'package:json_annotation/json_annotation.dart';\n")
@@ -106,8 +104,9 @@ def make_dart_schema(model_cls: Type[BaseModel]):
         f.write("\n")
         f.write(f"part '{pascal_to_snake(model_cls.__name__)}.g.dart';\n")
         f.write("\n")
-
-        f.write("@JsonSerializable(fieldRename: FieldRename.snake)\n")
+        
+        # could use this if pydantic aliasing isn't sufficient -> fieldRename: FieldRename.snake
+        f.write("@JsonSerializable()\n") 
         f.write(f"class {model_cls.__name__} {{\n")
         f.write(f"\t{model_cls.__name__}(")
         for prop_name in properties.keys():
