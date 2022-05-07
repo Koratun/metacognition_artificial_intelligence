@@ -55,7 +55,7 @@ class Output(Layer):
             if not input_nodes:
                 raise CompileException({
                     'node_id': str(node.id),
-                    'reason': CompileErrorReason.INPUT_MISSING.value,
+                    'reason': CompileErrorReason.INPUT_MISSING.camel(),
                     'errors': 'This node has no input'
                 })
         return input_nodes
@@ -65,7 +65,7 @@ class Output(Layer):
         if len(node_being_built.upstream_nodes) < 1:
             raise CompileException({
                 'node_id': str(node_being_built.id),
-                'reason': CompileErrorReason.UPSTREAM_NODE_COUNT.value,
+                'reason': CompileErrorReason.UPSTREAM_NODE_COUNT.camel(),
                 'errors': 'Output layer must have at least one upstream node'
             })
         
