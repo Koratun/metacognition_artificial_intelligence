@@ -7,7 +7,7 @@ lib/mai_python_internals.egg-info/top_level.txt
 lib/python/__init__.py
 lib/python/dart_endpoint.py
 lib/python/directed_acyclic_graph.py
-lib/python/pydantic_dart_converter.py
+lib/python/schemas.py
 lib/python/layers/__init__.py
 lib/python/layers/dense.py
 lib/python/layers/input.py
