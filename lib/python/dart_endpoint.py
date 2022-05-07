@@ -116,7 +116,7 @@ class MetaSchema(BaseModel):
     title: str
     type: str
     properties: dict[str, dict[str, Any]]
-    required: list[str]
+    required: Optional[list[str]]
     definitions: Optional[dict[str, dict[str, Any]]]
 
 
@@ -147,7 +147,7 @@ class Connection(BaseModel):
 
 
 def format_response(response_type: ResponseType, **kwargs):
-    return response_type.value + response_type.get_model()(**kwargs).json()
+    return response_type.camel() + response_type.get_model()(**kwargs).json()
 
 
 def process(command: str, payload: str):
@@ -191,9 +191,9 @@ def process(command: str, payload: str):
     except DagException as e:
         return format_response(ResponseType.GRAPH_EXCEPTION, error=str(e))
     except CompileException as e:
-        if e.error_data['reason'] == CompileErrorReason.DISJOINTED_GRAPH.value:
+        if e.error_data['reason'] == CompileErrorReason.DISJOINTED_GRAPH.camel():
             return format_response(ResponseType.COMPILE_ERROR_DISJOINTED, **e.error_data)
-        elif e.error_data['reason'] == CompileErrorReason.SETTINGS_VALIDATION.value:
+        elif e.error_data['reason'] == CompileErrorReason.SETTINGS_VALIDATION.camel():
             return format_response(ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION, **e.error_data)
         else:
             return format_response(ResponseType.COMPILE_ERROR, **e.error_data)
