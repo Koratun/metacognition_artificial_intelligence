@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import Optional, Type, Any
 from pydantic import BaseModel, validator
 from python.directed_acyclic_graph import CompileErrorReason, Layer
-from humps.camel import case as camelize
+from humps import camelize
 from pathlib import Path
 
 # When a new layer is created, add it to the list!
@@ -42,7 +42,7 @@ for glob_mod_name, glob_mod in reversed(dict(globals()).items()):
             if isinstance(attr, type(Layer)):
                 layer_classes[attr_name] = attr
                 if package_list := layer_packages.get(mod_parent):
-                    package_list.append(attr_name)
+                    package_list.insert(0, attr_name)
                 else:
                     layer_packages[mod_parent] = [attr_name]
                 break
@@ -143,18 +143,7 @@ class ResponseType(Enum):
             return CompileSuccessResponse
 
     def camel(self) -> str:
-        s: str = self.value
-        camel_string = ''
-        for i, c in enumerate(s):
-            if i == 0:
-                camel_string += c
-            elif c == '_':
-                camel_string += s[i + 1].upper()
-            elif s[i - 1] == '_':
-                continue
-            else:
-                camel_string += c
-        return camel_string
+        return camelize(self.value)
 
 
 class StartupResponse(CamelModel):
