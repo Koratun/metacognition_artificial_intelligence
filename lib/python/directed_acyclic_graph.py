@@ -2,6 +2,7 @@ from uuid import UUID, uuid4
 import abc
 from enum import Enum
 from typing import Type
+from humps import camelize
 from pydantic import BaseModel, ValidationError, validator
 from pydantic.fields import ModelField
 
@@ -22,18 +23,7 @@ class CompileErrorReason(Enum):
     DISJOINTED_GRAPH = 'disjointed_graph'
 
     def camel(self) -> str:
-        s: str = self.value
-        camel_string = ''
-        for i, c in enumerate(s):
-            if i == 0:
-                camel_string += c
-            elif c == '_':
-                camel_string += s[i + 1].upper()
-            elif s[i - 1] == '_':
-                continue
-            else:
-                camel_string += c
-        return camel_string
+        return camelize(self.value)
 
 
 class LayerSettings(BaseModel):

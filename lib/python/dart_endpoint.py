@@ -1,6 +1,7 @@
 import fileinput
 from sys import stderr
 import traceback
+from humps import camelize
 from pydantic import ValidationError
 from python.directed_acyclic_graph import CompileErrorReason, DagException, DirectedAcyclicGraph, CompileException
 from python.schemas import ResponseType, Command, CreateLayer, UpdateLayer, DeleteNode, Connection, layer_packages, layer_classes
@@ -52,7 +53,7 @@ def main():
 
 
 def format_response(response_type: ResponseType, **kwargs):
-    return response_type.camel() + response_type.get_model()(**kwargs).json(by_alias=True)
+    return response_type.camel() + response_type.get_model().parse_obj(camelize(kwargs)).json(by_alias=True)
 
 
 def process(command: str, payload: str):
