@@ -42,11 +42,16 @@ def snake_to_camel(s: str):
 
 
 def make_dart_enum(enum_cls: Type[Enum]):
-    with open('lib/flutter/response_schemas/{}_enum.dart'.format(pascal_to_snake(enum_cls.__name__)), 'w') as f:
+    with open('lib/flutter/schemas/{}_enum.dart'.format(pascal_to_snake(enum_cls.__name__)), 'w') as f:
+        f.write("import 'package:flutter/foundation.dart';\n")
+        f.write("\n")
         f.write(f"enum {enum_cls.__name__} {{")
         for enum_value in enum_cls:
-            f.write(f"\n  {snake_to_camel(enum_value.value)},")
-        f.write("\n}")
+            f.write(f"\n\t{snake_to_camel(enum_value.value)},")
+        f.write("\n}\n\n")
+
+        f.write(f"extension {enum_cls.__name__}Extension on {enum_cls.__name__} {{\n")
+        f.write("\tString get name => describeEnum(this);\n}\n")
 
 
 pydantic_dart_type_map = {
@@ -97,8 +102,9 @@ def make_dart_schema(model_cls: Type[BaseModel]):
 
     required_camels = model_schema.required if model_schema.required else []
 
-    with open('lib/flutter/response_schemas/{}.dart'.format(pascal_to_snake(model_cls.__name__)), 'w') as f:
+    with open('lib/flutter/schemas/{}.dart'.format(pascal_to_snake(model_cls.__name__)), 'w') as f:
         f.write("import 'package:json_annotation/json_annotation.dart';\n")
+        f.write("import 'schema.dart';\n")
         for import_name in additional_imports:
             f.write(f"import '{import_name}.dart';\n")
         f.write("\n")
@@ -107,7 +113,7 @@ def make_dart_schema(model_cls: Type[BaseModel]):
         
         # could use this if pydantic aliasing isn't sufficient -> fieldRename: FieldRename.snake
         f.write("@JsonSerializable()\n") 
-        f.write(f"class {model_cls.__name__} {{\n")
+        f.write(f"class {model_cls.__name__} implements Schema {{\n")
         f.write(f"\t{model_cls.__name__}(")
         for prop_name in properties.keys():
             f.write(f"this.{prop_name}, ")
@@ -120,6 +126,7 @@ def make_dart_schema(model_cls: Type[BaseModel]):
 
         f.write(f"\tfactory {model_cls.__name__}.fromJson(Map<String, dynamic> json) => _${model_cls.__name__}FromJson(json);\n")
         f.write("\n")
+        f.write("\t@override\n")
         f.write(f"\tMap<String, dynamic> toJson() => _${model_cls.__name__}ToJson(this);\n")
         f.write("}\n")
         
