@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'schemas/node_connection_limits.dart';
+
+import 'schemas/creation_response.dart';
 
 class LayerTile extends StatefulWidget {
   final int i;
@@ -8,14 +11,23 @@ class LayerTile extends StatefulWidget {
   final AnimationController _entranceController;
   final bool isGridChild;
   final void Function()? changeNotifyCallback;
+  List<String>? layerSettings;
+  NodeConnectionLimits? nodeConnectionLimits;
+  String? nodeId;
 
-  const LayerTile(
+  LayerTile(
       this.i, this.title, this._entranceAnimation, this._entranceController,
       {Key? key,
       required this.isGridChild,
       this.changeNotifyCallback,
       this.layerName})
       : super(key: key);
+
+  void create(CreationResponse data) {
+    layerSettings = data.layerSettings;
+    nodeConnectionLimits = data.nodeConnectionLimits;
+    nodeId = data.nodeId;
+  }
 
   @override
   State<LayerTile> createState() => LayerTileState();
