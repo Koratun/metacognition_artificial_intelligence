@@ -95,7 +95,7 @@ def process(command: str, payload: str):
         elif command == Command.STARTUP.value:
             return format_response(ResponseType.STARTUP, category_list=layer_packages)
     except ValidationError as e:
-        return format_response(ResponseType.VALIDATION_ERROR, __root__=e.errors())
+        return format_response(ResponseType.VALIDATION_ERROR, errors=e.errors())
     except DagException as e:
         return format_response(ResponseType.GRAPH_EXCEPTION, error=str(e))
     except CompileException as e:
