@@ -6,9 +6,11 @@ Note that even if you are only working on Flutter, you still need to setup pytho
 
 Python devs also need to setup Flutter so they can test their backend changes through the UI (as well as testing through the code).
 
+Please ensure that git is installed and you can manage git branches. For VSCode I like the Git Graph and GitLens extensions in tandem with the normal GitHub extensions.
+
 ## Getting Started in Flutter
 
-Follow the instructions on <https://docs.flutter.dev/get-started/install> for your system and then clone this repository into a directory of your choosing. (Note that around 2.5 GB will be taken up by flutter and this repository is about 600MB at the time I wrote this -- minus the python libraries)
+Follow the instructions on <https://docs.flutter.dev/get-started/install> (Feel free to skip the setup for Android and Web sections) for your system and then clone this repository into a directory of your choosing. Note that around 2.5 GB will be taken up by flutter and this repository is about 600MB at the time I wrote this -- minus the python libraries.
 
 Verify that you have setup your environment correctly by running the application. (Note that the build process can take up to a minute and will most definitely take longer the first time you run the app) 
 
