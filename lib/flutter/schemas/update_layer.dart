@@ -1,9 +1,10 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'schema.dart';
 
 part 'update_layer.g.dart';
 
 @JsonSerializable()
-class UpdateLayer {
+class UpdateLayer implements Schema {
 	UpdateLayer(this.layer, this.id, this.settings, );
 
 	String layer;
@@ -12,5 +13,6 @@ class UpdateLayer {
 
 	factory UpdateLayer.fromJson(Map<String, dynamic> json) => _$UpdateLayerFromJson(json);
 
+	@override
 	Map<String, dynamic> toJson() => _$UpdateLayerToJson(this);
 }
