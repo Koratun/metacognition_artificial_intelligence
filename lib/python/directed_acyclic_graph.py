@@ -1,5 +1,4 @@
 from uuid import UUID, uuid4
-import abc
 from enum import Enum
 from typing import Type
 from humps import camelize
@@ -41,8 +40,13 @@ class LayerSettings(BaseModel):
             raise ValueError("Invalid formatting")
 
 
-class Layer(metaclass=abc.ABCMeta):
+class Layer:
     settings_validator: Type[LayerSettings] = None
+    type = 'base_layer'
+    min_upstream_nodes = 1
+    max_upstream_nodes = 1
+    min_downstream_nodes = 1
+    max_downstream_nodes = 1
 
     def __init__(self):
         self.layer_id = uuid4()
@@ -69,38 +73,16 @@ class Layer(metaclass=abc.ABCMeta):
     def reset_construct(self):
         self.constructed = False
 
-    @property
-    def min_upstream_nodes() -> int:
-        return 1
-
-    @property
-    def max_upstream_nodes() -> int:
-        return 1
-
     def check_number_upstream_nodes(self, n: int) -> bool:
         return self.min_upstream_nodes <= n and n <= self.max_upstream_nodes 
 
-    @property
-    def min_downstream_nodes() -> int:
-        return 1
-
-    @property
-    def max_downstream_nodes() -> int:
-        return 1
-
     def check_number_downstream_nodes(self, n: int) -> bool:
         return self.min_downstream_nodes <= n and n <= self.max_downstream_nodes 
-
-    @property
-    @abc.abstractmethod
-    def type() -> str:
-        return 'base_layer'
 
     def construct_settings(self):
         set_settings: dict = self.settings_validator(**self.settings_data).dict(exclude_defaults=True)
         return ', '.join(f'{k}={v}' for k, v in set_settings.items())
 
-    @abc.abstractmethod
     def generate_code_line(self, node_being_built: 'DagNode') -> str:
         """
         Generate the code line for this layer.
