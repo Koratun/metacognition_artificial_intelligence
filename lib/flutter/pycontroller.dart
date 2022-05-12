@@ -14,15 +14,14 @@ import 'schemas/validation_error_response.dart';
 import 'schemas/schema.dart';
 import 'schemas/command_enum.dart';
 
+//Used for debugging
+const bool _echo = true;
+
 class PyController {
-  Process? _python;
-  void Function(Schema)? responseAction;
+  static Process? _python;
+  static void Function(Schema)? responseAction;
 
-  PyController() {
-    _init();
-  }
-
-  void _init() async {
+  static Future<void> init() async {
     _python = await Process.start(
       ".venv\\Scripts\\python.exe",
       [".\\lib\\python\\dart_endpoint.py"],
@@ -32,23 +31,22 @@ class PyController {
     _python?.stderr.transform(utf8.decoder).forEach(print);
   }
 
-  static final PyController _theController = PyController();
+  // static void bindInputCallback(void Function(String) callback) =>
+  //     _python?.stdout.transform(utf8.decoder).forEach(callback);
 
-  static PyController get get => _theController;
+  // static void bindErrorCallback(void Function(String) callback) =>
+  //     _python?.stderr.transform(utf8.decoder).forEach(callback);
 
-  void bindInputCallback(void Function(String) callback) =>
-      _python?.stdout.transform(utf8.decoder).forEach(callback);
-
-  void bindErrorCallback(void Function(String) callback) =>
-      _python?.stderr.transform(utf8.decoder).forEach(callback);
-
-  void request(Command c, void Function(Schema) responseAction,
+  static void request(Command c, void Function(Schema) responseAction,
       {Schema data = const Schema()}) {
-    this.responseAction = responseAction;
+    PyController.responseAction = responseAction;
     _python?.stdin.writeln(c.name + json.encode(data.toJson()));
+    if (_echo) {
+      print("Request sent: ${c.name + json.encode(data.toJson())}");
+    }
   }
 
-  void pyInputHandler(String data) {
+  static void pyInputHandler(String data) {
     // Separate the text preceding the first [ or {
     // and the rest of the text.
     final ResponseType responseType = ResponseType.values.firstWhere(
@@ -112,10 +110,12 @@ class PyController {
     if (response != null) {
       responseAction!(response);
     }
-    responseAction = null;
+    if (_echo) {
+      print("Response: $responseData");
+    }
   }
 
-  void dispose() {
+  static void dispose() {
     _python?.stdin.writeln("Exit");
     _python?.kill();
   }

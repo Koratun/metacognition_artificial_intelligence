@@ -30,16 +30,26 @@ class _SelectionPanelState extends State<SelectionPanel>
   @override
   void initState() {
     super.initState();
-    PyController.get.request(Command.startup, (response) {
-      if (response is StartupResponse) {
-        _categoryList = response.categoryList;
-      }
+    PyController.init().then((_) {
+      PyController.request(Command.startup, (response) {
+        if (response is StartupResponse) {
+          setState(
+              () => _categoryList = response.categoryList.map((key, value) {
+                    return MapEntry(
+                        key
+                            .split(RegExp(r"(?=[A-Z])"))
+                            .map((e) => e[0].toUpperCase() + e.substring(1))
+                            .join(" "),
+                        value);
+                  }));
+        }
+      });
     });
   }
 
   @override
   void dispose() {
-    PyController.get.dispose();
+    PyController.dispose();
     super.dispose();
   }
 
@@ -108,7 +118,11 @@ class _SelectionPanelState extends State<SelectionPanel>
         crossAxisCount: 3,
         mainAxisExtent: 100,
       ),
-      itemCount: 21,
+      itemCount: _categoryList == null
+          ? 21
+          : _categoryList![_selectedCategory] == null
+              ? 21
+              : _categoryList![_selectedCategory]!.length,
       itemBuilder: (BuildContext context, int i) {
         const _entranceTime = 500;
         final _millesecondsToWait = i * 100;
@@ -132,6 +146,11 @@ class _SelectionPanelState extends State<SelectionPanel>
             _entranceAnimation,
             _entranceController,
             isGridChild: true,
+            layerName: _categoryList == null
+                ? null
+                : _categoryList![_selectedCategory] == null
+                    ? null
+                    : _categoryList![_selectedCategory]![i],
           ),
         );
       },
