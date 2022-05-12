@@ -59,6 +59,7 @@ for glob_mod_name, glob_mod in reversed(dict(globals()).items()):
 
 
 class Command(Enum):
+    STARTUP = 'startup'
     CREATE = 'create'
     UPDATE = 'update'
     DELETE = 'delete'
