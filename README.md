@@ -1,6 +1,6 @@
 # Metacognition Artificial Intelligence
 
-A Flutter and Python project to visually educate users how to build AI using TensorFlow and Keras. 
+A Flutter and Python project to visually educate users how to build AI using TensorFlow and Keras. Please make sure you have around 5GB of space available on your device. (Eventually you will need more, perhaps another 1 or 2 GB for the AI)
 
 Note that even if you are only working on Flutter, you still need to setup python even if you don't write code in it.
 
@@ -8,9 +8,9 @@ Python devs also need to setup Flutter so they can test their backend changes th
 
 ## Getting Started in Flutter
 
-Follow the instructions on <https://docs.flutter.dev/get-started/install> for your system and then clone this repository into a directory of your choosing.
+Follow the instructions on <https://docs.flutter.dev/get-started/install> for your system and then clone this repository into a directory of your choosing. (Note that around 2.5 GB will be taken up by flutter and this repository is about 600MB at the time I wrote this -- minus the python libraries)
 
-Verify that you have setup your environment correctly by running the application. (Note that the build process can take up to a minute) 
+Verify that you have setup your environment correctly by running the application. (Note that the build process can take up to a minute and will most definitely take longer the first time you run the app) 
 
 Ignore any errors you may see about Python if you haven't setup python yet.
 
@@ -24,7 +24,7 @@ If you are on Windows and VS Code, close all your terminals and open a new termi
 
 Run `python -m pip install --upgrade pip`. This is required, it doesn't just make it look cooler.
 
-Then run `pip install -r requirements.txt`.
+Then run `pip install -r requirements.txt`. (Note that around 1.4GB of space will be taken up here).
 
 This will take care of most of the heavy lifting for you.
 
