@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'layer_tile.dart';
 import 'main.dart';
 import 'pycontroller.dart';
+import 'schemas/command_enum.dart';
+import 'schemas/startup_response.dart';
 
 const categoryNames = <String>[
   "Tutorials",
@@ -23,10 +25,16 @@ class _SelectionPanelState extends State<SelectionPanel>
     with TickerProviderStateMixin {
   String _selectedCategory = categoryNames[0];
 
+  Map<String, List<String>>? _categoryList;
+
   @override
   void initState() {
     super.initState();
-    PyController.get.sendMessage("Init");
+    PyController.get.request(Command.startup, (response) {
+      if (response is StartupResponse) {
+        _categoryList = response.categoryList;
+      }
+    });
   }
 
   @override
