@@ -1,18 +1,22 @@
 import 'dart:io';
 import 'dart:convert';
-import 'response_schemas/response_type_enum.dart';
-import 'response_schemas/startup_response.dart';
-import 'response_schemas/compile_error_response.dart';
-import 'response_schemas/compile_error_disjointed_response.dart';
-import 'response_schemas/compile_error_settings_validation_response.dart';
-import 'response_schemas/compile_success_response.dart';
-import 'response_schemas/creation_response.dart';
-import 'response_schemas/graph_exception_response.dart';
-import 'response_schemas/success_fail_response.dart';
-import 'response_schemas/validation_error_response.dart';
+
+import 'schemas/response_type_enum.dart';
+import 'schemas/startup_response.dart';
+import 'schemas/compile_error_response.dart';
+import 'schemas/compile_error_disjointed_response.dart';
+import 'schemas/compile_error_settings_validation_response.dart';
+import 'schemas/compile_success_response.dart';
+import 'schemas/creation_response.dart';
+import 'schemas/graph_exception_response.dart';
+import 'schemas/success_fail_response.dart';
+import 'schemas/validation_error_response.dart';
+import 'schemas/schema.dart';
+import 'schemas/command_enum.dart';
 
 class PyController {
   Process? _python;
+  void Function(Schema)? responseAction;
 
   PyController() {
     _init();
@@ -24,7 +28,7 @@ class PyController {
       [".\\lib\\python\\dart_endpoint.py"],
       runInShell: true,
     );
-    _python?.stdout.transform(utf8.decoder).forEach(print);
+    _python?.stdout.transform(utf8.decoder).forEach(pyInputHandler);
     _python?.stderr.transform(utf8.decoder).forEach(print);
   }
 
@@ -38,69 +42,65 @@ class PyController {
   void bindErrorCallback(void Function(String) callback) =>
       _python?.stderr.transform(utf8.decoder).forEach(callback);
 
-  void sendMessage(String message) => _python?.stdin.writeln(message);
+  void request(Command c, void Function(Schema) responseAction,
+      {Schema data = const Schema()}) {
+    this.responseAction = responseAction;
+    _python?.stdin.writeln(c.name + json.encode(data.toJson()));
+  }
 
   void pyInputHandler(String data) {
     // Separate the text preceding the first [ or {
     // and the rest of the text.
-    final ResponseType responseType = ResponseType.values.firstWhere((e) =>
-        e.toString() ==
-        "ResponseType." + data.substring(0, data.indexOf(RegExp(r'[[{]'))));
+    final ResponseType responseType = ResponseType.values.firstWhere(
+        (e) => e.name == data.substring(0, data.indexOf(RegExp(r'[[{]'))));
     final Map<String, dynamic> responseData =
         json.decode(data.substring(data.indexOf(RegExp(r'[[{]'))));
+    dynamic response;
     switch (responseType) {
       case ResponseType.startup:
         {
-          final StartupResponse response =
-              StartupResponse.fromJson(responseData);
+          response = StartupResponse.fromJson(responseData);
         }
         break;
       case ResponseType.successFail:
         {
-          final SuccessFailResponse response =
-              SuccessFailResponse.fromJson(responseData);
+          response = SuccessFailResponse.fromJson(responseData);
         }
         break;
       case ResponseType.creation:
         {
-          final CreationResponse response =
-              CreationResponse.fromJson(responseData);
+          response = CreationResponse.fromJson(responseData);
         }
         break;
       case ResponseType.graphException:
         {
-          final GraphExceptionResponse response =
-              GraphExceptionResponse.fromJson(responseData);
+          response = GraphExceptionResponse.fromJson(responseData);
         }
         break;
       case ResponseType.validationError:
         {
-          final ValidationErrorResponse response =
-              ValidationErrorResponse.fromJson(responseData);
+          response = ValidationErrorResponse.fromJson(responseData);
         }
         break;
       case ResponseType.compileError:
         {
-          final CompileErrorResponse response =
-              CompileErrorResponse.fromJson(responseData);
+          response = CompileErrorResponse.fromJson(responseData);
         }
         break;
       case ResponseType.compileErrorSettingsValidation:
         {
-          final CompileErrorSettingsValidationResponse response =
+          response =
               CompileErrorSettingsValidationResponse.fromJson(responseData);
         }
         break;
       case ResponseType.compileErrorDisjointed:
         {
-          final CompileErrorDisjointedResponse response =
-              CompileErrorDisjointedResponse.fromJson(responseData);
+          response = CompileErrorDisjointedResponse.fromJson(responseData);
         }
         break;
       case ResponseType.compileSuccess:
         {
-          final CompileSuccessResponse response =
-              CompileSuccessResponse.fromJson(responseData);
+          response = CompileSuccessResponse.fromJson(responseData);
         }
         break;
       default:
@@ -109,6 +109,10 @@ class PyController {
         }
         break;
     }
+    if (response != null) {
+      responseAction!(response);
+    }
+    responseAction = null;
   }
 
   void dispose() {
