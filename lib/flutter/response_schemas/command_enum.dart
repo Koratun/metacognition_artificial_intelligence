@@ -1,4 +1,5 @@
 enum Command {
+  startup,
   create,
   update,
   delete,

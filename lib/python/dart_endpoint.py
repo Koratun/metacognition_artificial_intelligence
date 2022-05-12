@@ -35,7 +35,6 @@ def main():
 
     compile{}
     """
-    write_back(format_response(ResponseType.STARTUP, category_list=layer_packages))
 
     for line in fileinput.input():
         inp = line.rstrip()
@@ -46,8 +45,8 @@ def main():
             command = inp[:inp.find('{')]
             payload = inp[inp.find('{'):]
             response = process(command, payload)
-        except Exception:
-            response = "Fatal exception occurred:\n"+traceback.format_exc()
+        except Exception as e:
+            response = f"Fatal exception occurred: {str(e)}\n"+traceback.format_exc()
             error = True
         write_back(response, error=error)
 
@@ -93,6 +92,8 @@ def process(command: str, payload: str):
             return format_response(ResponseType.SUCCESS_FAIL)
         elif command == Command.COMPILE.value:
             return format_response(ResponseType.COMPILE_SUCCESS, py_file=dag.construct_keras())
+        elif command == Command.STARTUP.value:
+            return format_response(ResponseType.STARTUP, category_list=layer_packages)
     except ValidationError as e:
         return format_response(ResponseType.VALIDATION_ERROR, __root__=e.errors())
     except DagException as e:
