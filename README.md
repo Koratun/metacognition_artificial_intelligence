@@ -10,7 +10,9 @@ Python devs also need to setup Flutter so they can test their backend changes th
 
 Follow the instructions on <https://docs.flutter.dev/get-started/install> for your system and then clone this repository into a directory of your choosing.
 
-Verify that you have setup your environment correctly by running the application. (Note that the build process can take up to a minute)
+Verify that you have setup your environment correctly by running the application. (Note that the build process can take up to a minute) 
+
+Ignore any errors you may see about Python if you haven't setup python yet.
 
 ## Getting Started in Python
 
