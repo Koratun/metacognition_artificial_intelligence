@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'layer_tile.dart';
+import 'pycontroller.dart';
+import 'schemas/command_enum.dart';
+import 'schemas/create_layer.dart';
+import 'schemas/creation_response.dart';
 
 class CreationCanvas extends StatefulWidget {
   const CreationCanvas({Key? key}) : super(key: key);
@@ -30,7 +34,7 @@ class _CreationCanvasState extends State<CreationCanvas>
 
     _entranceController.forward();
 
-    tiles.add(LayerTile(
+    LayerTile newTile = LayerTile(
       layerTile.i,
       layerTile.title,
       _entranceAnimation,
@@ -38,8 +42,20 @@ class _CreationCanvasState extends State<CreationCanvas>
       isGridChild: false,
       changeNotifyCallback: notifyListeners,
       layerName: layerTile.layerName,
-    ));
+    );
+    tiles.add(newTile);
     positions.add(pos);
+    if (newTile.layerName != null) {
+      PyController.request(
+        Command.create,
+        (response) {
+          if (response is CreationResponse) {
+            newTile.create(response);
+          }
+        },
+        data: CreateLayer(newTile.layerName!),
+      );
+    }
   }
 
   @override

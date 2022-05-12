@@ -31,19 +31,26 @@ class _SelectionPanelState extends State<SelectionPanel>
   void initState() {
     super.initState();
     PyController.init().then((_) {
-      PyController.request(Command.startup, (response) {
-        if (response is StartupResponse) {
-          setState(
-              () => _categoryList = response.categoryList.map((key, value) {
-                    return MapEntry(
-                        key
-                            .split(RegExp(r"(?=[A-Z])"))
-                            .map((e) => e[0].toUpperCase() + e.substring(1))
-                            .join(" "),
-                        value);
-                  }));
-        }
-      });
+      PyController.request(
+        Command.startup,
+        (response) {
+          if (response is StartupResponse) {
+            setState(
+              () => _categoryList = response.categoryList.map(
+                (key, value) {
+                  return MapEntry(
+                    key
+                        .split(RegExp(r"(?=[A-Z])"))
+                        .map((e) => e[0].toUpperCase() + e.substring(1))
+                        .join(" "),
+                    value,
+                  );
+                },
+              ),
+            );
+          }
+        },
+      );
     });
   }
 
