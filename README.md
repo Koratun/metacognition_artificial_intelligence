@@ -52,6 +52,6 @@ If you are working in python and you change a schema or enum in any way, you mus
 
 `python pydantic-dart-converter.py`
 
-`flutter pub run build_runner build`
+`flutter pub run build_runner build --delete-conflicting-outputs`
 
 This will first take the python schemas and create/overwrite their dart equivalents. The next command will take those newly created dart schemas and flesh them out for use by the frontend team.
