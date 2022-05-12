@@ -10,13 +10,5 @@ class InputSettings(LayerSettings):
 
 class Input(Layer):
     settings_validator = InputSettings
-
-    @property
-    def min_upstream_nodes() -> int:
-        return 0
-
-    @property
-    def type() -> str:
-        return 'input'
-
-    
+    type = 'input'
+    min_upstream_nodes = 0

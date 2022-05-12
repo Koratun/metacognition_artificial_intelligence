@@ -8,22 +8,10 @@ class OutputSettings(LayerSettings):
 
 class Output(Layer):
     settings_validator = OutputSettings
-
-    @property
-    def type() -> str:
-        return 'model'
-
-    @property
-    def max_upstream_nodes() -> int:
-        return inf
-
-    @property
-    def min_downstream_nodes() -> int:
-        return 0
-
-    @property
-    def max_downstream_nodes() -> int:
-        return inf
+    type = 'model'
+    max_upstream_nodes = inf
+    min_downstream_nodes = 0
+    max_downstream_nodes = inf
 
     def check_number_downstream_nodes(self, n: int) -> bool:
         # This will always be true because n is a positive number and

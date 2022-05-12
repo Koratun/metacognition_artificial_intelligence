@@ -7,7 +7,4 @@ class DenseSettings(LayerSettings):
 
 class Dense(Layer):
     settings_validator = DenseSettings
-
-    @property
-    def type() -> str:
-        return 'dense'
+    type = 'dense'
