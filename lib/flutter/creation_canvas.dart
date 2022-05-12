@@ -13,7 +13,6 @@ class _CreationCanvasState extends State<CreationCanvas>
     with TickerProviderStateMixin, ChangeNotifier {
   final List<LayerTile> tiles = <LayerTile>[];
   final List<Offset> positions = <Offset>[];
-  final List<Text> tileScripts = <Text>[];
 
   void addTile(LayerTile layerTile, Offset pos) {
     final AnimationController _entranceController = AnimationController(
@@ -38,25 +37,10 @@ class _CreationCanvasState extends State<CreationCanvas>
       _entranceController,
       isGridChild: false,
       changeNotifyCallback: notifyListeners,
+      layerName: layerTile.layerName,
     ));
     positions.add(pos);
-    tileScripts.add(Text(
-      "${layerTile.title} ${layerTile.i}",
-      style: const TextStyle(
-        fontSize: 16.0,
-        color: Colors.white,
-      ),
-    ));
   }
-
-  Iterable<Widget> childList() sync* {
-    for (var i = 0; i < tiles.length; i++) {
-      yield tiles[i];
-      yield tileScripts[i];
-    }
-  }
-
-  int childCount() => tiles.length * 2;
 
   @override
   Widget build(BuildContext context) {
@@ -67,10 +51,10 @@ class _CreationCanvasState extends State<CreationCanvas>
             delegate: CreationCanvasDelegate(
                 changeNotifier: this, positions: positions),
             children: [
-              for (var i = 0; i < childCount(); i++)
+              for (var i = 0; i < tiles.length; i++)
                 LayoutId(
                   id: i,
-                  child: childList().elementAt(i),
+                  child: tiles[i],
                 )
             ],
           ),
@@ -91,21 +75,14 @@ class CreationCanvasDelegate extends MultiChildLayoutDelegate {
 
   @override
   void performLayout(Size size) {
-    for (var i = 0; i < positions.length; i++) {
-      var tileID = i * 2;
-      var textID = i * 2 + 1;
+    for (var tileID = 0; tileID < positions.length; tileID++) {
       Size tileSize = Size.zero;
       if (hasChild(tileID)) {
         tileSize = layoutChild(tileID, const BoxConstraints.tightForFinite());
-        positionChild(tileID,
-            positions[i].translate(tileSize.width / -2, tileSize.height / -2));
-      }
-      if (hasChild(textID)) {
-        Size textSize = layoutChild(textID, BoxConstraints.loose(size));
         positionChild(
-            textID,
-            positions[i]
-                .translate(textSize.width / -2, tileSize.height / 2 + 8));
+            tileID,
+            positions[tileID]
+                .translate(tileSize.width / -2, tileSize.height / -2));
       }
     }
   }

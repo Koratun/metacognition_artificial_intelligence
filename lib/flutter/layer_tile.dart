@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class LayerTile extends StatefulWidget {
   final int i;
   final String title;
+  final String? layerName;
   final Animation<double> _entranceAnimation;
   final AnimationController _entranceController;
   final bool isGridChild;
@@ -10,7 +11,10 @@ class LayerTile extends StatefulWidget {
 
   const LayerTile(
       this.i, this.title, this._entranceAnimation, this._entranceController,
-      {Key? key, required this.isGridChild, this.changeNotifyCallback})
+      {Key? key,
+      required this.isGridChild,
+      this.changeNotifyCallback,
+      this.layerName})
       : super(key: key);
 
   @override
@@ -99,6 +103,18 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final title = Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(
+        widget.layerName ?? "${widget.title} ${widget.i}",
+        style: const TextStyle(
+          fontSize: 16.0,
+          color: Colors.white,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+
     if (widget.isGridChild) {
       return ScaleTransition(
         scale: widget._entranceAnimation,
@@ -106,27 +122,25 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
           mainAxisSize: MainAxisSize.min,
           children: [
             _mouseDetector(_imageTile()),
-            Text(
-              "${widget.title} ${widget.i}",
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: Colors.white,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
+            title,
           ],
         ),
       );
     } else {
       return LimitedBox(
-        child: MouseRegion(
-          onEnter: (event) {
-            _hoverController.forward();
-          },
-          onExit: (event) {
-            _hoverController.reverse();
-          },
-          child: _imageTile(),
+        child: Column(
+          children: [
+            MouseRegion(
+              onEnter: (event) {
+                _hoverController.forward();
+              },
+              onExit: (event) {
+                _hoverController.reverse();
+              },
+              child: _imageTile(),
+            ),
+            title,
+          ],
         ),
       );
     }
