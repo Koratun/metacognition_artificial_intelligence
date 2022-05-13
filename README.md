@@ -38,6 +38,34 @@ Eventually we will want to natively detect if the system running our app has a T
 
 # Working in the Codebase
 
+I don't expect everyone to start sprinting. I know a lot of these things we are working with will be new to you. Don't feel pressured to deliver items just because I have an endless list of to-dos. I would much rather have quality code than lots of broken code. That being said, don't slack off. Learn as much as you can and try to contribute to the project as soon as you can and in whatever way you can.
+
+## Things to learn
+
+Python
+1. [Pydantic](https://pydantic-docs.helpmanual.io/) is how python stores and validates the data that comes and goes from Dart (the frontend).
+2. [Keras/TensorFlow](https://keras.io/getting_started/intro_to_keras_for_engineers/) is the AI library we will be using. We will be using the functional API heavily.
+
+Flutter
+1. [Dart](https://dart.dev/guides/language/language-tour) is the programming language of Flutter, master it like the Force. You can play with dart here: <https://dartpad.dev/>
+2. [Basic Flutter](https://docs.flutter.dev/reference/tutorials): A great way to learn the basic principles of Flutter.
+3. We will need to use actual [assets](https://docs.flutter.dev/development/ui/assets-and-images) instead of the placeholder images I've been using.
+
+## GitHub Manners
+
+Pretty much the only rule I have: DO NOT COMMIT TO THE MASTER BRANCH!!! 
+
+Before you type anything make sure that you are in another branch! When you feel that you are finished working on whatever change you are working on: DO NOT JUST MERGE THE BRANCH INTO MASTER!!! 
+
+Create a Pull Request (ask me or Google if you don't know how) and notify me. I will look at your changes and either ask for additional changes or approve the request and pull it into master.
+
+Above all, if you get stuck or have a question, please ask myself or another of our teammates for help. It doesn't help anyone if you're just staring at text on a screen and have no idea what's going on. I wrote all the code before May 13, so I (most likely) know what it does!
+
+## Things to do
+
+1. Ask me and I'll give you something to do. Certain things need to be done before other things. If it's on the board it's a safe bet you can work on it. I can write new cards if needed.
+2. Look at the [Trello](https://trello.com/b/v5lPOZBl/sprint-board) board and if you see a bug or feature you want to work on that someone else is not working on, feel free to assign it to yourself and begin work. If you would like to work on a ticket with someone specifically, ask that person first before assigning yourself to the card. Common courtesy stuff.
+
 ## Working with schemas
 
 If you need to change a schema in python, notify myself and those working on the frontend. They need to know that the data you are sending them is going to change.
