@@ -18,7 +18,7 @@ Ignore any errors you may see about Python if you haven't setup python yet.
 
 ## Getting Started in Python
 
-Setup a Python 3.9.10 venv in your workspace by running `python -m venv .venv` in your workspace. Obviously, install 3.9.10 if you haven't done so already.
+Setup a Python 3.9.10 venv (virtual environment) in your workspace by running `python -m venv .venv` in your workspace. Obviously, install 3.9.10 if you haven't done so already.
 
 If you are on Windows and VS Code, close all your terminals and open a new terminal. If an error appears, open a PowerShell window in Administrator mode and execute the following command: `Set-ExecutionPolicy RemoteSigned`. Then reopen a terminal window.
 
