@@ -30,7 +30,7 @@ class LayerSettings(BaseModel):
     def string_validator(cls, v, field: ModelField):
         if v == '':
             return None
-        if field.outer_type_ is str:
+        if field.outer_type_ is str or issubclass(field.outer_type_, Enum):
             return v
         try:
             # The empty dictionary is to prevent security threats 
@@ -91,7 +91,11 @@ class Layer:
         It must set the `constructed` attribute to True.
         """
         try:
-            line = self.name + f' = {self.keras_module_location}.' + self.__name__ + '(' + self.construct_settings() + ')'
+            if self.constructed:
+                line = self.name + ' = ' + self.name
+            else:
+                line = self.name + f' = {self.keras_module_location}.' + self.__name__ + '(' + self.construct_settings() + ')'
+                self.constructed = True
             if len(node_being_built.upstream_nodes) != 1:
                 raise CompileException({
                     'node_id': str(node_being_built.id), 
@@ -99,7 +103,6 @@ class Layer:
                     'errors': 'Layer must have exactly one upstream node'
                 })
             line += '(' + node_being_built.upstream_nodes[0].layer.name + ')'
-            self.constructed = True
             return line
         except ValidationError as e:
             raise CompileException({
@@ -134,7 +137,10 @@ class DagNode:
         node.remove_upstream_node(self)
 
     def check_node_connection_limits(self):
-        return self.layer.check_number_upstream_nodes() and self.layer.check_number_downstream_nodes()
+        return (
+            self.layer.check_number_upstream_nodes(len(self.upstream_nodes)) and 
+            self.layer.check_number_downstream_nodes(len(self.downstream_nodes))
+        )
 
     def add_upstream_node(self, node: 'DagNode'):
         self.upstream_nodes.append(node)
@@ -177,16 +183,20 @@ class DirectedAcyclicGraph:
         raise DagException("Node not found")
 
 
-    def _check_cyclic(self) -> bool:
-        if len(self.edges) < 2:
+    def check_cyclic(self) -> bool:
+        if len(self.edges) < 1:
             return True
-        for head in self.get_head_nodes():
-            head.seen = True
-            if not self._check_cyclic(head):
-                head.seen = False
-                return False
-            head.seen = False
-        return True
+        if heads := self.get_head_nodes():
+            for head in heads:
+                head.seen = True
+                if not self._check_cyclic(head):
+                    self._unsee()
+                    return False
+        else:
+            return False
+        cyclic = len([n for n in self.nodes if not n.seen]) == 0
+        self._unsee()
+        return cyclic
 
     
     def _check_cyclic(self, node: DagNode) -> bool:
@@ -195,9 +205,7 @@ class DirectedAcyclicGraph:
                 return False
             n.seen = True
             if not self._check_cyclic(n):
-                n.seen = False
                 return False
-            n.seen = False
         return True
 
 
@@ -216,7 +224,7 @@ class DirectedAcyclicGraph:
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
                 raise DagException("Destination node has too many connections")
-            elif not self._check_cyclic(): 
+            elif not self.check_cyclic(): 
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
                 raise DagException("Circular graphs not allowed")
@@ -227,7 +235,8 @@ class DirectedAcyclicGraph:
         if (source_node, dest_node) in self.edges:
             self.edges.remove((source_node, dest_node))
             source_node.disconnect_from(dest_node)
-        raise DagException("Connection not found")
+        else:
+            raise DagException("Connection not found")
 
 
     def add_node(self, layer: Layer) -> DagNode:
@@ -238,10 +247,10 @@ class DirectedAcyclicGraph:
 
     def remove_node(self, node_id: UUID):
         node = self.get_node(node_id)
+        self.nodes.remove(node)
         for e in list(self.edges):
             if node in e:
                 self.edges.remove(e)
-        self.nodes.remove(node)
 
 
     def _check_graph_whole(self):
