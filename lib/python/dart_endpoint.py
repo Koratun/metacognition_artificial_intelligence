@@ -37,7 +37,7 @@ def main():
     """
 
     for line in fileinput.input():
-        inp = line.rstrip()
+        inp: str = line.rstrip()
         if 'Exit' == inp:
             break
         error = False
