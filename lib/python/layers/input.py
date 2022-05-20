@@ -11,4 +11,5 @@ class InputSettings(LayerSettings):
 class Input(Layer):
     settings_validator = InputSettings
     type = 'input'
+    keras_module_location = 'keras'
     min_upstream_nodes = 0
