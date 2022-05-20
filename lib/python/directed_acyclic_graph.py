@@ -43,6 +43,7 @@ class LayerSettings(BaseModel):
 class Layer:
     settings_validator: Type[LayerSettings] = None
     type = 'base_layer'
+    keras_module_location = 'layers'
     min_upstream_nodes = 1
     max_upstream_nodes = 1
     min_downstream_nodes = 1
@@ -90,7 +91,7 @@ class Layer:
         It must set the `constructed` attribute to True.
         """
         try:
-            line = self.name + ' = layers.' + self.__name__ + '(' + self.construct_settings() + ')'
+            line = self.name + f' = {self.keras_module_location}.' + self.__name__ + '(' + self.construct_settings() + ')'
             if len(node_being_built.upstream_nodes) != 1:
                 raise CompileException({
                     'node_id': str(node_being_built.id), 
