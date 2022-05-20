@@ -48,3 +48,4 @@ app.*.map.json
 # Python
 *.pyc
 .venv/
+__pycache__/
