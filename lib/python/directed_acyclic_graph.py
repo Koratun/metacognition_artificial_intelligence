@@ -138,9 +138,15 @@ class DagNode:
 
     def check_node_connection_limits(self):
         return (
-            self.layer.check_number_upstream_nodes(len(self.upstream_nodes)) and 
-            self.layer.check_number_downstream_nodes(len(self.downstream_nodes))
+            self.check_upstream_node_connection_limits() and 
+            self.check_downstream_node_connection_limits()
         )
+
+    def check_upstream_node_connection_limits(self):
+        return self.layer.check_number_upstream_nodes(len(self.upstream_nodes))
+
+    def check_downstream_node_connection_limits(self):
+        return self.layer.check_number_downstream_nodes(len(self.downstream_nodes))
 
     def add_upstream_node(self, node: 'DagNode'):
         self.upstream_nodes.append(node)
@@ -216,14 +222,14 @@ class DirectedAcyclicGraph:
         else:
             self.edges.append((source_node, dest_node))
             source_node.connect_to(dest_node)
-            if not source_node.check_node_connection_limits():
+            if not source_node.check_downstream_node_connection_limits():
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
-                raise DagException("Source node has too many connections")
-            elif not dest_node.check_node_connection_limits():
+                raise DagException("Source node has too many outgoing connections")
+            elif not dest_node.check_upstream_node_connection_limits():
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
-                raise DagException("Destination node has too many connections")
+                raise DagException("Destination node has too many incoming connections")
             elif not self.check_cyclic(): 
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)

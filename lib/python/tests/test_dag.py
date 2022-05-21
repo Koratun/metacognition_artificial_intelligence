@@ -46,7 +46,7 @@ def test_add_remove_nodes(
     with AssertException(DagException, "Circular graphs not allowed"):
         dag.connect_nodes(dense_node.id, input_node.id)
     
-    with AssertException(DagException, "Destination node has too many connections"):
+    with AssertException(DagException, "Destination node has too many incoming connections"):
         dag.connect_nodes(output_node.id, dense_node.id)
 
     assert dense_node.downstream_nodes == []
@@ -62,7 +62,7 @@ def test_add_remove_nodes(
 
     dag.connect_nodes(dense_node.id, output_node.id)
 
-    with AssertException(DagException, "Source node has too many connections"):
+    with AssertException(DagException, "Source node has too many outgoing connections"):
         dag.connect_nodes(dense_node.id, input_node.id)
 
     with AssertException(DagException, "Circular graphs not allowed"):
@@ -82,4 +82,3 @@ def test_add_remove_nodes(
     dag.remove_node(output_node.id)
 
     assert dag.nodes == []
-    
