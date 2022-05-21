@@ -136,17 +136,11 @@ class DagNode:
         self.remove_downstream_node(node)
         node.remove_upstream_node(self)
 
-    def check_node_connection_limits(self):
-        return (
-            self.check_upstream_node_connection_limits() and 
-            self.check_downstream_node_connection_limits()
-        )
-
     def check_upstream_node_connection_limits(self):
-        return self.layer.check_number_upstream_nodes(len(self.upstream_nodes))
+        return len(self.upstream_nodes) <= self.layer.max_upstream_nodes
 
     def check_downstream_node_connection_limits(self):
-        return self.layer.check_number_downstream_nodes(len(self.downstream_nodes))
+        return len(self.downstream_nodes) <= self.layer.max_downstream_nodes
 
     def add_upstream_node(self, node: 'DagNode'):
         self.upstream_nodes.append(node)
