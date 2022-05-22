@@ -1,7 +1,6 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
-
+//import new menu
+import 'window_style_dropdown_menu.dart';
 import 'layer_tile.dart';
 import 'main.dart';
 import 'pycontroller.dart';
@@ -29,6 +28,7 @@ class _SelectionPanelState extends State<SelectionPanel>
   String _selectedCategory = categoryNames[0];
 
   Map<String, List<String>>? _categoryList;
+  final GlobalKey<PopupMenuButtonState<int>> _key = GlobalKey();
 
   @override
   void initState() {
@@ -87,77 +87,151 @@ class _SelectionPanelState extends State<SelectionPanel>
     );
   }
 
-  showDropmenu() {
-    showMenu<String>(
-        context: context,
-        position: RelativeRect.fromLTRB(0.0, 25.0, 0.0, 0.0),
-        //position where you want to show the menu on screen
-        items: [
-          PopupMenuItem<String>(child: const Text('Open'), value: '1'),
-          PopupMenuItem<String>(child: const Text('Save'), value: '2'),
-          PopupMenuItem<String>(child: const Text('Exit'), value: '3'),
-        ],
-        elevation: 10.0,
-        color: Colors.blue);
-  }
-
+//drop down menu
   @override
   Widget build(BuildContext context) {
-    Color getColor(Set<MaterialState> states) {
-      const Set<MaterialState> interactiveStates = <MaterialState>{
-        MaterialState.pressed,
-        MaterialState.hovered,
-        MaterialState.focused,
-      };
-      if (states.any(interactiveStates.contains)) {
-        return Color.fromARGB(255, 243, 128, 33);
-      }
-      return Color.fromARGB(255, 93, 92, 92);
-    }
-
-    final GlobalKey<TooltipState> tooltipkey = GlobalKey<TooltipState>();
-    final toolbar = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextButton(
-            style: TextButton.styleFrom(
-              textStyle: Theme.of(context).textTheme.bodyText1,
-            ),
-            onPressed: () {},
-            child: Tooltip(
-                key: tooltipkey,
-                triggerMode: TooltipTriggerMode.manual,
-                message: 'Save \n\n Open \n\n Close ',
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                      colors: <Color>[Colors.amber, Colors.red]),
+    final toolbar = IntrinsicHeight(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          WindowStyleDropdownMenu(
+            dropdownWidth: 278,
+            buttonTitle: 'File',
+            dropdownItems: [
+              ListTile(
+                mouseCursor: SystemMouseCursors.click,
+                trailing: const Text('Ctrl + N',
+                    style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'New',
+                  style: TextStyle(color: Colors.white),
                 ),
-                height: 80,
-                padding: const EdgeInsets.all(8.0),
-                preferBelow: false,
-                textStyle: const TextStyle(
-                  fontSize: 24,
+                onTap: () {
+                  debugPrint("New File selected");
+                },
+              ),
+              ListTile(
+                mouseCursor: SystemMouseCursors.click,
+                trailing: const Text('Ctrl + O',
+                    style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Open',
+                  style: TextStyle(color: Colors.white),
                 ),
-                child: TextButton(
-                  style: ButtonStyle(
-                      foregroundColor:
-                          MaterialStateProperty.resolveWith(getColor)),
-                  onPressed: () {},
-                  child: const Text('File'),
-                ))),
-        VerticalDivider(
-          width: 20,
-          thickness: 1,
-          color: Colors.grey[700],
-        ),
-        TextButton(
-          style: TextButton.styleFrom(
-            textStyle: Theme.of(context).textTheme.bodyText1,
+                onTap: () {
+                  debugPrint("Open new file selected");
+                },
+              )
+            ],
           ),
-          onPressed: null,
-          child: const Text("Settings"),
-        ),
-      ],
+          const VerticalDivider(
+            width: 2,
+            thickness: 1,
+            color: Colors.white,
+          ),
+          WindowStyleDropdownMenu(
+            dropdownWidth: 278,
+            buttonTitle: 'Save',
+            dropdownItems: [
+              ListTile(
+                mouseCursor: SystemMouseCursors.click,
+                trailing: const Text('Ctrl + S',
+                    style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Save',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  debugPrint("Save file selected");
+                },
+              ),
+              ListTile(
+                mouseCursor: SystemMouseCursors.click,
+                trailing: const Text('Ctrl + K + S',
+                    style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Save All',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  debugPrint("Save All selected");
+                },
+              )
+            ],
+          ),
+          const VerticalDivider(
+            width: 2,
+            thickness: 1,
+            color: Colors.white,
+          ),
+          WindowStyleDropdownMenu(
+            dropdownWidth: 278,
+            buttonTitle: 'Settings',
+            dropdownItems: [
+              ListTile(
+                mouseCursor: SystemMouseCursors.click,
+                trailing: const Text('Ctrl + E',
+                    style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Extensions',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  debugPrint("Extensions selected");
+                },
+              ),
+              ListTile(
+                mouseCursor: SystemMouseCursors.click,
+                trailing: const Text('Shift + Ctrl + E',
+                    style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Editor Settings',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  debugPrint("Editor Settings selected");
+                },
+              )
+            ],
+          ),
+          const VerticalDivider(
+            width: 2,
+            thickness: 1,
+            color: Colors.white,
+          ),
+          WindowStyleDropdownMenu(
+            dropdownWidth: 278,
+            buttonTitle: 'Others',
+            dropdownItems: [
+              //not using const due to possible breaking with print
+              ListTile(
+                mouseCursor: SystemMouseCursors.click,
+                trailing: const Text('Ctrl + T',
+                    style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Tools',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  debugPrint("Tools selected");
+                },
+              ),
+              ListTile(
+                mouseCursor: SystemMouseCursors.click,
+                trailing: const Text('Ctrl + Shift + P',
+                    style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Command Palette',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  debugPrint("Command Palette selected");
+                },
+              )
+            ],
+          ),
+        ],
+      ),
     );
 
     final categories = Column(
