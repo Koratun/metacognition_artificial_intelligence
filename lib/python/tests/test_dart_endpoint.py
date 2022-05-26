@@ -56,6 +56,7 @@ class TestDartEndpoint:
 
 
     def test_create_layer(self, mock_response: MagicMock, mock_input: MagicMock):
+        # Test success state
         force_id = uuid4()
         with patch("python.directed_acyclic_graph.uuid4") as mock_id:
             mock_id.return_value = force_id
@@ -77,6 +78,7 @@ class TestDartEndpoint:
                 )
             )
 
+        # Test error states
         self.request_and_response(
             mock_response,
             mock_input,
