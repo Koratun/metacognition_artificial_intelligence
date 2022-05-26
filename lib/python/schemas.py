@@ -20,8 +20,8 @@ class CamelModel(BaseModel):
 
 
 layer_classes: dict[str, Type[Layer]] = {}
-# Loop backwards through globals() until we hit 'Layer' 
-# or whatever the first non-layer-subclass is
+# Loop backwards through globals() until we hit 
+# whatever the first non-layer-subclass is
 
 layer_packages: dict[str, list[str]] = {}
 

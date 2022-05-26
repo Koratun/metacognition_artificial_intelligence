@@ -1,3 +1,4 @@
+LICENSE
 README.md
 setup.py
 lib/mai_python_internals.egg-info/PKG-INFO

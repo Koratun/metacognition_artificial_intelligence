@@ -9,6 +9,7 @@ class OutputSettings(LayerSettings):
 class Output(Layer):
     settings_validator = OutputSettings
     type = 'model'
+    keras_module_location = 'keras'
     max_upstream_nodes = inf
     min_downstream_nodes = 0
     max_downstream_nodes = inf
