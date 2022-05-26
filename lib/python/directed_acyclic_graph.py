@@ -60,7 +60,7 @@ class Layer:
         response: dict = cls.settings_validator.schema()['properties']
         return list(response.keys())
 
-    def update_settings(self, settings: dict):
+    def update_settings(self, settings: dict[str, str]):
         """This method assumes that the settings match this layer's schema"""
         self.settings_data.update(settings)
         return self.validate_settings()
