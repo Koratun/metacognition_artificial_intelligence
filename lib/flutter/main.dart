@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'selection_panel.dart';
@@ -39,7 +40,7 @@ class _MainState extends State<Main>
         canvasColor: Colors.black,
         textTheme: Typography.blackRedmond,
       ),
-      home: Scaffold(
+      home: MouseRegion(child:Scaffold(
         body: Builder(
           builder: (context) => Stack(
             children: [
@@ -110,7 +111,9 @@ class _MainState extends State<Main>
             ],
           ),
         ),
-      ),
+      ),onExit: (PointerExitEvent){
+        FocusManager.instance.primaryFocus?.unfocus();
+      },),
     );
   }
 }
