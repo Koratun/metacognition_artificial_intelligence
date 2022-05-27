@@ -28,7 +28,6 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     textFocusNode.addListener(() {
       if (textFocusNode.hasFocus) {
@@ -42,6 +41,7 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
   }
 
   void removeOverlay() {
+    // This is called 5 times when it should only be once
     _overlayEntry!.remove();
   }
 
@@ -70,30 +70,32 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
     var offset = renderBox.localToGlobal(Offset.zero);
 
     return OverlayEntry(
-        maintainState: true,
-        builder: (context) => Positioned(
-              left: offset.dx,
-              top: offset.dy + size.height,
-              width: widget.dropdownWidth ?? 200,
-              child: TextButton(
-                onPressed: () {},
-                onHover: (val) {
-                  if (val && showOverlay) {
-                    textFocusNode.requestFocus();
-                  } else {
-                    textFocusNode.unfocus();
-                  }
-                },
-                child: Material(
-                  color: widget.dropdownBackgroundColor ??
-                      Theme.of(context).primaryColorDark,
-                  elevation: 4.0,
-                  child: ListView(
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      children: widget.dropdownItems),
-                ),
-              ),
-            ));
+      maintainState: true,
+      builder: (context) => Positioned(
+        left: offset.dx,
+        top: offset.dy + size.height,
+        width: widget.dropdownWidth ?? 200,
+        child: TextButton(
+          onPressed: () {},
+          onHover: (val) {
+            if (val && showOverlay) {
+              textFocusNode.requestFocus();
+            } else {
+              textFocusNode.unfocus();
+            }
+          },
+          child: Material(
+            color: widget.dropdownBackgroundColor ??
+                Theme.of(context).primaryColorDark,
+            elevation: 4.0,
+            child: ListView(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              children: widget.dropdownItems,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
