@@ -101,7 +101,7 @@ class _SelectionPanelState extends State<SelectionPanel>
   Widget _buildLayerCategory(String title) {
     return Material(
       color: _selectedCategory == title
-          ? Colors.lightBlue[200]
+          ? Theme.of(context).primaryColor
           : Colors.transparent,
       child: InkWell(
         onTap: () {
@@ -271,7 +271,10 @@ class _SelectionPanelState extends State<SelectionPanel>
           toolbar,
           categories,
           Expanded(
-            child: layerTiles,
+            child: Container(
+              color: Theme.of(context).backgroundColor,
+              child: layerTiles,
+            ),
           ),
         ],
       ),
