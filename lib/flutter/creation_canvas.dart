@@ -4,7 +4,7 @@ import 'layer_tile.dart';
 import 'pycontroller.dart';
 import 'schemas/command_enum.dart';
 import 'schemas/create_layer.dart';
-import 'schemas/creation_response.dart';
+import 'schemas/schema.dart';
 
 class CreationCanvas extends StatefulWidget {
   const CreationCanvas({Key? key}) : super(key: key);
@@ -39,20 +39,16 @@ class _CreationCanvasState extends State<CreationCanvas>
       layerTile.title,
       _entranceAnimation,
       _entranceController,
-      isGridChild: false,
       changeNotifyCallback: notifyListeners,
       layerName: layerTile.layerName,
+      messageHandler: ValueNotifier<Schema?>(null),
     );
     tiles.add(newTile);
     positions.add(pos);
     if (newTile.layerName != null) {
       PyController.request(
         Command.create,
-        (response) {
-          if (response is CreationResponse) {
-            newTile.create(response);
-          }
-        },
+        (response) => newTile.messageHandler!.value = response,
         data: CreateLayer(newTile.layerName!),
       );
     }
