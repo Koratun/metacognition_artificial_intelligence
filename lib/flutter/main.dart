@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'selection_panel.dart';
-// import 'floating_widget_layout.dart';
 import 'creation_canvas.dart';
 
 void main() {
@@ -40,80 +39,78 @@ class _MainState extends State<Main>
         canvasColor: Colors.black,
         textTheme: Typography.blackRedmond,
       ),
-      home: MouseRegion(child:Scaffold(
-        body: Builder(
-          builder: (context) => Stack(
-            children: [
-              const Positioned.fill(
-                child: CreationCanvas(),
-              ),
-              Positioned.fill(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SelectionPanel(),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          SizedBox(
-                            width: 150,
-                            height: 40,
-                            child: Container(
-                              color: Colors.orange,
-                              child: Center(
-                                child: Text(
-                                  'Tools',
-                                  style: Theme.of(context).textTheme.headline6,
+      home: MouseRegion(
+        child: Scaffold(
+          body: Builder(
+            builder: (context) => Stack(
+              children: [
+                const Positioned.fill(
+                  child: CreationCanvas(),
+                ),
+                Positioned.fill(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SelectionPanel(),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              height: 40,
+                              child: Container(
+                                color: Colors.orange,
+                                child: Center(
+                                  child: Text(
+                                    'Tools',
+                                    style:
+                                        Theme.of(context).textTheme.headline6,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: 800,
-                            height: 200,
-                            child: Container(
-                              color: Colors.green,
-                              child: Center(
-                                child: Text(
-                                  'Report',
-                                  style: Theme.of(context).textTheme.headline6,
+                            SizedBox(
+                              width: 800,
+                              height: 200,
+                              child: Container(
+                                color: Colors.green,
+                                child: Center(
+                                  child: Text(
+                                    'Report',
+                                    style:
+                                        Theme.of(context).textTheme.headline6,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: Main.getSidePanelWidth(context),
-                      height: 600,
-                      child: Container(
-                        color: Colors.yellow,
-                        child: Center(
-                          child: Text(
-                            'Dialogue',
-                            style: Theme.of(context).textTheme.headline6,
+                      SizedBox(
+                        width: Main.getSidePanelWidth(context),
+                        height: 600,
+                        child: Container(
+                          color: Colors.yellow,
+                          child: Center(
+                            child: Text(
+                              'Dialogue',
+                              style: Theme.of(context).textTheme.headline6,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const Positioned.fill(
-                child: Center(),
-                // child: CustomSingleChildLayout(
-                //   delegate: FloatingWidgetLayoutDelegate(position: mousePos),
-                //   child: _hugger ?? const Center(),
-                // ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),onExit: (PointerExitEvent){
-        FocusManager.instance.primaryFocus?.unfocus();
-      },),
+        onExit: (PointerExitEvent) {
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+      ),
     );
   }
 }
