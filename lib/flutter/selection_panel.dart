@@ -90,7 +90,8 @@ class _SelectionPanelState extends State<SelectionPanel>
 //drop down menu
   @override
   Widget build(BuildContext context) {
-    final toolbar = IntrinsicHeight(
+    final toolbar = Container(
+      color: const Color.fromARGB(255, 14, 14, 14),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -124,10 +125,10 @@ class _SelectionPanelState extends State<SelectionPanel>
               )
             ],
           ),
-          const VerticalDivider(
+          Container(
             width: 2,
-            thickness: 1,
-            color: Colors.white,
+            height: 20,
+            color: Colors.grey.shade300,
           ),
           WindowStyleDropdownMenu(
             dropdownWidth: 278,
@@ -159,10 +160,10 @@ class _SelectionPanelState extends State<SelectionPanel>
               )
             ],
           ),
-          const VerticalDivider(
+          Container(
             width: 2,
-            thickness: 1,
-            color: Colors.white,
+            height: 20,
+            color: Colors.grey.shade300,
           ),
           WindowStyleDropdownMenu(
             dropdownWidth: 278,
@@ -194,10 +195,10 @@ class _SelectionPanelState extends State<SelectionPanel>
               )
             ],
           ),
-          const VerticalDivider(
+          Container(
             width: 2,
-            thickness: 1,
-            color: Colors.white,
+            height: 20,
+            color: Colors.grey.shade300,
           ),
           WindowStyleDropdownMenu(
             dropdownWidth: 278,
@@ -275,7 +276,6 @@ class _SelectionPanelState extends State<SelectionPanel>
             _selectedCategory,
             _entranceAnimation,
             _entranceController,
-            isGridChild: true,
             layerName: _categoryList == null
                 ? null
                 : _categoryList![_selectedCategory] == null
