@@ -58,6 +58,6 @@ logs/
 <<<<<<< HEAD
 =======
 
-# **/mai_python_internals*/
+**/mai_python_internals.egg-info/
 
 >>>>>>> 970d459... update .gitignore
