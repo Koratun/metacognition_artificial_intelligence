@@ -90,9 +90,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
   Widget _imageTile({bool hovering = false}) {
     final Widget imageTile = Container(
       decoration: BoxDecoration(
-        color: widget.i ~/ 3 < 4
-            ? Colors.grey[100 * (widget.i ~/ 3 + 1)]
-            : Colors.grey[100 * (widget.i ~/ 3 + 2)],
+        color: Theme.of(context).primaryColor,
         border: Border.all(color: Colors.lightBlueAccent[700]!),
         borderRadius: BorderRadius.circular(8.0),
       ),
