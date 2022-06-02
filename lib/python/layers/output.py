@@ -1,20 +1,16 @@
-from python.directed_acyclic_graph import LayerSettings, Layer, DagNode, CompileException, CompileErrorReason
+from python.directed_acyclic_graph import NamedLayerSettings, Layer, DagNode, CompileException, CompileErrorReason
 from math import inf
 
 
-class OutputSettings(LayerSettings):
-    loss: str
-
-
 class Output(Layer):
-    settings_validator = OutputSettings
+    settings_validator = NamedLayerSettings
     type = 'model'
     keras_module_location = 'keras'
     max_upstream_nodes = inf
     min_downstream_nodes = 0
     max_downstream_nodes = inf
 
-    def check_number_downstream_nodes(self, n: int) -> bool:
+    def check_number_downstream_nodes(self, _: int) -> bool:
         # This will always be true because n is a positive number and
         # the limits being checked are positive numbers 0 <= n <= inf is always True
         return True 

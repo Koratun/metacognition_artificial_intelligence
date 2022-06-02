@@ -1,10 +1,11 @@
 from typing import Optional
 from python.layers.layers import Dtype
-from python.directed_acyclic_graph import LayerSettings, Layer
+from python.directed_acyclic_graph import NamedLayerSettings, Layer
+from pydantic import StrictInt
 
 
-class InputSettings(LayerSettings):
-    shape: tuple[int, ...]
+class InputSettings(NamedLayerSettings):
+    shape: tuple[StrictInt, ...]
     dtype: Optional[Dtype] = None
 
 
