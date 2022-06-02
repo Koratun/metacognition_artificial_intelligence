@@ -1,0 +1,18 @@
+{
+    "New Layer file": {
+        "prefix": "layer_file",
+        "body": [
+            "from python.directed_acyclic_graph import LayerSettings, Layer",
+            "",
+            "",
+            "class ${1:ClassName}Settings(LayerSettings):",
+            "    $0",
+            "",
+            "",
+            "class ${1:ClassName}(Layer):",
+            "    settings_validator = ${1:ClassName}Settings",
+            "    type = '${1/([A-Z]{2,})(?=[A-Z][a-z]+[0-9]*|$)|([A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+)([- _])?/${1:/downcase}${2:+_}${2:/downcase}/gm}'"
+        ],
+        "description": "Create a new layer file"
+    }
+}

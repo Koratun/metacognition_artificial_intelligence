@@ -1,7 +1,7 @@
-from python.directed_acyclic_graph import LayerSettings, Layer
+from python.directed_acyclic_graph import NamedLayerSettings, Layer
 
 
-class DenseSettings(LayerSettings):
+class DenseSettings(NamedLayerSettings):
     units: int
 
 

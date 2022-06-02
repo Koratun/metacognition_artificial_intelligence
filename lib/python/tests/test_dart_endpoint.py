@@ -1,8 +1,9 @@
 from pydantic import BaseModel, ValidationError
 from uuid import uuid4
 from python.dart_endpoint import main, format_response
-from python.schemas import layer_packages, ResponseType, Command, CreateLayer
+from python.schemas import ResponseType, Command, CreateLayer
 from python.layers.input import Input
+from python.layers import layer_packages
 from mock import patch, MagicMock
 
 
