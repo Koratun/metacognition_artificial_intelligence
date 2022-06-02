@@ -32,12 +32,15 @@ for glob_mod_name, glob_mod in reversed(dict(globals()).items()):
         # This is a module!
         # Iterate through the module to find an attribute of type Layer
         for attr_name, attr in reversed(glob_mod.__dict__.items()):
-            if issubclass(attr, Layer):
-                layer_classes[attr_name] = attr
-                if package_list := layer_packages.get(mod_parent):
-                    package_list.insert(0, attr_name)
-                else:
-                    layer_packages[mod_parent] = [attr_name]
+            if not isinstance(attr, type(input)):
+                if issubclass(attr, Layer):
+                    layer_classes[attr_name] = attr
+                    if package_list := layer_packages.get(mod_parent):
+                        package_list.insert(0, attr_name)
+                    else:
+                        layer_packages[mod_parent] = [attr_name]
+                    break
+            else:
                 break
 
     if breakflag:
