@@ -17,6 +17,7 @@ class Compile(Layer):
     type = 'compile'
     min_upstream_nodes = 3
     max_upstream_nodes = inf
+    max_downstream_nodes = inf
 
     def __init__(self):
         super().__init__()
