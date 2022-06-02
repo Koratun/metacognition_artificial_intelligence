@@ -55,9 +55,6 @@ logs/
 
 .vscode/c_cpp_properties.json
 .vscode/launch.json
-<<<<<<< HEAD
-=======
 
 **/mai_python_internals.egg-info/
 
->>>>>>> 970d459... update .gitignore
