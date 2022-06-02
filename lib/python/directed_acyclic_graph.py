@@ -1,29 +1,33 @@
 from uuid import UUID, uuid4
 from enum import Enum
 from typing import Type
-from humps import camelize
 import re
+from humps import camelize
 from pydantic import BaseModel, ValidationError, validator
 from pydantic.fields import ModelField
+
+
+# This class would normally go inside the schemas file, 
+# but it is here to prevent circular import errors
+class CompileErrorReason(Enum):
+    """
+    The reason why a layer failed to construct.
+    """
+    UPSTREAM_NODE_COUNT = 'upstream_node_count'
+    DOWNSTREAM_NODE_COUNT = 'downstream_node_count'
+    SETTINGS_VALIDATION = 'settings_validation'
+    COMPILATION_VALIDATION = 'compilation_validation'
+    INPUT_MISSING = 'input_missing'
+    DISJOINTED_GRAPH = 'disjointed_graph'
+
+    def camel(self) -> str:
+        return camelize(self.value)
 
 
 class CompileException(Exception):
     def __init__(self, error_data: dict, *args: object) -> None:
         self.error_data = error_data
         super().__init__(error_data, *args)
-
-
-class CompileErrorReason(Enum):
-    """
-    The reason why a layer failed to construct.
-    """
-    UPSTREAM_NODE_COUNT = 'upstream_node_count'
-    SETTINGS_VALIDATION = 'settings_validation'
-    INPUT_MISSING = 'input_missing'
-    DISJOINTED_GRAPH = 'disjointed_graph'
-
-    def camel(self) -> str:
-        return camelize(self.value)
 
 
 class LayerSettings(BaseModel):
@@ -103,18 +107,26 @@ class Layer:
         It must validate the syntax first before continuing.
         It must set the `constructed` attribute to True.
         """
+        if not self.check_number_downstream_nodes(len(node_being_built.downstream_nodes)):
+            raise CompileException({
+                'node_id': str(node_being_built.id), 
+                'reason': CompileErrorReason.DOWNSTREAM_NODE_COUNT.camel(), 
+                'errors': 'Layer downstream node count does not meet requirements: '
+                f'{self.min_downstream_nodes} <= {len(node_being_built.downstream_nodes)} <= {self.max_downstream_nodes}'
+            })
         try:
             if self.constructed:
                 line = self.name + ' = ' + self.name
             else:
                 line = self.name + f' = {self.keras_module_location}.' + self.__name__ + '(' + self.construct_settings() + ')'
                 self.constructed = True
-            if len(node_being_built.upstream_nodes) != 1:
+            if not self.check_number_upstream_nodes(len(node_being_built.upstream_nodes)):
                 raise CompileException({
                     'node_id': str(node_being_built.id), 
                     'reason': CompileErrorReason.UPSTREAM_NODE_COUNT.camel(), 
-                    'errors': 'Layer must have exactly one upstream node'
-                })
+                    'errors': 'Layer upstream node count does not meet requirements: '
+                f'{self.min_upstream_nodes} <= {len(node_being_built.upstream_nodes)} <= {self.max_upstream_nodes}'
+            })
             line += '(' + node_being_built.upstream_nodes[0].layer.name + ')'
             return line
         except ValidationError as e:
@@ -123,6 +135,13 @@ class Layer:
                 'reason': CompileErrorReason.SETTINGS_VALIDATION.camel(), 
                 'errors': e.errors()
             })
+
+
+# This class would normally go inside the compilation folder, 
+# but it is here to prevent circular import errors
+class CompileArgLayer(Layer):
+    min_upstream_nodes = 0
+    max_upstream_nodes = 0
 
 
 class DagException(Exception):
@@ -184,7 +203,7 @@ class DirectedAcyclicGraph:
     def get_head_nodes(self) -> list[DagNode]:
         for e in self.edges:
             e[1].seen = True
-        head_nodes = [n for n in self.nodes if not n.seen]
+        head_nodes = [n for n in self.nodes if not n.seen and not isinstance(n.layer, CompileArgLayer)]
         self._unsee()
         return head_nodes
 
@@ -320,7 +339,7 @@ class DirectedAcyclicGraph:
         for n in node.downstream_nodes:
             upstream_loaded = True
             for upstream_node in n.upstream_nodes:
-                if not upstream_node.seen:
+                if not upstream_node.seen and not isinstance(upstream_node.layer, CompileArgLayer):
                     upstream_loaded = False
             if upstream_loaded:
                 n.seen = True
