@@ -84,24 +84,7 @@ class ResponseType(Enum):
     COMPILE_SUCCESS = "compile_success"
 
     def get_model(self) -> Type[BaseModel]:
-        if self == self.STARTUP:
-            return StartupResponse
-        elif self == self.SUCCESS_FAIL:
-            return SuccessFailResponse
-        elif self == self.CREATION:
-            return CreationResponse
-        elif self == self.VALIDATION_ERROR:
-            return ValidationErrorResponse
-        elif self == self.GRAPH_EXCEPTION:
-            return GraphExceptionResponse
-        elif self == self.COMPILE_ERROR:
-            return CompileErrorResponse
-        elif self == self.COMPILE_ERROR_DISJOINTED:
-            return CompileErrorDisjointedResponse
-        elif self == self.COMPILE_ERROR_SETTINGS_VALIDATION:
-            return CompileErrorSettingsValidationResponse
-        elif self == self.COMPILE_SUCCESS:
-            return CompileSuccessResponse
+        return response_model_rep[self]
 
     def camel(self) -> str:
         return camelize(self.value)
@@ -173,3 +156,16 @@ class CompileErrorSettingsValidationResponse(ValidationErrorResponse):
 
 class GraphExceptionResponse(BaseModel):
     error: str
+
+
+response_model_rep = {
+    ResponseType.STARTUP: StartupResponse,
+    ResponseType.SUCCESS_FAIL: SuccessFailResponse,
+    ResponseType.CREATION: CreationResponse,
+    ResponseType.VALIDATION_ERROR: ValidationErrorResponse,
+    ResponseType.GRAPH_EXCEPTION: GraphExceptionResponse,
+    ResponseType.COMPILE_ERROR: CompileErrorResponse,
+    ResponseType.COMPILE_ERROR_DISJOINTED: CompileErrorDisjointedResponse,
+    ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION: CompileErrorSettingsValidationResponse,
+    ResponseType.COMPILE_SUCCESS: CompileSuccessResponse,
+}
