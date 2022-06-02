@@ -207,7 +207,7 @@ if __name__ == "__main__":
 
     #Preprocess data
     print("Loading and processing data...")
-    gen.datadir = "Data"
+    gen.datadir = "playground_ai\\Data"
     train_data_generator = gen.DroneDataGenerator(batch_size=32)
 
     # Convert from keras sequence to tf.data.Dataset
