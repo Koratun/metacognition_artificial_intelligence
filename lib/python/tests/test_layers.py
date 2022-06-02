@@ -36,6 +36,7 @@ def test_update_layer():
     assert layer.update_settings(dict(shape='(1, 2.1)'))
     assert not layer.update_settings(dict(shape='(1,)'))
     assert not layer.update_settings(dict(shape='(1,16)'))
+    assert not layer.update_settings(dict(shape='(1, None)'))
     assert not layer.update_settings(dict(dtype='float64'))
 
     layer = layer_classes['Output']()
