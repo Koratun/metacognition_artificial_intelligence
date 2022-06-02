@@ -1,4 +1,4 @@
-from python.schemas import layer_classes
+from python.layers import layer_classes
 from python.directed_acyclic_graph import Layer, LayerSettings
 
 
