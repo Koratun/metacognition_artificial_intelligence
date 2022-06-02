@@ -5,12 +5,11 @@ from pydantic import StrictInt
 
 
 class InputSettings(NamedLayerSettings):
-    shape: tuple[StrictInt, ...]
+    shape: tuple[Optional[StrictInt], ...]
     dtype: Optional[Dtype] = None
 
 
 class Input(Layer):
     settings_validator = InputSettings
     type = 'input'
-    keras_module_location = 'keras'
     min_upstream_nodes = 0
