@@ -23,7 +23,6 @@ class Compile(Layer):
         self.output: DagNode = None
         self.loss: DagNode = None
         self.optimizer: DagNode = None
-        self.metrics: list[DagNode] = []
 
     @property
     def name(self):
@@ -46,6 +45,7 @@ class Compile(Layer):
             # the three necessary nodes (out, loss, opt) are present since validation
             # has already passed. The Frontend will make sure that only nodes of the correct
             # type can be attached to the compile layer.
+            metrics: list[DagNode] = []
             for n in node_being_built.upstream_nodes:
                 n.seen = True
                 if n.id == node_connections.output_node_id:
@@ -55,12 +55,12 @@ class Compile(Layer):
                 elif n.id == node_connections.optimizer_node_id:
                     self.optimizer = n
                 elif n.id in node_connections.metric_node_ids:
-                    self.metrics.append(n)
+                    metrics.append(n)
 
             line = f"{self.output.layer.name}.compile("
             line += f"\n\toptimizer={self.optimizer.code_gen()}, "
             line += f"\n\tloss={self.loss.code_gen()}, "
-            line += f"\n\tmetrics=[{', '.join(n.code_gen() for n in self.metrics)}]\n)"
+            line += f"\n\tmetrics=[{', '.join(n.code_gen() for n in metrics)}]\n)"
             self.constructed = True
             return line
         except ValidationError as e:
