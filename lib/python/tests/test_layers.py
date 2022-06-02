@@ -1,4 +1,4 @@
-from python.schemas import layer_classes
+from python.layers import layer_classes
 from python.directed_acyclic_graph import Layer, LayerSettings
 
 
@@ -22,14 +22,21 @@ def test_update_layer():
     assert layer.update_settings({'units': ''})
     assert layer.update_settings({'units': 'a'})
     assert not layer.update_settings({'units': '16'})
+    assert layer.update_settings({'name': ''})
+    assert layer.update_settings({'name': '9full_layer'})
+    assert layer.update_settings({'name': 'Full Layer'})
+    assert layer.update_settings({'name': 'Full_Layer'})
+    assert layer.update_settings({'name': 'full layer'})
+    assert not layer.update_settings({'name': "fully_connected_layer"})
 
     layer = layer_classes['Input']()
     assert layer.update_settings(dict(shape=''))
     assert layer.update_settings(dict(shape='('))
     assert layer.update_settings(dict(shape='(1)'))
-    # assert layer.update_settings(dict(shape='(1, 2.1)'))
+    assert layer.update_settings(dict(shape='(1, 2.1)'))
     assert not layer.update_settings(dict(shape='(1,)'))
     assert not layer.update_settings(dict(shape='(1,16)'))
+    assert not layer.update_settings(dict(shape='(1, None)'))
     assert not layer.update_settings(dict(dtype='float64'))
 
     layer = layer_classes['Output']()
