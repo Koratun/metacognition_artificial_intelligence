@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-//import new menu
 import 'window_style_dropdown_menu.dart';
 import 'layer_tile.dart';
 import 'main.dart';
@@ -9,8 +8,8 @@ import 'schemas/startup_response.dart';
 
 const categoryNames = <String>[
   "Tutorials",
+  "Datasources and Manipulation",
   "Core",
-  "Preprocessing",
   "Compilation",
   "Convolutional",
   "Recurrent",
