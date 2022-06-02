@@ -6,7 +6,7 @@ import random
 import os
 
 
-datadir = "Data"
+datadir = "playground_ai\\Data"
 
 class DroneDataGenerator(tf.keras.utils.Sequence):
     def __init__(self, batch_size=32, shuffle=True):

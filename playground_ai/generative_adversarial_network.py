@@ -130,7 +130,7 @@ def define_discriminator(image_input_shape=(32,32,3), n_classes=10):
     # define model
     model = keras.Model([in_image, label_input], out_layer)
     # compile model
-    model.compile(loss='binary_crossentropy', optimizer=optimizers.Adam(lr=0.0003, beta_1=0.7), metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer=optimizers.adamax_v2.Adamax(learning_rate=0.0003, beta_1=0.7), metrics=['accuracy'])
     return model
  
 # define the generator
@@ -192,7 +192,7 @@ def define_gan(generator, discriminator):
     model = keras.Model([gen_noise, gen_label], gan_output)
 
     # compile model
-    opt = optimizers.Adam(lr=0.0003, beta_1=0.7)
+    opt = optimizers.adamax_v2.Adamax(learning_rate=0.0003, beta_1=0.7)
     model.compile(loss='binary_crossentropy', optimizer=opt)
 
     # reset trainability for discriminator only (gan ignores this since it has been compiled already)
@@ -329,8 +329,8 @@ def train_hours(generator, discriminator, gan, dataset, random_size, batch_size,
     noise, _ = generate_noise(random_size, 1)
     history['prediction'].append((generator.predict([noise, np.asarray([0])])+1)/2)
     # save the GAN
-    generator.save("cifar_generator")
-    discriminator.save("cifar_disc")
+    generator.save("playground_ai\\cifar_generator")
+    discriminator.save("playground_ai\\cifar_disc")
     return history
 
  
@@ -406,8 +406,8 @@ def train(generator, discriminator, gan, dataset, random_size, n_epochs=100, bat
     history['prediction'].append((generator.predict([noise, np.asarray([0])])+1)/2)
     # save the GAN
     # gan.save("cifar_gan")
-    generator.save("cifar_generator")
-    discriminator.save("cifar_disc")
+    generator.save("playground_ai\\cifar_generator")
+    discriminator.save("playground_ai\\cifar_disc")
     return history
  
 
@@ -441,12 +441,12 @@ def main():
     # create the discriminator
     #discriminator = define_discriminator()
     # discriminator.summary()
-    discriminator = keras.models.load_model("cifar_disc")
+    discriminator = keras.models.load_model("playground_ai\\cifar_disc")
 
     # create the generator
     #generator = define_generator(random_size)
     # generator.summary()
-    generator = keras.models.load_model("cifar_generator")
+    generator = keras.models.load_model("playground_ai\\cifar_generator")
 
     # create the gan
     gan = define_gan(generator, discriminator)
