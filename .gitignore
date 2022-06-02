@@ -49,3 +49,6 @@ app.*.map.json
 *.pyc
 .venv/
 __pycache__/
+
+# TensorFlow
+logs/
