@@ -3,9 +3,21 @@ from sys import stderr
 import traceback
 from humps import camelize
 from pydantic import ValidationError
-from python.layers import layer_packages
-from python.directed_acyclic_graph import CompileErrorReason, DagException, DirectedAcyclicGraph, CompileException
-from python.schemas import ResponseType, Command, CreateLayer, UpdateLayer, DeleteNode, Connection, layer_packages, layer_classes
+from python.layers import layer_packages, layer_classes
+from python.directed_acyclic_graph import (
+    CompileErrorReason, 
+    DagException, 
+    DirectedAcyclicGraph, 
+    CompileException
+)
+from python.schemas import (
+    ResponseType, 
+    Command, 
+    CreateLayer,
+    UpdateLayer, 
+    DeleteNode, 
+    Connection
+)
 
 
 dag = DirectedAcyclicGraph()
