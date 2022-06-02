@@ -16,7 +16,7 @@ def save_plot(examples, n):
 	pyplot.show()
  
 # load model
-generator = load_model("cifar_generator")
+generator = load_model("playground_ai\\cifar_generator")
 # generate noise for generator
 noise, _ = generate_noise(100, 100)
 print("\n\n\n\n\nPlease type the number of the kind of images you want to see! The generator will display 100 images in a 10x10 grid.")
