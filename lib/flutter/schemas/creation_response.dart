@@ -9,7 +9,7 @@ class CreationResponse extends RequestResponseSchema {
 	CreationResponse(this.nodeId, this.layerSettings, this.nodeConnectionLimits, );
 
 	String nodeId;
-	List<String> layerSettings;
+	Map<String, String> layerSettings;
 	NodeConnectionLimits nodeConnectionLimits;
 
 	factory CreationResponse.fromJson(Map<String, dynamic> json) => _$CreationResponseFromJson(json);

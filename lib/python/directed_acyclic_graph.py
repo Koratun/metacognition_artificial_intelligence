@@ -67,12 +67,20 @@ class Layer:
     def __init__(self):
         self.layer_id = uuid4()
         self.constructed = False
-        self.settings_data = {k: (self.type if k == 'name' else '') for k in self.get_settings_data_fields()}
+        self.settings_data = self.get_settings_data_fields()
 
     @classmethod
-    def get_settings_data_fields(cls):
-        response: dict = cls.settings_validator.schema()['properties']
-        return list(response.keys())
+    def get_settings_data_fields(cls) -> dict:
+        response: dict[str, dict] = cls.settings_validator.schema()['properties']
+        default_fields = {}
+        for k, v in response.items():
+            if k == 'name':
+                default_fields[k] = cls.type
+            elif 'default' in v:
+                default_fields[k] = str(v['default'])
+            else:
+                default_fields[k] = ''
+        return default_fields
 
     @property
     def name(self):
