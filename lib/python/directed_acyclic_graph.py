@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Type
 import re
 from humps import camelize
+from contextlib import contextmanager
 from pydantic import BaseModel, ValidationError, validator
 from pydantic.fields import ModelField
 
@@ -205,7 +206,9 @@ class DirectedAcyclicGraph:
         self.edges: list[tuple[DagNode, DagNode]] = []
 
 
+    @contextmanager
     def _unsee(self, construct=False):
+        yield
         for n in self.nodes:
             n.seen = False
             if construct:
@@ -213,10 +216,10 @@ class DirectedAcyclicGraph:
 
 
     def get_head_nodes(self) -> list[DagNode]:
-        for e in self.edges:
-            e[1].seen = True
-        head_nodes = [n for n in self.nodes if not n.seen and not isinstance(n.layer, CompileArgLayer)]
-        self._unsee()
+        with self._unsee():
+            for e in self.edges:
+                e[1].seen = True
+            head_nodes = [n for n in self.nodes if not n.seen and not isinstance(n.layer, CompileArgLayer)]
         return head_nodes
 
 
@@ -230,17 +233,16 @@ class DirectedAcyclicGraph:
     def check_cyclic(self) -> bool:
         if len(self.edges) < 1:
             return True
-        if heads := self.get_head_nodes():
-            for head in heads:
-                head.seen = True
-                if not self._check_cyclic(head):
-                    self._unsee()
-                    return False
-        else:
-            return False
-        cyclic = len([n for n in self.nodes if not n.seen]) == 0
-        self._unsee()
-        return cyclic
+        with self._unsee():
+            if heads := self.get_head_nodes():
+                for head in heads:
+                    head.seen = True
+                    if not self._check_cyclic(head):
+                        return False
+            else:
+                return False
+            cyclic = len([n for n in self.nodes if not n.seen]) == 0
+            return cyclic
 
     
     def _check_cyclic(self, node: DagNode) -> bool:
@@ -298,23 +300,23 @@ class DirectedAcyclicGraph:
 
 
     def _check_graph_whole(self):
-        start_node = self.edges[0][0]
-        start_node.seen = True
-        for n in start_node.upstream_nodes:
-            n.seen = True
-            self._check_graph_whole_recurse(n, up=True)
-        for n in start_node.downstream_nodes:
-            n.seen = True
-            self._check_graph_whole_recurse(n, up=False)
-        # Now check if there are any nodes in the graph that have not been seen
-        disjointed_node_ids = [str(n.id) for n in self.nodes if not n.seen]
-        self._unsee()
-        if disjointed_node_ids:
-            raise CompileException({
-                'node_ids': disjointed_node_ids,
-                'reason': CompileErrorReason.DISJOINTED_GRAPH.camel(),
-                'errors': 'The graph must be connected. If you are not using a node, disconnect it from all other nodes. The graph ignores fully disconnected nodes.'
-            })
+        with self._unsee():
+            start_node = self.edges[0][0]
+            start_node.seen = True
+            for n in start_node.upstream_nodes:
+                n.seen = True
+                self._check_graph_whole_recurse(n, up=True)
+            for n in start_node.downstream_nodes:
+                n.seen = True
+                self._check_graph_whole_recurse(n, up=False)
+            # Now check if there are any nodes in the graph that have not been seen
+            disjointed_node_ids = [str(n.id) for n in self.nodes if not n.seen]
+            if disjointed_node_ids:
+                raise CompileException({
+                    'node_ids': disjointed_node_ids,
+                    'reason': CompileErrorReason.DISJOINTED_GRAPH.camel(),
+                    'errors': 'The graph must be connected. If you are not using a node, disconnect it from all other nodes. The graph ignores fully disconnected nodes.'
+                })
             
 
     def _check_graph_whole_recurse(self, node: DagNode, up: bool):
@@ -337,12 +339,11 @@ class DirectedAcyclicGraph:
         model_file += "import keras\n"
         model_file += "from keras import layers, losses, optimizers, metrics, callbacks\n\n"
 
-        for head in self.get_head_nodes():
-            head.seen = True
-            model_file += head.code_gen() + '\n'
-            model_file += self._construct_keras(head)
-
-        self._unsee(construct=True)
+        with self._unsee(construct=True):
+            for head in self.get_head_nodes():
+                head.seen = True
+                model_file += head.code_gen() + '\n'
+                model_file += self._construct_keras(head)
         return model_file
 
 
