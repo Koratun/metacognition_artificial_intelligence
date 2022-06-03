@@ -12,4 +12,3 @@ class InputSettings(NamedLayerSettings):
 class Input(Layer):
     settings_validator = InputSettings
     type = 'input'
-    min_upstream_nodes = 0

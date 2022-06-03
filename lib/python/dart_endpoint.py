@@ -59,7 +59,7 @@ def main():
             break
         error = False
         try:
-            if '{' not in inp and '}' not in inp:
+            if '{' not in inp or '}' not in inp:
                 raise ValueError(f'Improperly formatted request: "{inp}". '+'Expected string followed by json format. e.g. startup{} or create{"layer": "Input"}')
             command = inp[:inp.find('{')]
             payload = inp[inp.find('{'):]
