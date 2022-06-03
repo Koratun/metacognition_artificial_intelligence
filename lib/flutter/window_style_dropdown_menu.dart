@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class WindowStyleDropdownMenu extends StatefulWidget {
-  String buttonTitle;
-  TextStyle? buttonTitleStyle;
-  double? dropdownWidth;
-  Color? dropdownBackgroundColor;
-  List<ListTile> dropdownItems;
+  final String buttonTitle;
+  final TextStyle? buttonTitleStyle;
+  final double? dropdownWidth;
+  final Color? dropdownBackgroundColor;
+  final List<ListTile> dropdownItems;
 
-  WindowStyleDropdownMenu(
+  const WindowStyleDropdownMenu(
       {Key? key,
       required this.buttonTitle,
       required this.dropdownItems,
@@ -22,40 +22,18 @@ class WindowStyleDropdownMenu extends StatefulWidget {
 }
 
 class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
-  OverlayEntry? _overlayEntry;
-  FocusNode textFocusNode = FocusNode();
-  bool showOverlay = false;
-
-  @override
-  void initState() {
-    super.initState();
-    textFocusNode.addListener(() {
-      if (textFocusNode.hasFocus) {
-        _overlayEntry = _createOverlayEntry();
-        Overlay.of(context)?.insert(_overlayEntry!);
-        // _showOverlay(context, 0);
-      } else {
-        removeOverlay();
-      }
-    });
-  }
-
-  void removeOverlay() {
-    // This is called 5 times when it should only be once
-    _overlayEntry!.remove();
-  }
+  OverlayEntry? overlayEntry;
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      focusNode: textFocusNode,
-      onHover: (val) {
-        if (val) {
-          textFocusNode.requestFocus();
-          showOverlay = true;
-        }
+      onPressed: () {
+        setState(() {
+          overlayEntry = createOverlayEntry();
+          Overlay.of(context)?.insert(overlayEntry!);
+        });
+        debugDumpApp();
       },
-      onPressed: () {},
       child: Text(
         widget.buttonTitle,
         style: widget.buttonTitleStyle ??
@@ -64,7 +42,7 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
     );
   }
 
-  OverlayEntry _createOverlayEntry() {
+  OverlayEntry createOverlayEntry() {
     RenderBox renderBox = context.findRenderObject() as RenderBox;
     var size = renderBox.size;
     var offset = renderBox.localToGlobal(Offset.zero);
@@ -73,27 +51,43 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
       maintainState: true,
       builder: (context) => Positioned(
         left: offset.dx,
-        top: offset.dy + size.height,
+        top: offset.dy,
         width: widget.dropdownWidth ?? 200,
-        child: TextButton(
-          onPressed: () {},
-          onHover: (val) {
-            if (val && showOverlay) {
-              textFocusNode.requestFocus();
-            } else {
-              textFocusNode.unfocus();
-            }
-          },
-          child: Material(
-            color: widget.dropdownBackgroundColor ??
-                Theme.of(context).primaryColorDark,
-            elevation: 4.0,
-            child: ListView(
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              children: widget.dropdownItems,
+        child: Stack(
+          children: [
+            Positioned(
+              left: offset.dx,
+              top: offset.dy + size.height,
+              width: widget.dropdownWidth ?? 200,
+              child: Material(
+                color: widget.dropdownBackgroundColor ??
+                    Theme.of(context).primaryColorDark,
+                elevation: 4.0,
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  children: widget.dropdownItems,
+                ),
+              ),
             ),
-          ),
+            MouseRegion(
+              onExit: (_) => setState(() => overlayEntry!.remove()),
+              child: const SizedBox(),
+            ),
+            Positioned(
+              right: widget.dropdownWidth ?? 200,
+              top: 0,
+              child: MouseRegion(
+                onEnter: (_) => setState(() {
+                  overlayEntry!.remove();
+                }),
+                child: SizedBox(
+                  width: (widget.dropdownWidth ?? 200) - size.width,
+                  height: size.height,
+                ),
+              ),
+            )
+          ],
         ),
       ),
     );

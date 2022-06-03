@@ -86,6 +86,28 @@ class _SelectionPanelState extends State<SelectionPanel>
     );
   }
 
+  Widget buttonDropdown(String title, List<List<String>> dropdownItems) {
+    return WindowStyleDropdownMenu(
+      dropdownWidth: 278,
+      buttonTitle: title,
+      dropdownItems: [
+        for (List<String> dropdown in dropdownItems)
+          ListTile(
+            mouseCursor: SystemMouseCursors.click,
+            trailing:
+                Text(dropdown[0], style: const TextStyle(color: Colors.white)),
+            title: Text(
+              dropdown[1],
+              style: const TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              debugPrint(dropdown[2]);
+            },
+          )
+      ],
+    );
+  }
+
 //drop down menu
   @override
   Widget build(BuildContext context) {
@@ -94,34 +116,11 @@ class _SelectionPanelState extends State<SelectionPanel>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          WindowStyleDropdownMenu(
-            dropdownWidth: 278,
-            buttonTitle: 'File',
-            dropdownItems: [
-              ListTile(
-                mouseCursor: SystemMouseCursors.click,
-                trailing: const Text('Ctrl + N',
-                    style: TextStyle(color: Colors.white)),
-                title: const Text(
-                  'New',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  debugPrint("New File selected");
-                },
-              ),
-              ListTile(
-                mouseCursor: SystemMouseCursors.click,
-                trailing: const Text('Ctrl + O',
-                    style: TextStyle(color: Colors.white)),
-                title: const Text(
-                  'Open',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  debugPrint("Open new file selected");
-                },
-              )
+          buttonDropdown(
+            'File',
+            [
+              ['Ctrl + N', 'New', "New file selected"],
+              ['Ctrl + O', 'Open', "Open file selected"],
             ],
           ),
           Container(
@@ -129,34 +128,11 @@ class _SelectionPanelState extends State<SelectionPanel>
             height: 20,
             color: Colors.grey.shade300,
           ),
-          WindowStyleDropdownMenu(
-            dropdownWidth: 278,
-            buttonTitle: 'Save',
-            dropdownItems: [
-              ListTile(
-                mouseCursor: SystemMouseCursors.click,
-                trailing: const Text('Ctrl + S',
-                    style: TextStyle(color: Colors.white)),
-                title: const Text(
-                  'Save',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  debugPrint("Save file selected");
-                },
-              ),
-              ListTile(
-                mouseCursor: SystemMouseCursors.click,
-                trailing: const Text('Ctrl + K + S',
-                    style: TextStyle(color: Colors.white)),
-                title: const Text(
-                  'Save All',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  debugPrint("Save All selected");
-                },
-              )
+          buttonDropdown(
+            'Save',
+            [
+              ['Ctrl + S', 'Save', "Save file selected"],
+              ['Ctrl + K + S', 'Save All', "Save all selected"],
             ],
           ),
           Container(
@@ -164,34 +140,15 @@ class _SelectionPanelState extends State<SelectionPanel>
             height: 20,
             color: Colors.grey.shade300,
           ),
-          WindowStyleDropdownMenu(
-            dropdownWidth: 278,
-            buttonTitle: 'Settings',
-            dropdownItems: [
-              ListTile(
-                mouseCursor: SystemMouseCursors.click,
-                trailing: const Text('Ctrl + E',
-                    style: TextStyle(color: Colors.white)),
-                title: const Text(
-                  'Extensions',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  debugPrint("Extensions selected");
-                },
-              ),
-              ListTile(
-                mouseCursor: SystemMouseCursors.click,
-                trailing: const Text('Shift + Ctrl + E',
-                    style: TextStyle(color: Colors.white)),
-                title: const Text(
-                  'Editor Settings',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  debugPrint("Editor Settings selected");
-                },
-              )
+          buttonDropdown(
+            'Settings',
+            [
+              ['Ctrl + E', 'Extensions', "Extensions selected"],
+              [
+                'Ctrl + Shift + E',
+                'Editor Settings',
+                "Editor settings selected"
+              ],
             ],
           ),
           Container(
@@ -199,35 +156,15 @@ class _SelectionPanelState extends State<SelectionPanel>
             height: 20,
             color: Colors.grey.shade300,
           ),
-          WindowStyleDropdownMenu(
-            dropdownWidth: 278,
-            buttonTitle: 'Others',
-            dropdownItems: [
-              //not using const due to possible breaking with print
-              ListTile(
-                mouseCursor: SystemMouseCursors.click,
-                trailing: const Text('Ctrl + T',
-                    style: TextStyle(color: Colors.white)),
-                title: const Text(
-                  'Tools',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  debugPrint("Tools selected");
-                },
-              ),
-              ListTile(
-                mouseCursor: SystemMouseCursors.click,
-                trailing: const Text('Ctrl + Shift + P',
-                    style: TextStyle(color: Colors.white)),
-                title: const Text(
-                  'Command Palette',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  debugPrint("Command Palette selected");
-                },
-              )
+          buttonDropdown(
+            'Other',
+            [
+              ['Ctrl + T', 'Tools', "Tools selected"],
+              [
+                'Ctrl + Shift + P',
+                'Command Palette',
+                "Command palette selected"
+              ],
             ],
           ),
         ],
