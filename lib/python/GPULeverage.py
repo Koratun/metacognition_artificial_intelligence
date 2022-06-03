@@ -13,7 +13,7 @@ def programInstall(url, path):
     canvas1.pack()
     #if user choses to skip the installation of cuda
     def install():
-        tkinter.messagebox.showinfo("Downloading File ", "Downloading File")
+        tkinter.messagebox.showinfo("Downloading File", "Downloading File")
         top.destroy()
         if os.path.exists(path) == False:
             urllib.request.urlretrieve(url, path)
@@ -30,15 +30,15 @@ def programInstall(url, path):
     top.mainloop()
 
 #Creates the file in the users folder where the program is located.
-simp_path = 'NvidiaCUDDA.exe'
+simp_path = 'NvidiaCUDA.exe'
 abs_path = os.path.abspath(simp_path)
 try:
     subprocess.check_output('nvidia-smi')
     if platform.system() == "Windows":
-        #CUDDA Windows URL is the same for both Windows 10 and Windows 11
+        #CUDA Windows URL is the same for both Windows 10 and Windows 11
         winUrl = 'https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_516.01_windows.exe'
         programInstall(winUrl, abs_path)
-    #for future use. lines of code needed to run cudda instal on linux. 
+    #for future use. lines of code needed to run cuda install on linux. 
     #elif platform.system() == "Linux":
     #    runscript = 'wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_515.43.04_linux.run \n sudo sh cuda_11.7.0_515.43.04_linux.run'
     #    os.system(runscript)
