@@ -10,6 +10,7 @@ const categoryNames = <String>[
   "Tutorials",
   "Core",
   "Preprocessing",
+  "Compilation",
   "Convolutional",
   "Recurrent",
 ];
