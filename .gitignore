@@ -52,3 +52,5 @@ __pycache__/
 
 # TensorFlow
 logs/
+
+NvidiaCUDA.exe
