@@ -22,17 +22,16 @@ class WindowStyleDropdownMenu extends StatefulWidget {
 }
 
 class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
-  OverlayEntry? overlayEntry;
+  late final OverlayEntry overlayEntry = createOverlayEntry();
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: () {
         setState(() {
-          overlayEntry = createOverlayEntry();
-          Overlay.of(context)?.insert(overlayEntry!);
+          Overlay.of(context)!.insert(overlayEntry);
+          debugPrint(Overlay.of(context)!.toString());
         });
-        debugDumpApp();
       },
       child: Text(
         widget.buttonTitle,
@@ -48,17 +47,15 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
     var offset = renderBox.localToGlobal(Offset.zero);
 
     return OverlayEntry(
-      maintainState: true,
       builder: (context) => Positioned(
         left: offset.dx,
         top: offset.dy,
         width: widget.dropdownWidth ?? 200,
-        child: Stack(
+        child: CustomMultiChildLayout(
+          delegate: _ButtonDropdownDelegate(size),
           children: [
-            Positioned(
-              left: offset.dx,
-              top: offset.dy + size.height,
-              width: widget.dropdownWidth ?? 200,
+            LayoutId(
+              id: #list,
               child: Material(
                 color: widget.dropdownBackgroundColor ??
                     Theme.of(context).primaryColorDark,
@@ -70,16 +67,19 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
                 ),
               ),
             ),
-            MouseRegion(
-              onExit: (_) => setState(() => overlayEntry!.remove()),
-              child: const SizedBox(),
+            LayoutId(
+              id: #wholeRegion,
+              child: MouseRegion(
+                onExit: (_) => setState(() {
+                  overlayEntry.remove();
+                }),
+              ),
             ),
-            Positioned(
-              right: widget.dropdownWidth ?? 200,
-              top: 0,
+            LayoutId(
+              id: #negativeRegion,
               child: MouseRegion(
                 onEnter: (_) => setState(() {
-                  overlayEntry!.remove();
+                  overlayEntry.remove();
                 }),
                 child: SizedBox(
                   width: (widget.dropdownWidth ?? 200) - size.width,
@@ -92,4 +92,27 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
       ),
     );
   }
+}
+
+class _ButtonDropdownDelegate extends MultiChildLayoutDelegate {
+  final Size buttonSize;
+
+  _ButtonDropdownDelegate(this.buttonSize) : super();
+
+  @override
+  void performLayout(Size size) {
+    final listSize = layoutChild(#list, BoxConstraints.loose(size));
+    positionChild(#list, Offset(0, buttonSize.height));
+    layoutChild(#negativeRegion, BoxConstraints.loose(size));
+    positionChild(
+        #negativeRegion, Offset(listSize.width - buttonSize.width, 0));
+    layoutChild(
+        #wholeRegion,
+        BoxConstraints.tight(
+            Size(listSize.width, listSize.height + buttonSize.height)));
+    positionChild(#wholeRegion, Offset.zero);
+  }
+
+  @override
+  bool shouldRelayout(_ButtonDropdownDelegate oldDelegate) => false;
 }
