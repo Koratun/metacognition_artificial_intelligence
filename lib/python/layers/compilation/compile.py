@@ -37,7 +37,7 @@ class Compile(Layer):
             raise CompileException({
                 'node_id': str(node_being_built.id), 
                 'reason': CompileErrorReason.COMPILATION_VALIDATION.camel(), 
-                'errors': "This compile node has already been constructed, you cannot compile a model twice."
+                'errors': "This compile node has already been constructed, you cannot construct a model twice."
             })
         try:
             # Perform setting validation
