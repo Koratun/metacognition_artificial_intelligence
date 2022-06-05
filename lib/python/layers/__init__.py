@@ -1,6 +1,7 @@
 from python.directed_acyclic_graph import Layer
 from typing import Type
 from pathlib import Path
+from python.layers.datasources_and_preprocessing.datasources import keras_datasources
 # When a new layer is created, add it to the list!
 from python.layers import (
     input,
@@ -39,9 +40,11 @@ for glob_mod_name, glob_mod in reversed(dict(globals()).items()):
                         package_list.insert(0, attr_name)
                     else:
                         layer_packages[mod_parent] = [attr_name]
-                    break
             else:
                 break
 
     if breakflag:
         break
+
+layer_classes.update({c.name: c for c in keras_datasources})
+layer_packages['datasources_and_preprocessing'] += [c.name for c in keras_datasources]
