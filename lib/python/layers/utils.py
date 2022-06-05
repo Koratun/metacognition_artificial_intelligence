@@ -1,8 +1,6 @@
 from enum import Enum
 import abc
 
-# This file handles general utilities that all layers will need to access 
-# outside the base layer class
 
 class FormatEnum(Enum):
     """
