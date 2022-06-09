@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'window_style_dropdown_menu.dart';
 import 'layer_tile.dart';
 import 'main.dart';
 import 'pycontroller.dart';
@@ -8,8 +8,8 @@ import 'schemas/startup_response.dart';
 
 const categoryNames = <String>[
   "Tutorials",
+  "Datasources And Preprocessing",
   "Core",
-  "Preprocessing",
   "Compilation",
   "Convolutional",
   "Recurrent",
@@ -27,6 +27,7 @@ class _SelectionPanelState extends State<SelectionPanel>
   String _selectedCategory = categoryNames[0];
 
   Map<String, List<String>>? _categoryList;
+  final GlobalKey<PopupMenuButtonState<int>> _key = GlobalKey();
 
   @override
   void initState() {
@@ -85,31 +86,89 @@ class _SelectionPanelState extends State<SelectionPanel>
     );
   }
 
+  Widget buttonDropdown(String title, List<List<String>> dropdownItems) {
+    return WindowStyleDropdownMenu(
+      dropdownWidth: 278,
+      buttonTitle: title,
+      dropdownItems: [
+        for (List<String> dropdown in dropdownItems)
+          ListTile(
+            mouseCursor: SystemMouseCursors.click,
+            trailing:
+                Text(dropdown[0], style: const TextStyle(color: Colors.white)),
+            title: Text(
+              dropdown[1],
+              style: const TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              debugPrint(dropdown[2]);
+            },
+          )
+      ],
+    );
+  }
+
+//drop down menu
   @override
   Widget build(BuildContext context) {
-    final toolbar = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextButton(
-          style: TextButton.styleFrom(
-            textStyle: Theme.of(context).textTheme.bodyText1,
+    final toolbar = Container(
+      color: const Color.fromARGB(255, 14, 14, 14),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          buttonDropdown(
+            'File',
+            [
+              ['Ctrl + N', 'New', "New file selected"],
+              ['Ctrl + O', 'Open', "Open file selected"],
+            ],
           ),
-          onPressed: null,
-          child: const Text("File"),
-        ),
-        VerticalDivider(
-          width: 20,
-          thickness: 1,
-          color: Colors.grey[700],
-        ),
-        TextButton(
-          style: TextButton.styleFrom(
-            textStyle: Theme.of(context).textTheme.bodyText1,
+          Container(
+            width: 2,
+            height: 20,
+            color: Colors.grey.shade300,
           ),
-          onPressed: null,
-          child: const Text("Settings"),
-        ),
-      ],
+          buttonDropdown(
+            'Save',
+            [
+              ['Ctrl + S', 'Save', "Save file selected"],
+              ['Ctrl + K + S', 'Save All', "Save all selected"],
+            ],
+          ),
+          Container(
+            width: 2,
+            height: 20,
+            color: Colors.grey.shade300,
+          ),
+          buttonDropdown(
+            'Settings',
+            [
+              ['Ctrl + E', 'Extensions', "Extensions selected"],
+              [
+                'Ctrl + Shift + E',
+                'Editor Settings',
+                "Editor settings selected"
+              ],
+            ],
+          ),
+          Container(
+            width: 2,
+            height: 20,
+            color: Colors.grey.shade300,
+          ),
+          buttonDropdown(
+            'Other',
+            [
+              ['Ctrl + T', 'Tools', "Tools selected"],
+              [
+                'Ctrl + Shift + P',
+                'Command Palette',
+                "Command palette selected"
+              ],
+            ],
+          ),
+        ],
+      ),
     );
 
     final categories = Column(
@@ -153,7 +212,6 @@ class _SelectionPanelState extends State<SelectionPanel>
             _selectedCategory,
             _entranceAnimation,
             _entranceController,
-            isGridChild: true,
             layerName: _categoryList == null
                 ? null
                 : _categoryList![_selectedCategory] == null

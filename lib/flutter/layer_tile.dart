@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'schemas/node_connection_limits.dart';
 
 import 'schemas/creation_response.dart';
+import 'schemas/schema.dart';
 
 class LayerTile extends StatefulWidget {
   final int i;
@@ -9,85 +10,90 @@ class LayerTile extends StatefulWidget {
   final String? layerName;
   final Animation<double> _entranceAnimation;
   final AnimationController _entranceController;
-  final bool isGridChild;
   final void Function()? changeNotifyCallback;
-  List<String>? layerSettings;
-  NodeConnectionLimits? nodeConnectionLimits;
-  String? nodeId;
+  final ValueNotifier<Schema?>? messageHandler;
 
-  LayerTile(
+  const LayerTile(
       this.i, this.title, this._entranceAnimation, this._entranceController,
       {Key? key,
-      required this.isGridChild,
       this.changeNotifyCallback,
-      this.layerName})
+      this.layerName,
+      this.messageHandler})
       : super(key: key);
-
-  void create(CreationResponse data) {
-    layerSettings = data.layerSettings;
-    nodeConnectionLimits = data.nodeConnectionLimits;
-    nodeId = data.nodeId;
-  }
 
   @override
   State<LayerTile> createState() => LayerTileState();
 }
 
 class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
-  late final AnimationController _hoverController = AnimationController(
+  late final AnimationController hoverController = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 100),
   );
 
-  late final Animation<double> _sizeAnimation = Tween<double>(
+  late final Animation<double> sizeAnimation = Tween<double>(
     begin: 0.0,
     end: 8.0,
-  ).animate(_hoverController);
+  ).animate(hoverController);
+
+  late final List<String>? layerSettings;
+  late final NodeConnectionLimits? nodeConnectionLimits;
+  late final String? nodeId;
 
   @override
   void initState() {
     super.initState();
-    _sizeAnimation.addListener(() {
+    sizeAnimation.addListener(() {
       setState(() {});
     });
-    if (!widget.isGridChild) {
-      _hoverController.forward(from: 1.0);
+    if (!isGridChild) {
       if (widget.changeNotifyCallback != null) {
-        _sizeAnimation.addListener((() => widget.changeNotifyCallback!()));
+        sizeAnimation.addListener((() => widget.changeNotifyCallback!()));
         widget._entranceAnimation
             .addListener(() => setState(() => widget.changeNotifyCallback!()));
       }
+      widget.messageHandler!.addListener(() {
+        dynamic data = widget.messageHandler!.value;
+        if (data is CreationResponse) {
+          setState(() {
+            layerSettings = data.layerSettings;
+            nodeConnectionLimits = data.nodeConnectionLimits;
+            nodeId = data.nodeId;
+          });
+        }
+      });
     }
   }
 
   @override
   void dispose() {
     widget._entranceController.dispose();
-    _hoverController.dispose();
+    hoverController.dispose();
     super.dispose();
   }
 
-  Widget _mouseDetector(Widget child) {
+  bool get isGridChild => widget.messageHandler == null;
+
+  Widget makeDraggable(Widget child) {
     return Draggable<LayerTile>(
       data: widget,
       feedback: LimitedBox(
-        child: _imageTile(hovering: true),
+        child: imageTile(hovering: true),
       ),
       hitTestBehavior: HitTestBehavior.translucent,
-      // dragAnchorStrategy: DragAnchorStrategy,
       child: MouseRegion(
         onEnter: (event) {
-          _hoverController.forward();
+          hoverController.forward();
         },
         onExit: (event) {
-          _hoverController.reverse();
+          hoverController.reverse();
         },
         child: child,
       ),
     );
   }
 
-  Widget _imageTile({bool hovering = false}) {
+  Widget imageTile({bool hovering = false}) {
     final Widget imageTile = Container(
       decoration: BoxDecoration(
         color: widget.i ~/ 3 < 4
@@ -101,9 +107,9 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
         size: 64 +
             (hovering
                 ? 16
-                : (widget.isGridChild
-                    ? _sizeAnimation.value
-                    : widget._entranceAnimation.value + _sizeAnimation.value)),
+                : (isGridChild
+                    ? sizeAnimation.value
+                    : widget._entranceAnimation.value + sizeAnimation.value)),
         color: widget.i ~/ 3 < 4 ? Colors.black : Colors.white,
       ),
     );
@@ -127,13 +133,13 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
       ),
     );
 
-    if (widget.isGridChild) {
+    if (isGridChild) {
       return ScaleTransition(
         scale: widget._entranceAnimation,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _mouseDetector(_imageTile()),
+            makeDraggable(imageTile()),
             title,
           ],
         ),
@@ -144,12 +150,14 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
           children: [
             MouseRegion(
               onEnter: (event) {
-                _hoverController.forward();
+                if (widget._entranceAnimation.isCompleted) {
+                  hoverController.forward();
+                }
               },
               onExit: (event) {
-                _hoverController.reverse();
+                hoverController.reverse();
               },
-              child: _imageTile(),
+              child: imageTile(),
             ),
             title,
           ],
