@@ -67,7 +67,12 @@ class KerasDatasource(Layer):
         try: 
             split: float = self.settings_validator(**self.settings_data).validation_test_split
 
-            lines = """\n\ndef convert_bytes(num):
+            # The following is a couple of helper functions to display progress to the user
+            # and patching how Keras normally reports progress so that we can feed the progress
+            # back to the user through whatever format we desire.
+            # TODO: Update this when we know how the AI will be returning data to Flutter
+            lines = """\n
+def convert_bytes(num):
     for x in ['bytes', 'KB', 'MB', 'GB']:
         if num < 1024.0:
             return f"{num:.2f} {x}"
@@ -76,19 +81,20 @@ class KerasDatasource(Layer):
 class PatchProgress:
     def __init__(self, total_size):
         self.total_size = total_size
+        self.total_bytes = convert_bytes(self.total_size)
 
     def update(self, progress):
         # TODO: Update this when we know how the AI will be returning data to Flutter
-        print(f"{convert_bytes(progress)}/{convert_bytes(self.total_size)}: {progress/self.total_size*100:.2f}%", 
-            "Time till download is complete: {}")
+        print(f"{convert_bytes(progress)}/{self.total_bytes}: {progress/self.total_size*100:.2f}%", 
+            "Time till download is complete: {calculation goes here}")
 
 from mock import patch
 import keras.utils.data_utils
 with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
 
-            lines += f"\n\t({self.datasource_name}_train_x, {self.datasource_name}_train_y), ({self.datasource_name}_test_x, {self.datasource_name}_test_y) = {self.datasource_name}.load_data()\n"
-            lines += f"{self.datasource_name}_validation_x, {self.datasource_name}_test_x = np.split({self.datasource_name}_test_x, int(len({self.datasource_name}_test_x) * {split}))\n"
-            lines += f"{self.datasource_name}_validation_y, {self.datasource_name}_test_y = np.split({self.datasource_name}_test_y, int(len({self.datasource_name}_test_y) * {split}))\n\n"
+            lines += f"\n\t({self.dataset.train.x}, {self.dataset.train.y}), ({self.dataset.test.x}, {self.dataset.test.y}) = {self.datasource_name}.load_data()\n"
+            lines += f"{self.dataset.validation.x}, {self.dataset.test.x} = np.split({self.dataset.test.x}, int(len({self.dataset.test.x}) * {split}))\n"
+            lines += f"{self.dataset.validation.y}, {self.dataset.test.y} = np.split({self.dataset.test.y}, int(len({self.dataset.test.y}) * {split}))\n\n"
             self.constructed = True
             return lines
         except ValidationError as e:
@@ -123,7 +129,7 @@ keras_datasources = [
     KerasDatasource(name="cifar10", shape=(32, 32, 3), dtype=Dtype.int16, classes=10),
     KerasDatasource(name="cifar100", shape=(32, 32, 3), dtype=Dtype.int16, classes=100),
     # KerasDatasource(name="reuters", shape=(1, None), dtype=Dtype.int32, classes=90),  
-    # This dataset is too complex for now. Each document can have multiple classes, not something we have an ability to do yet.
+    # This dataset is too complex. Each document can have multiple classes which is out of scope for now.
     KerasDatasource(name="imdb", shape=(1, None), dtype=Dtype.int32, classes=2),
 ]
 
