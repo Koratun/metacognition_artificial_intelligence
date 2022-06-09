@@ -1,3 +1,4 @@
+import 'package:boxy/boxy.dart';
 import 'package:flutter/material.dart';
 
 class WindowStyleDropdownMenu extends StatefulWidget {
@@ -23,6 +24,7 @@ class WindowStyleDropdownMenu extends StatefulWidget {
 
 class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
   late final OverlayEntry overlayEntry = createOverlayEntry();
+  bool removed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,6 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
       onPressed: () {
         setState(() {
           Overlay.of(context)!.insert(overlayEntry);
-          debugPrint(Overlay.of(context)!.toString());
         });
       },
       child: Text(
@@ -51,10 +52,10 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
         left: offset.dx,
         top: offset.dy,
         width: widget.dropdownWidth ?? 200,
-        child: CustomMultiChildLayout(
+        child: CustomBoxy(
           delegate: _ButtonDropdownDelegate(size),
           children: [
-            LayoutId(
+            BoxyId(
               id: #list,
               child: Material(
                 color: widget.dropdownBackgroundColor ??
@@ -67,24 +68,26 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
                 ),
               ),
             ),
-            LayoutId(
+            BoxyId(
               id: #wholeRegion,
               child: MouseRegion(
                 onExit: (_) => setState(() {
                   overlayEntry.remove();
+                  removed = true;
                 }),
+                opaque: false,
               ),
             ),
-            LayoutId(
+            BoxyId(
               id: #negativeRegion,
               child: MouseRegion(
                 onEnter: (_) => setState(() {
-                  overlayEntry.remove();
+                  if (!removed) {
+                    overlayEntry.remove();
+                  } else {
+                    removed = false;
+                  }
                 }),
-                child: SizedBox(
-                  width: (widget.dropdownWidth ?? 200) - size.width,
-                  height: size.height,
-                ),
               ),
             )
           ],
@@ -94,23 +97,28 @@ class _WindowStyleDropdownMenuState extends State<WindowStyleDropdownMenu> {
   }
 }
 
-class _ButtonDropdownDelegate extends MultiChildLayoutDelegate {
+class _ButtonDropdownDelegate extends BoxyDelegate {
   final Size buttonSize;
 
   _ButtonDropdownDelegate(this.buttonSize) : super();
 
   @override
-  void performLayout(Size size) {
-    final listSize = layoutChild(#list, BoxConstraints.loose(size));
-    positionChild(#list, Offset(0, buttonSize.height));
-    layoutChild(#negativeRegion, BoxConstraints.loose(size));
-    positionChild(
-        #negativeRegion, Offset(listSize.width - buttonSize.width, 0));
-    layoutChild(
-        #wholeRegion,
-        BoxConstraints.tight(
-            Size(listSize.width, listSize.height + buttonSize.height)));
-    positionChild(#wholeRegion, Offset.zero);
+  Size layout() {
+    final list = getChild(#list);
+    final wholeRegion = getChild(#wholeRegion);
+    final negativeRegion = getChild(#negativeRegion);
+
+    final listSize = list.layout(constraints);
+    list.position(Offset(0, buttonSize.height));
+
+    negativeRegion.layout(BoxConstraints.tight(
+        Size(listSize.width - buttonSize.width, buttonSize.height)));
+    negativeRegion.position(Offset(buttonSize.width, 0));
+
+    final wholeSize = wholeRegion.layout(BoxConstraints.tight(
+        Size(listSize.width, listSize.height + buttonSize.height)));
+    wholeRegion.position(Offset.zero);
+    return wholeSize;
   }
 
   @override
