@@ -8,7 +8,7 @@ import 'schemas/startup_response.dart';
 
 const categoryNames = <String>[
   "Tutorials",
-  "Datasources and Manipulation",
+  "Datasources And Preprocessing",
   "Core",
   "Compilation",
   "Convolutional",
