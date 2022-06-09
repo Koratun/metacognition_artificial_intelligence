@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import 'selection_panel.dart';
-// import 'floating_widget_layout.dart';
 import 'creation_canvas.dart';
 
 void main() {
@@ -99,13 +97,6 @@ class _MainState extends State<Main>
                     ),
                   ],
                 ),
-              ),
-              const Positioned.fill(
-                child: Center(),
-                // child: CustomSingleChildLayout(
-                //   delegate: FloatingWidgetLayoutDelegate(position: mousePos),
-                //   child: _hugger ?? const Center(),
-                // ),
               ),
             ],
           ),

@@ -53,4 +53,10 @@ __pycache__/
 # TensorFlow
 logs/
 
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+
+**/mai_python_internals.egg-info/
+
 NvidiaCUDA.exe
+
