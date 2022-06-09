@@ -137,11 +137,23 @@ class Layer:
             })
 
 
-# This class would normally go inside the compilation folder, 
-# but it is here to prevent circular import errors
+# These classes would normally go inside the compilation folder, 
+# but they are here to prevent circular import errors.
 class CompileArgLayer(Layer):
     min_upstream_nodes = 0
     max_upstream_nodes = 0
+
+
+class Metric(CompileArgLayer):
+    keras_module_location = 'metrics'
+
+
+class Loss(Metric):
+    keras_module_location = 'losses'
+
+
+class Optimizer(CompileArgLayer):
+    keras_module_location = 'optimizers'
 
 
 class DagException(Exception):
