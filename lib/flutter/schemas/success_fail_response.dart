@@ -4,7 +4,7 @@ import 'schema.dart';
 part 'success_fail_response.g.dart';
 
 @JsonSerializable()
-class SuccessFailResponse implements Schema {
+class SuccessFailResponse extends RequestResponseSchema {
 	SuccessFailResponse(this.error, );
 
 	String? error;

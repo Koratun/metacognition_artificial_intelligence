@@ -5,7 +5,7 @@ import 'compile_error_reason_enum.dart';
 part 'compile_error_response.g.dart';
 
 @JsonSerializable()
-class CompileErrorResponse implements Schema {
+class CompileErrorResponse extends RequestResponseSchema {
 	CompileErrorResponse(this.nodeId, this.reason, this.errors, );
 
 	String nodeId;

@@ -4,7 +4,7 @@ import 'schema.dart';
 part 'connection.g.dart';
 
 @JsonSerializable()
-class Connection implements Schema {
+class Connection extends RequestResponseSchema {
 	Connection(this.sourceId, this.destId, );
 
 	String sourceId;
