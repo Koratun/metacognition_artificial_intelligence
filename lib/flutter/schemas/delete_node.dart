@@ -5,9 +5,9 @@ part 'delete_node.g.dart';
 
 @JsonSerializable()
 class DeleteNode extends RequestResponseSchema {
-	DeleteNode(this.id, );
+	DeleteNode(this.nodeId, );
 
-	String id;
+	String nodeId;
 
 	factory DeleteNode.fromJson(Map<String, dynamic> json) => _$DeleteNodeFromJson(json);
 
