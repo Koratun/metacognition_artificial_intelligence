@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'schemas/event_type_enum.dart';
 import 'window_style_dropdown_menu.dart';
 import 'layer_tile.dart';
 import 'main.dart';
 import 'pycontroller.dart';
-import 'schemas/command_enum.dart';
-import 'schemas/startup_response.dart';
+import 'schemas/command_type_enum.dart';
+import 'schemas/initialize_layers_event.dart';
 
 const categoryNames = <String>[
   "Tutorials",
@@ -32,28 +33,27 @@ class _SelectionPanelState extends State<SelectionPanel>
   @override
   void initState() {
     super.initState();
-    PyController.init().then((_) {
-      PyController.request(
-        Command.startup,
-        (response) {
-          if (response is StartupResponse) {
-            setState(
-              () => _categoryList = response.categoryList.map(
-                (key, value) {
-                  return MapEntry(
-                    key
-                        .split(RegExp(r"(?=[A-Z])"))
-                        .map((e) => e[0].toUpperCase() + e.substring(1))
-                        .join(" "),
-                    value,
-                  );
-                },
-              ),
-            );
-          }
-        },
-      );
-    });
+    PyController.init();
+    PyController.registerEventHandler(
+      EventType.initializeLayers,
+      (response) {
+        if (response is InitializeLayersEvent) {
+          setState(
+            () => _categoryList = response.categoryList.map(
+              (key, value) {
+                return MapEntry(
+                  key
+                      .split(RegExp(r"(?=[A-Z])"))
+                      .map((e) => e[0].toUpperCase() + e.substring(1))
+                      .join(" "),
+                  value,
+                );
+              },
+            ),
+          );
+        }
+      },
+    );
   }
 
   @override

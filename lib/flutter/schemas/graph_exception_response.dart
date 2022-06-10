@@ -4,7 +4,7 @@ import 'schema.dart';
 part 'graph_exception_response.g.dart';
 
 @JsonSerializable()
-class GraphExceptionResponse implements Schema {
+class GraphExceptionResponse extends RequestResponseSchema {
 	GraphExceptionResponse(this.error, );
 
 	String error;

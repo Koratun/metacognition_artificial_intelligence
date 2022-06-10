@@ -6,10 +6,6 @@ from python.directed_acyclic_graph import CompileErrorReason, Layer
 from humps import camelize
 from python.layers import layer_classes
 
-class CamelModel(BaseModel):
-    class Config:
-        alias_generator = camelize
-
 
 # Note that __root__ is not allowed to be used in these schemas;
 # dart conversion will fail if it is used.
@@ -18,24 +14,13 @@ class CamelModel(BaseModel):
 # Type is also not allowed.
 
 
-class Command(Enum):
-    STARTUP = 'startup'
-    CREATE = 'create'
-    UPDATE = 'update'
-    DELETE = 'delete'
-    CONNECT = 'connect'
-    DISCONNECT = 'disconnect'
-    COMPILE = 'compile'
+class CamelModel(BaseModel):
+    class Config:
+        alias_generator = camelize
 
 
-class CreateLayer(BaseModel):
-    layer: str
-
-    @validator('layer', pre=True)
-    def is_valid_layer(cls, v):
-        if layer_classes.get(v):
-            return v
-        raise ValueError("Layer type not found")
+class RequestResponseModel(CamelModel):
+    request_id: UUID
 
 
 class MetaSchema(BaseModel):
@@ -44,6 +29,47 @@ class MetaSchema(BaseModel):
     properties: dict[str, dict[str, Any]]
     required: Optional[list[str]]
     definitions: Optional[dict[str, dict[str, Any]]]
+
+
+class SchemaEnum(Enum):
+    @classmethod
+    @property
+    def model_rep(cls) -> dict['SchemaEnum', Type[BaseModel]]:
+        raise NotImplementedError()
+
+    def get_model(self) -> Type[BaseModel]:
+        return self.model_rep[self]
+
+    def camel(self) -> str:
+        return camelize(self.value)
+
+
+### Begin CommandType Section ###
+
+
+# NOTE: Commands will come from the frontend in camelCase
+class CommandType(SchemaEnum):
+    CREATE = 'create'
+    UPDATE = 'update'
+    DELETE = 'delete'
+    CONNECT = 'connect'
+    DISCONNECT = 'disconnect'
+    COMPILE = 'compile'
+
+    @classmethod
+    @property
+    def model_rep(cls) -> dict['SchemaEnum', Type[BaseModel]]:
+        return command_model_rep
+
+
+class CreateLayer(RequestResponseModel):
+    layer: str
+
+    @validator('layer', pre=True)
+    def is_valid_layer(cls, v):
+        if layer_classes.get(v):
+            return v
+        raise ValueError("Layer type not found")
 
 
 class UpdateLayer(CreateLayer):
@@ -63,17 +89,54 @@ class UpdateLayer(CreateLayer):
         return v
 
 
-class DeleteNode(BaseModel):
-    id: UUID
+class DeleteNode(RequestResponseModel):
+    node_id: UUID
 
 
-class Connection(CamelModel):
+class Connection(RequestResponseModel):
     source_id: UUID
     dest_id: UUID
 
 
-class ResponseType(Enum):
-    STARTUP = "startup"
+command_model_rep = {
+    CommandType.CREATE: CreateLayer,
+    CommandType.UPDATE: UpdateLayer,
+    CommandType.DELETE: DeleteNode,
+    CommandType.CONNECT: Connection,
+    CommandType.DISCONNECT: Connection,
+    CommandType.COMPILE: RequestResponseModel,  
+}
+
+
+### End CommandType Section ###
+
+### Begin EventType Section ###
+
+
+class EventType(SchemaEnum):
+    INITIALIZE_LAYERS = "initialize_layers"
+    
+    @classmethod
+    @property
+    def model_rep(self) -> dict['EventType', Type[BaseModel]]:
+        return event_model_rep
+
+
+class InitializeLayersEvent(CamelModel):
+    category_list: dict[str, list[str]]
+
+
+event_model_rep = {
+    EventType.INITIALIZE_LAYERS: InitializeLayersEvent,
+}
+
+
+### End EventType Section ###
+
+### Begin ResponseType Section ###
+
+
+class ResponseType(SchemaEnum):
     SUCCESS_FAIL = "success_fail"
     CREATION = "creation"
     VALIDATION_ERROR = "validation_error"
@@ -83,15 +146,10 @@ class ResponseType(Enum):
     COMPILE_ERROR_SETTINGS_VALIDATION = "compile_error_settings_validation"
     COMPILE_SUCCESS = "compile_success"
 
-    def get_model(self) -> Type[BaseModel]:
-        return response_model_rep[self]
-
-    def camel(self) -> str:
-        return camelize(self.value)
-
-
-class StartupResponse(CamelModel):
-    category_list: dict[str, list[str]]
+    @classmethod
+    @property
+    def model_rep(cls) -> dict['ResponseType', Type[BaseModel]]:
+        return response_model_rep
 
 
 class NodeConnectionLimits(CamelModel):
@@ -104,17 +162,17 @@ class NodeConnectionLimits(CamelModel):
     max_downstream: str
 
 
-class CreationResponse(CamelModel):
+class CreationResponse(RequestResponseModel):
     node_id: UUID
     layer_settings: list[str]
     node_connection_limits: NodeConnectionLimits
 
 
-class SuccessFailResponse(BaseModel):
+class SuccessFailResponse(RequestResponseModel):
     error: Optional[str]
 
 
-class CompileSuccessResponse(CamelModel):
+class CompileSuccessResponse(RequestResponseModel):
     py_file: str
 
 
@@ -124,11 +182,11 @@ class ValidationError(BaseModel):
     type: str
 
 
-class ValidationErrorResponse(CamelModel):
+class ValidationErrorResponse(RequestResponseModel):
     errors: list[ValidationError]
 
 
-class CompileErrorResponse(CamelModel):
+class CompileErrorResponse(RequestResponseModel):
     node_id: UUID
     reason: CompileErrorReason
     errors: str
@@ -137,7 +195,7 @@ class CompileErrorResponse(CamelModel):
         use_enum_values = True
 
 
-class CompileErrorDisjointedResponse(CamelModel):
+class CompileErrorDisjointedResponse(RequestResponseModel):
     node_ids: list[UUID]
     reason: CompileErrorReason
     errors: str
@@ -154,12 +212,11 @@ class CompileErrorSettingsValidationResponse(ValidationErrorResponse):
         use_enum_values = True
 
 
-class GraphExceptionResponse(BaseModel):
+class GraphExceptionResponse(RequestResponseModel):
     error: str
 
 
 response_model_rep = {
-    ResponseType.STARTUP: StartupResponse,
     ResponseType.SUCCESS_FAIL: SuccessFailResponse,
     ResponseType.CREATION: CreationResponse,
     ResponseType.VALIDATION_ERROR: ValidationErrorResponse,
@@ -169,3 +226,6 @@ response_model_rep = {
     ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION: CompileErrorSettingsValidationResponse,
     ResponseType.COMPILE_SUCCESS: CompileSuccessResponse,
 }
+
+
+### End ResponseType Section ###

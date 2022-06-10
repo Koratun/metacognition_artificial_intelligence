@@ -10,10 +10,11 @@ GraphExceptionResponse _$GraphExceptionResponseFromJson(
         Map<String, dynamic> json) =>
     GraphExceptionResponse(
       json['error'] as String,
-    );
+    )..requestId = json['requestId'] as String;
 
 Map<String, dynamic> _$GraphExceptionResponseToJson(
         GraphExceptionResponse instance) =>
     <String, dynamic>{
+      'requestId': instance.requestId,
       'error': instance.error,
     };

@@ -4,7 +4,7 @@ import 'schema.dart';
 part 'compile_success_response.g.dart';
 
 @JsonSerializable()
-class CompileSuccessResponse implements Schema {
+class CompileSuccessResponse extends RequestResponseSchema {
 	CompileSuccessResponse(this.pyFile, );
 
 	String pyFile;

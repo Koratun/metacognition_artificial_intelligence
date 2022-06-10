@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 
 enum CompileErrorReason {
 	upstreamNodeCount,
+	downstreamNodeCount,
 	settingsValidation,
+	compilationValidation,
 	inputMissing,
 	disjointedGraph,
 }

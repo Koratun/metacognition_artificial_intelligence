@@ -4,7 +4,7 @@ import 'schema.dart';
 part 'validation_error.g.dart';
 
 @JsonSerializable()
-class ValidationError implements Schema {
+class ValidationError extends Schema {
 	ValidationError(this.loc, this.msg, this.type, );
 
 	List<String> loc;
