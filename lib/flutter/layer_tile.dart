@@ -53,7 +53,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
             .addListener(() => setState(() => widget.changeNotifyCallback!()));
       }
       widget.messageHandler!.addListener(() {
-        dynamic data = widget.messageHandler!.value;
+        var data = widget.messageHandler!.value;
         if (data is CreationResponse) {
           setState(() {
             layerSettings = data.layerSettings;
@@ -91,6 +91,30 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
         child: child,
       ),
     );
+  }
+
+  Widget makeLayerIcon({bool hovering = false}) {
+    Widget layerIcon = CustomPaint(
+        painter: LayerTilePainter(hovering
+            ? 16
+            : (isGridChild
+                ? sizeAnimation.value
+                : widget._entranceAnimation.value + sizeAnimation.value)),
+        child: Icon(
+          Icons.layers,
+          size: 64 +
+              (hovering
+                  ? 16
+                  : (isGridChild
+                      ? sizeAnimation.value
+                      : widget._entranceAnimation.value + sizeAnimation.value)),
+          color: widget.i ~/ 3 < 4 ? Colors.black : Colors.white,
+        ));
+
+    if (hovering) {
+      return Opacity(opacity: 0.45, child: layerIcon);
+    }
+    return layerIcon;
   }
 
   Widget imageTile({bool hovering = false}) {
@@ -164,5 +188,32 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
         ),
       );
     }
+  }
+}
+
+class LayerTilePainter extends CustomPainter {
+  final double imageSize;
+  LayerTilePainter(this.imageSize);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Create a path that will form the octogon of the image
+    final Path octogonBoundary = Path()
+      ..moveTo(0, 6)
+      ..addPolygon([
+        Offset(0, 6 * 3 + imageSize),
+        Offset(6, 6 * 4 + imageSize),
+        Offset(6 * 3 + imageSize, 6 * 4 + imageSize),
+        Offset(6 * 4 + imageSize, 6 * 3 + imageSize),
+        Offset(6 * 4 + imageSize, 6),
+        Offset(6 * 3 + imageSize, 0),
+        const Offset(6, 0),
+      ], true);
+    canvas.clipPath(octogonBoundary);
+  }
+
+  @override
+  bool shouldRepaint(LayerTilePainter oldDelegate) {
+    return imageSize != oldDelegate.imageSize;
   }
 }
