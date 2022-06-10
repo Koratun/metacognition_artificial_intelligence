@@ -37,7 +37,7 @@ class TestDartEndpoint:
 
 
     def build_request(self, c: CommandType, model: BaseModel) -> str:
-        return c.value + model.json(by_alias=True)
+        return c.camel() + model.json(by_alias=True)
         
 
     def test_init_layer_tiles(self, mock_response: MagicMock, mock_input: MagicMock):
