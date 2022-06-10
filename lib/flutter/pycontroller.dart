@@ -1,25 +1,19 @@
 import 'dart:io';
 import 'dart:convert';
 
-import 'schemas/response_type_enum.dart';
-import 'schemas/startup_response.dart';
-import 'schemas/compile_error_response.dart';
-import 'schemas/compile_error_disjointed_response.dart';
-import 'schemas/compile_error_settings_validation_response.dart';
-import 'schemas/compile_success_response.dart';
-import 'schemas/creation_response.dart';
-import 'schemas/graph_exception_response.dart';
-import 'schemas/success_fail_response.dart';
-import 'schemas/validation_error_response.dart';
 import 'schemas/schema.dart';
-import 'schemas/command_enum.dart';
+import 'schemas/event_type_enum.dart';
+import 'schemas/response_type_enum.dart';
+import 'schemas/command_type_enum.dart';
 
 //Used for debugging
 const bool _echo = true;
 
 class PyController {
   static Process? _python;
-  static void Function(Schema)? responseAction;
+  static Map<String, void Function(Schema)> responseActions = {};
+  static Map<EventType, List<void Function(Schema)>> eventHandlers = {};
+  static Map<EventType, List<Schema>> eventQueue = {};
 
   static Future<void> init() async {
     _python = await Process.start(
@@ -37,81 +31,73 @@ class PyController {
   // static void bindErrorCallback(void Function(String) callback) =>
   //     _python?.stderr.transform(utf8.decoder).forEach(callback);
 
-  static void request(Command c, void Function(Schema) responseAction,
-      {Schema data = const Schema()}) {
-    PyController.responseAction = responseAction;
+  static void request(
+    CommandType c,
+    void Function(Schema) responseAction, {
+    RequestResponseSchema? data,
+  }) {
+    data ??= RequestResponseSchema();
+    PyController.responseActions[data.requestId] = responseAction;
     _python?.stdin.writeln(c.name + json.encode(data.toJson()));
     if (_echo) {
       print("Request sent: ${c.name + json.encode(data.toJson())}");
     }
   }
 
+  static void registerEventHandler(
+    EventType eventType,
+    void Function(Schema) handler,
+  ) {
+    if (eventHandlers.containsKey(eventType)) {
+      eventHandlers[eventType]!.add(handler);
+    } else {
+      eventHandlers[eventType] = [handler];
+    }
+    if (eventQueue.containsKey(eventType)) {
+      for (var event in eventQueue[eventType]!) {
+        handler(event);
+      }
+      eventQueue.remove(eventType);
+    }
+  }
+
   static void pyInputHandler(String data) {
     // Separate the text preceding the first [ or {
     // and the rest of the text.
-    final ResponseType responseType = ResponseType.values.firstWhere(
-        (e) => e.name == data.substring(0, data.indexOf(RegExp(r'[[{]'))));
     final Map<String, dynamic> responseData =
         json.decode(data.substring(data.indexOf(RegExp(r'[[{]'))));
-    dynamic response;
-    switch (responseType) {
-      case ResponseType.startup:
-        {
-          response = StartupResponse.fromJson(responseData);
+    // Wrap function in a try catch for StateError
+    try {
+      final ResponseType responseType = ResponseType.values.firstWhere(
+          (e) => e.name == data.substring(0, data.indexOf(RegExp(r'[[{]'))));
+      final RequestResponseSchema response =
+          responseType.schemaFromJson!(responseData);
+
+      responseActions[response.requestId]!(response);
+      responseActions.remove(response.requestId);
+      if (_echo) {
+        print("Response: $responseData");
+      }
+    } on StateError {
+      // If response is not a response type, then it is an event type
+      final EventType eventType = EventType.values.firstWhere(
+          (e) => e.name == data.substring(0, data.indexOf(RegExp(r'[[{]'))));
+      final Schema event = eventType.schemaFromJson!(responseData);
+
+      if (eventHandlers.containsKey(eventType)) {
+        for (var handler in eventHandlers[eventType]!) {
+          handler(event);
         }
-        break;
-      case ResponseType.successFail:
-        {
-          response = SuccessFailResponse.fromJson(responseData);
+      } else {
+        if (eventQueue.containsKey(eventType)) {
+          eventQueue[eventType]!.add(event);
+        } else {
+          eventQueue[eventType] = [event];
         }
-        break;
-      case ResponseType.creation:
-        {
-          response = CreationResponse.fromJson(responseData);
-        }
-        break;
-      case ResponseType.graphException:
-        {
-          response = GraphExceptionResponse.fromJson(responseData);
-        }
-        break;
-      case ResponseType.validationError:
-        {
-          response = ValidationErrorResponse.fromJson(responseData);
-        }
-        break;
-      case ResponseType.compileError:
-        {
-          response = CompileErrorResponse.fromJson(responseData);
-        }
-        break;
-      case ResponseType.compileErrorSettingsValidation:
-        {
-          response =
-              CompileErrorSettingsValidationResponse.fromJson(responseData);
-        }
-        break;
-      case ResponseType.compileErrorDisjointed:
-        {
-          response = CompileErrorDisjointedResponse.fromJson(responseData);
-        }
-        break;
-      case ResponseType.compileSuccess:
-        {
-          response = CompileSuccessResponse.fromJson(responseData);
-        }
-        break;
-      default:
-        {
-          print("Unknown response type: $responseType FIX IT!!!");
-        }
-        break;
-    }
-    if (response != null) {
-      responseAction!(response);
-    }
-    if (_echo) {
-      print("Response: $responseData");
+      }
+      if (_echo) {
+        print("Event: ${eventType.name} -> $responseData");
+      }
     }
   }
 

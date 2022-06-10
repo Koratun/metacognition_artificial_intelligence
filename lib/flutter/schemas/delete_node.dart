@@ -4,7 +4,7 @@ import 'schema.dart';
 part 'delete_node.g.dart';
 
 @JsonSerializable()
-class DeleteNode implements Schema {
+class DeleteNode extends RequestResponseSchema {
 	DeleteNode(this.id, );
 
 	String id;

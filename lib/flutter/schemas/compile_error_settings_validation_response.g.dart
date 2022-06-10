@@ -15,11 +15,12 @@ CompileErrorSettingsValidationResponse
               .toList(),
           json['nodeId'] as String,
           $enumDecode(_$CompileErrorReasonEnumMap, json['reason']),
-        );
+        )..requestId = json['requestId'] as String;
 
 Map<String, dynamic> _$CompileErrorSettingsValidationResponseToJson(
         CompileErrorSettingsValidationResponse instance) =>
     <String, dynamic>{
+      'requestId': instance.requestId,
       'errors': instance.errors,
       'nodeId': instance.nodeId,
       'reason': _$CompileErrorReasonEnumMap[instance.reason],
@@ -27,7 +28,9 @@ Map<String, dynamic> _$CompileErrorSettingsValidationResponseToJson(
 
 const _$CompileErrorReasonEnumMap = {
   CompileErrorReason.upstreamNodeCount: 'upstreamNodeCount',
+  CompileErrorReason.downstreamNodeCount: 'downstreamNodeCount',
   CompileErrorReason.settingsValidation: 'settingsValidation',
+  CompileErrorReason.compilationValidation: 'compilationValidation',
   CompileErrorReason.inputMissing: 'inputMissing',
   CompileErrorReason.disjointedGraph: 'disjointedGraph',
 };

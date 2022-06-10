@@ -5,7 +5,7 @@ import 'compile_error_reason_enum.dart';
 part 'compile_error_disjointed_response.g.dart';
 
 @JsonSerializable()
-class CompileErrorDisjointedResponse implements Schema {
+class CompileErrorDisjointedResponse extends RequestResponseSchema {
 	CompileErrorDisjointedResponse(this.nodeIds, this.reason, this.errors, );
 
 	List<String> nodeIds;

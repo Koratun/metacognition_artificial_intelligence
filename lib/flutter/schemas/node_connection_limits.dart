@@ -4,7 +4,7 @@ import 'schema.dart';
 part 'node_connection_limits.g.dart';
 
 @JsonSerializable()
-class NodeConnectionLimits implements Schema {
+class NodeConnectionLimits extends Schema {
 	NodeConnectionLimits(this.minUpstream, this.maxUpstream, this.minDownstream, this.maxDownstream, );
 
 	String minUpstream;

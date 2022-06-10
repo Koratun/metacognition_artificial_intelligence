@@ -12,11 +12,12 @@ CompileErrorDisjointedResponse _$CompileErrorDisjointedResponseFromJson(
       (json['nodeIds'] as List<dynamic>).map((e) => e as String).toList(),
       $enumDecode(_$CompileErrorReasonEnumMap, json['reason']),
       json['errors'] as String,
-    );
+    )..requestId = json['requestId'] as String;
 
 Map<String, dynamic> _$CompileErrorDisjointedResponseToJson(
         CompileErrorDisjointedResponse instance) =>
     <String, dynamic>{
+      'requestId': instance.requestId,
       'nodeIds': instance.nodeIds,
       'reason': _$CompileErrorReasonEnumMap[instance.reason],
       'errors': instance.errors,
@@ -24,7 +25,9 @@ Map<String, dynamic> _$CompileErrorDisjointedResponseToJson(
 
 const _$CompileErrorReasonEnumMap = {
   CompileErrorReason.upstreamNodeCount: 'upstreamNodeCount',
+  CompileErrorReason.downstreamNodeCount: 'downstreamNodeCount',
   CompileErrorReason.settingsValidation: 'settingsValidation',
+  CompileErrorReason.compilationValidation: 'compilationValidation',
   CompileErrorReason.inputMissing: 'inputMissing',
   CompileErrorReason.disjointedGraph: 'disjointedGraph',
 };

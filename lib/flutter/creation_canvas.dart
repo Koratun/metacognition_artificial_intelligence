@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'layer_tile.dart';
 import 'pycontroller.dart';
-import 'schemas/command_enum.dart';
+import 'schemas/command_type_enum.dart';
 import 'schemas/create_layer.dart';
 import 'schemas/schema.dart';
 
@@ -47,7 +47,7 @@ class _CreationCanvasState extends State<CreationCanvas>
     positions.add(pos);
     if (newTile.layerName != null) {
       PyController.request(
-        Command.create,
+        CommandType.create,
         (response) => newTile.messageHandler!.value = response,
         data: CreateLayer(newTile.layerName!),
       );

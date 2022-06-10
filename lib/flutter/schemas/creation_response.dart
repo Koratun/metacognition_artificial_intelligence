@@ -5,7 +5,7 @@ import 'node_connection_limits.dart';
 part 'creation_response.g.dart';
 
 @JsonSerializable()
-class CreationResponse implements Schema {
+class CreationResponse extends RequestResponseSchema {
 	CreationResponse(this.nodeId, this.layerSettings, this.nodeConnectionLimits, );
 
 	String nodeId;
