@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-enum Command {
-	startup,
+enum CommandType {
 	create,
 	update,
 	delete,
@@ -10,6 +9,6 @@ enum Command {
 	compile,
 }
 
-extension CommandExtension on Command {
+extension CommandTypeExtension on CommandType {
 	String get name => describeEnum(this);
 }

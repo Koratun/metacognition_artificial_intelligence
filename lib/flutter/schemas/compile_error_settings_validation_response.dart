@@ -6,7 +6,7 @@ import 'compile_error_reason_enum.dart';
 part 'compile_error_settings_validation_response.g.dart';
 
 @JsonSerializable()
-class CompileErrorSettingsValidationResponse implements Schema {
+class CompileErrorSettingsValidationResponse extends RequestResponseSchema {
 	CompileErrorSettingsValidationResponse(this.errors, this.nodeId, this.reason, );
 
 	List<ValidationError> errors;

@@ -4,7 +4,7 @@ import 'schema.dart';
 part 'create_layer.g.dart';
 
 @JsonSerializable()
-class CreateLayer implements Schema {
+class CreateLayer extends RequestResponseSchema {
 	CreateLayer(this.layer, );
 
 	String layer;

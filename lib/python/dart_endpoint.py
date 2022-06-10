@@ -11,8 +11,11 @@ from python.directed_acyclic_graph import (
     CompileException
 )
 from python.schemas import (
+    RequestResponseModel,
+    SchemaEnum,
     ResponseType, 
-    Command, 
+    EventType,
+    CommandType, 
     CreateLayer,
     UpdateLayer, 
     DeleteNode, 
@@ -48,6 +51,7 @@ def main():
 
     compile{}
     """
+    write_back(format_response(EventType.INITIALIZE_LAYERS, category_list=layer_packages))
 
     for line in fileinput.input():
         inp: str = line.rstrip()
@@ -66,19 +70,22 @@ def main():
         write_back(response, error=error)
 
 
-def format_response(response_type: ResponseType, **kwargs):
-    return response_type.camel() + response_type.get_model().parse_obj(camelize(kwargs)).json(by_alias=True)
+def format_response(out_type: SchemaEnum, **kwargs):
+    return out_type.camel() + out_type.get_model().parse_obj(camelize(kwargs)).json(by_alias=True)
 
 
 def process(command: str, payload: str):
+    request_id = None
     try:
-        if command == Command.CREATE.value:
+        if command == CommandType.CREATE.value:
             request = CreateLayer.parse_raw(payload)
+            request_id = request.request_id
             layer = layer_classes.get(request.layer)
             node = dag.add_node(layer())
 
             return format_response(
                 ResponseType.CREATION,
+                request_id=request_id,
                 node_id=node.id,
                 layer_settings=layer.get_settings_data_fields(),
                 node_connection_limits=dict(
@@ -88,38 +95,39 @@ def process(command: str, payload: str):
                     max_downstream=layer.max_downstream_nodes,
                 )
             )
-        elif command == Command.UPDATE.value:
+        elif command == CommandType.UPDATE.value:
             request = UpdateLayer.parse_raw(payload)
+            request_id = request.request_id
             error = dag.get_node(request.id).layer.update_settings(request.settings)
             
-            return format_response(ResponseType.SUCCESS_FAIL, error=error)
-        elif command == Command.DELETE.value:
+            return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id, error=error)
+        elif command == CommandType.DELETE.value:
             request = DeleteNode.parse_raw(payload)
-            dag.remove_node(request.id)
+            request_id = request.request_id
+            dag.remove_node(request.node_id)
             
-            return format_response(ResponseType.SUCCESS_FAIL)
-        elif command == Command.CONNECT.value or command == Command.DISCONNECT.value:
+            return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id)
+        elif command == CommandType.CONNECT.value or command == CommandType.DISCONNECT.value:
             request = Connection.parse_raw(payload)
+            request_id = request.request_id
             if 'd' in command:
                 dag.disconnect_nodes(request.source_id, request.dest_id)
             else:
                 dag.connect_nodes(request.source_id, request.dest_id)
-            return format_response(ResponseType.SUCCESS_FAIL)
-        elif command == Command.COMPILE.value:
-            return format_response(ResponseType.COMPILE_SUCCESS, py_file=dag.construct_keras())
-        elif command == Command.STARTUP.value:
-            return format_response(ResponseType.STARTUP, category_list=layer_packages)
-    except ValidationError as e:
-        return format_response(ResponseType.VALIDATION_ERROR, errors=e.errors())
+            return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id)
+        elif command == CommandType.COMPILE.value:
+            request = RequestResponseModel.parse_raw(payload)
+            request_id = request.request_id
+            return format_response(ResponseType.COMPILE_SUCCESS, request_id=request_id, py_file=dag.construct_keras())
     except DagException as e:
-        return format_response(ResponseType.GRAPH_EXCEPTION, error=str(e))
+        return format_response(ResponseType.GRAPH_EXCEPTION, request_id=request_id, error=str(e))
     except CompileException as e:
         if e.error_data['reason'] == CompileErrorReason.DISJOINTED_GRAPH.camel():
-            return format_response(ResponseType.COMPILE_ERROR_DISJOINTED, **e.error_data)
+            return format_response(ResponseType.COMPILE_ERROR_DISJOINTED, request_id=request_id, **e.error_data)
         elif e.error_data['reason'] == CompileErrorReason.SETTINGS_VALIDATION.camel():
-            return format_response(ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION, **e.error_data)
+            return format_response(ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION, request_id=request_id, **e.error_data)
         else:
-            return format_response(ResponseType.COMPILE_ERROR, **e.error_data)
+            return format_response(ResponseType.COMPILE_ERROR, request_id=request_id, **e.error_data)
     
 
 if __name__ == '__main__':

@@ -9,10 +9,11 @@ part of 'connection.dart';
 Connection _$ConnectionFromJson(Map<String, dynamic> json) => Connection(
       json['sourceId'] as String,
       json['destId'] as String,
-    );
+    )..requestId = json['requestId'] as String;
 
 Map<String, dynamic> _$ConnectionToJson(Connection instance) =>
     <String, dynamic>{
+      'requestId': instance.requestId,
       'sourceId': instance.sourceId,
       'destId': instance.destId,
     };
