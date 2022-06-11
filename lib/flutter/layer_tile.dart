@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:ui' as ui;
+import 'package:image/image.dart' as im;
 import 'schemas/node_connection_limits.dart';
 
 import 'schemas/creation_response.dart';
@@ -12,14 +15,19 @@ class LayerTile extends StatefulWidget {
   final AnimationController _entranceController;
   final void Function()? changeNotifyCallback;
   final ValueNotifier<Schema?>? messageHandler;
+  final Color? foregroundColor;
 
   const LayerTile(
-      this.i, this.title, this._entranceAnimation, this._entranceController,
-      {Key? key,
-      this.changeNotifyCallback,
-      this.layerName,
-      this.messageHandler})
-      : super(key: key);
+    this.i,
+    this.title,
+    this._entranceAnimation,
+    this._entranceController, {
+    Key? key,
+    this.changeNotifyCallback,
+    this.layerName,
+    this.messageHandler,
+    this.foregroundColor,
+  }) : super(key: key);
 
   @override
   State<LayerTile> createState() => LayerTileState();
@@ -40,9 +48,32 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
   late final NodeConnectionLimits? nodeConnectionLimits;
   late final String? nodeId;
 
+  late final ui.Image? symbol;
+
+  Future<ui.Image> loadRawImage() async {
+    ByteData data = await rootBundle
+        .load('assets/layer_tiles/' + widget.layerName! + '.png');
+    var image = im.decodePng(data.buffer.asUint8List());
+    ui.ImmutableBuffer buffer =
+        await ui.ImmutableBuffer.fromUint8List(image!.getBytes());
+    ui.ImageDescriptor id = ui.ImageDescriptor.raw(
+      buffer,
+      height: image.height,
+      width: image.width,
+      pixelFormat: ui.PixelFormat.rgba8888,
+    );
+    ui.Codec codec = await id.instantiateCodec(
+        targetHeight: image.height, targetWidth: image.width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return fi.image;
+  }
+
   @override
   void initState() {
     super.initState();
+    if (widget.layerName != null) {
+      loadRawImage().then((value) => setState(() => symbol = value));
+    }
     sizeAnimation.addListener(() {
       setState(() {});
     });
@@ -94,22 +125,20 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
   }
 
   Widget makeLayerIcon({bool hovering = false}) {
+    final double foregroundSize = hovering
+        ? 16
+        : (isGridChild
+            ? sizeAnimation.value
+            : widget._entranceAnimation.value + sizeAnimation.value);
+
     Widget layerIcon = CustomPaint(
-        painter: LayerTilePainter(hovering
-            ? 16
-            : (isGridChild
-                ? sizeAnimation.value
-                : widget._entranceAnimation.value + sizeAnimation.value)),
-        child: Icon(
-          Icons.layers,
-          size: 64 +
-              (hovering
-                  ? 16
-                  : (isGridChild
-                      ? sizeAnimation.value
-                      : widget._entranceAnimation.value + sizeAnimation.value)),
-          color: widget.i ~/ 3 < 4 ? Colors.black : Colors.white,
-        ));
+      painter: LayerTilePainter(
+        foregroundSize,
+        const Color(0xff044862),
+        widget.foregroundColor!,
+        symbol,
+      ),
+    );
 
     if (hovering) {
       return Opacity(opacity: 0.45, child: layerIcon);
@@ -193,12 +222,19 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
 
 class LayerTilePainter extends CustomPainter {
   final double imageSize;
-  LayerTilePainter(this.imageSize);
+  final Color backgroundColor;
+  final Color iconColor;
+  final ui.Image? symbol;
+  late final Path octogonBoundary;
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  LayerTilePainter(
+    this.imageSize,
+    this.backgroundColor,
+    this.iconColor,
+    this.symbol,
+  ) {
     // Create a path that will form the octogon of the image
-    final Path octogonBoundary = Path()
+    octogonBoundary = Path()
       ..moveTo(0, 6)
       ..addPolygon([
         Offset(0, 6 * 3 + imageSize),
@@ -209,7 +245,48 @@ class LayerTilePainter extends CustomPainter {
         Offset(6 * 3 + imageSize, 0),
         const Offset(6, 0),
       ], true);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Rect widgetSize = octogonBoundary.getBounds();
     canvas.clipPath(octogonBoundary);
+
+    final backgroundPaint = Paint()
+      ..shader = LinearGradient(
+          colors: [backgroundColor, Color.lerp(backgroundColor, null, 0.5)!],
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          stops: [18 / (24 + imageSize), 1.0]).createShader(widgetSize);
+    canvas.drawRect(widgetSize, backgroundPaint);
+
+    final highlightRect = Rect.fromLTWH(6, 6, 12 + imageSize, 6 + imageSize);
+    final highlightPaint = Paint()
+      ..shader = LinearGradient(
+          colors: [
+            backgroundColor,
+            Color.lerp(backgroundColor, iconColor, 0.5)!
+          ],
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          stops: [6 / (6 + imageSize), 1.0]).createShader(highlightRect);
+    canvas.drawRect(highlightRect, highlightPaint);
+
+    final iconForegroundPaint = Paint()..color = iconColor;
+    canvas.drawRect(
+      Rect.fromLTWH(12, 12, imageSize, imageSize),
+      iconForegroundPaint,
+    );
+
+    if (symbol != null) {
+      canvas.drawImage(
+        symbol!,
+        Offset(12 + imageSize / 2 - 14, (3 / 40) * imageSize + 12),
+        Paint(),
+      );
+    }
+
+    // Display text with Paragraph object
   }
 
   @override
