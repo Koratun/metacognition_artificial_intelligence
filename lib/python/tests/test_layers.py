@@ -82,4 +82,4 @@ class TestUpdateLayer:
         assert layer.update_settings(dict(n_classes='0'))
         assert layer.update_settings(dict(n_classes='2'))
         assert layer.update_settings(dict(n_classes='3.5'))
-        assert not layer.update_settings(dict(n_classes='3'))
+        assert not layer.update_settings(dict(n_classes='10'))
