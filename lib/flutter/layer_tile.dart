@@ -7,8 +7,8 @@ import 'schemas/schema.dart';
 
 class LayerTile extends StatefulWidget {
   final int i;
-  final String title;
-  final String? layerName;
+  final String category;
+  final String? name;
   final Animation<double> _entranceAnimation;
   final AnimationController _entranceController;
   final void Function()? changeNotifyCallback;
@@ -19,11 +19,11 @@ class LayerTile extends StatefulWidget {
 
   const LayerTile.gridChild(
     this.i,
-    this.title,
+    this.category,
     this._entranceAnimation,
     this._entranceController, {
     Key? key,
-    this.layerName,
+    this.name,
     this.backgroundColor,
     this.foregroundColor,
     this.symbol,
@@ -33,12 +33,12 @@ class LayerTile extends StatefulWidget {
 
   const LayerTile.canvasChild(
     this.i,
-    this.title,
+    this.category,
     this._entranceAnimation,
     this._entranceController, {
     Key? key,
     this.changeNotifyCallback,
-    this.layerName,
+    this.name,
     required this.messageHandler,
     this.backgroundColor,
     this.foregroundColor,
@@ -64,6 +64,17 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
   late final NodeConnectionLimits? nodeConnectionLimits;
   late final String? nodeId;
 
+  void _handleMessages() {
+    var data = widget.messageHandler!.value;
+    if (data is CreationResponse) {
+      setState(() {
+        layerSettings = data.layerSettings;
+        nodeConnectionLimits = data.nodeConnectionLimits;
+        nodeId = data.nodeId;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -77,17 +88,13 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
         widget._entranceAnimation
             .addListener(() => setState(() => widget.changeNotifyCallback!()));
       }
-      widget.messageHandler!.addListener(() {
-        var data = widget.messageHandler!.value;
-        if (data is CreationResponse) {
-          setState(() {
-            layerSettings = data.layerSettings;
-            nodeConnectionLimits = data.nodeConnectionLimits;
-            nodeId = data.nodeId;
-          });
-          print("Data saved. <InitWidget>");
-        }
-      });
+
+      // Handle race condition of python finishing initialization of the
+      // layer tile before dart
+      if (widget.messageHandler!.value.runtimeType != RequestResponseSchema) {
+        _handleMessages();
+      }
+      widget.messageHandler!.addListener(_handleMessages);
     }
   }
 
@@ -100,20 +107,12 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
         widget._entranceAnimation
             .addListener(() => setState(() => widget.changeNotifyCallback!()));
       }
-      widget.messageHandler!.addListener(() {
-        var data = widget.messageHandler!.value;
-        if (data is CreationResponse) {
-          setState(() {
-            layerSettings = data.layerSettings;
-            nodeConnectionLimits = data.nodeConnectionLimits;
-            nodeId = data.nodeId;
-          });
-          print("Data saved. <UpdatedWidget>");
-        }
-      });
     } else {
-      if (oldWidget.title != widget.title) {
+      if (oldWidget.category != widget.category) {
         widget._entranceController.forward();
+      } else {
+        widget._entranceController
+            .forward(from: oldWidget._entranceController.value);
       }
     }
   }
@@ -152,7 +151,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
       foregroundSize,
       widget.backgroundColor!,
       widget.foregroundColor!,
-      widget.layerName!,
+      widget.name!,
       widget.symbol,
     );
 
@@ -222,7 +221,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
     final title = Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Text(
-        widget.layerName ?? "${widget.title} ${widget.i}",
+        widget.name ?? "${widget.category} ${widget.i}",
         style: const TextStyle(
           fontSize: 16.0,
           color: Colors.white,
@@ -281,7 +280,7 @@ class LayerTilePainter extends CustomPainter {
   final double foregroundSize;
   final Color backgroundColor;
   final Color foregroundColor;
-  final String layerName;
+  final String name;
   final ui.Image? symbol;
   late final Path octogonBoundary;
 
@@ -289,7 +288,7 @@ class LayerTilePainter extends CustomPainter {
     this.foregroundSize,
     this.backgroundColor,
     this.foregroundColor,
-    this.layerName,
+    this.name,
     this.symbol,
   ) {
     // Create a path that will form the octogon of the image
@@ -368,7 +367,7 @@ class LayerTilePainter extends CustomPainter {
       ),
     )
       ..pushStyle(ui.TextStyle(color: backgroundColor))
-      ..addText(layerName.toUpperCase());
+      ..addText(name.toUpperCase());
     final layerTitle = layerTitleBuilder.build()
       ..layout(ui.ParagraphConstraints(width: foregroundSize));
     canvas.drawParagraph(
