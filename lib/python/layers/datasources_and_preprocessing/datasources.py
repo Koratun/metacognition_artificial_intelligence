@@ -31,7 +31,7 @@ class KerasDatasource(Layer):
     max_upstream_nodes = 0
 
 
-    def __init__(self, name: str, shape: tuple[int, ...], dtype: Dtype, classes: int):
+    def __init__(self, name: str, label: str, shape: tuple[int, ...], dtype: Dtype, classes: int):
         """
         Args:
             name: The name used by keras to load in these datasets.
@@ -42,6 +42,7 @@ class KerasDatasource(Layer):
         """
         super().__init__()
         self.datasource_name: str = name
+        self.label: str = label
         self.shape: tuple[int, ...] = shape
         self.dtype: Dtype = dtype
         self.classes: int = classes
@@ -123,14 +124,14 @@ with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
 # fashion_mnist.load_data()    
 
 keras_datasources = [
-    KerasDatasource(name="boston_housing", shape=(13,), dtype=Dtype.float32, classes=0),
-    KerasDatasource(name="mnist", shape=(28, 28), dtype=Dtype.int16, classes=10),
-    KerasDatasource(name="fashion_mnist", shape=(28, 28), dtype=Dtype.int16, classes=10),
-    KerasDatasource(name="cifar10", shape=(32, 32, 3), dtype=Dtype.int16, classes=10),
-    KerasDatasource(name="cifar100", shape=(32, 32, 3), dtype=Dtype.int16, classes=100),
-    # KerasDatasource(name="reuters", shape=(1, None), dtype=Dtype.int32, classes=90),  
+    KerasDatasource(name="boston_housing", label="Boston Housing", shape=(13,), dtype=Dtype.float32, classes=0),
+    KerasDatasource(name="mnist", label="MNIST", shape=(28, 28), dtype=Dtype.int16, classes=10),
+    KerasDatasource(name="fashion_mnist", label="Fashion MNIST", shape=(28, 28), dtype=Dtype.int16, classes=10),
+    KerasDatasource(name="cifar10", label="CIFAR10", shape=(32, 32, 3), dtype=Dtype.int16, classes=10),
+    KerasDatasource(name="cifar100", label="CIFAR100", shape=(32, 32, 3), dtype=Dtype.int16, classes=100),
+    # KerasDatasource(name="reuters", label="Reuters", shape=(1, None), dtype=Dtype.int32, classes=90),  
     # This dataset is too complex. Each document can have multiple classes which is out of scope for now.
-    KerasDatasource(name="imdb", shape=(1, None), dtype=Dtype.int32, classes=2),
+    KerasDatasource(name="imdb", label="IMDB", shape=(1, None), dtype=Dtype.int32, classes=2),
 ]
 
 
