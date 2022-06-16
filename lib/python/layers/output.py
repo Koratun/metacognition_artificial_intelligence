@@ -53,7 +53,5 @@ class Output(Layer):
         else:
             line += node_being_built.upstream_nodes[0].layer.name
         line += ')\n'
-        # TODO: This will need to be reworked after losses, optimizations, and metrics are implemented.
-        line += self.name + '.compile(' + self.construct_settings() + ')'
         self.constructed = True
         return line
