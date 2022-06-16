@@ -47,5 +47,5 @@ for glob_mod_name, glob_mod in reversed(dict(globals()).items()):
     if breakflag:
         break
 
-layer_classes.update({c.datasource_name: c for c in keras_datasources})
-layer_packages['datasources_and_preprocessing'] += [c.datasource_name for c in keras_datasources]
+layer_classes.update({c.label: c for c in keras_datasources})
+layer_packages['datasources_and_preprocessing'] += [c.label for c in keras_datasources]
