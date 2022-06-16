@@ -29,6 +29,7 @@ class KerasDatasource(Layer):
     settings_validator = KerasDataSettings
     min_upstream_nodes = 0
     max_upstream_nodes = 0
+    max_downstream_nodes = 2
 
 
     def __init__(self, name: str, label: str, shape: tuple[int, ...], dtype: Dtype, classes: int):
@@ -72,12 +73,13 @@ class KerasDatasource(Layer):
             # and patching how Keras normally reports progress so that we can feed the progress
             # back to the user through whatever format we desire.
             # TODO: Update this when we know how the AI will be returning data to Flutter
-            lines = """\n
+            lines = f"\n# Loading in the {self.label} dataset" + """
 def convert_bytes(num):
     for x in ['bytes', 'KB', 'MB', 'GB']:
         if num < 1024.0:
             return f"{num:.2f} {x}"
         num /= 1024.0
+
 
 class PatchProgress:
     def __init__(self, total_size):
@@ -89,11 +91,13 @@ class PatchProgress:
         print(f"{convert_bytes(progress)}/{self.total_bytes}: {progress/self.total_size*100:.2f}%", 
             "Time till download is complete: {calculation goes here}")
 
+
 from mock import patch
 import keras.utils.data_utils
+
 with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
 
-            lines += f"\n\t({self.dataset.train.x}, {self.dataset.train.y}), ({self.dataset.test.x}, {self.dataset.test.y}) = {self.datasource_name}.load_data()\n"
+            lines += f"\n\t({self.dataset.train.x}, {self.dataset.train.y}), ({self.dataset.test.x}, {self.dataset.test.y}) = {self.datasource_name}.load_data()\n\n"
             lines += f"{self.dataset.validation.x}, {self.dataset.test.x} = np.split({self.dataset.test.x}, int(len({self.dataset.test.x}) * {split}))\n"
             lines += f"{self.dataset.validation.y}, {self.dataset.test.y} = np.split({self.dataset.test.y}, int(len({self.dataset.test.y}) * {split}))\n\n"
             self.constructed = True
