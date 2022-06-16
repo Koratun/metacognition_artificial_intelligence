@@ -36,9 +36,9 @@ class LayerSettings(BaseModel):
     def string_validator(cls, v, field: ModelField):
         if v == '':
             return None
-        if (field.outer_type_ is str 
+        if (field.type_ is str 
             or field.type_ is UUID
-            or issubclass(field.outer_type_, Enum)
+            or issubclass(field.type_, Enum)
             or getattr(field.outer_type_, '__origin__', None) is Literal
         ):
             return v
