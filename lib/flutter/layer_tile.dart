@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
-import 'package:image/image.dart' as im;
 import 'schemas/node_connection_limits.dart';
 
 import 'schemas/creation_response.dart';
@@ -14,10 +12,26 @@ class LayerTile extends StatefulWidget {
   final Animation<double> _entranceAnimation;
   final AnimationController _entranceController;
   final void Function()? changeNotifyCallback;
-  final ValueNotifier<Schema?>? messageHandler;
+  final ValueNotifier<RequestResponseSchema>? messageHandler;
+  final Color? backgroundColor;
   final Color? foregroundColor;
+  final ui.Image? symbol;
 
-  const LayerTile(
+  const LayerTile.gridChild(
+    this.i,
+    this.title,
+    this._entranceAnimation,
+    this._entranceController, {
+    Key? key,
+    this.layerName,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.symbol,
+  })  : changeNotifyCallback = null,
+        messageHandler = null,
+        super(key: key);
+
+  const LayerTile.canvasChild(
     this.i,
     this.title,
     this._entranceAnimation,
@@ -25,8 +39,10 @@ class LayerTile extends StatefulWidget {
     Key? key,
     this.changeNotifyCallback,
     this.layerName,
-    this.messageHandler,
+    required this.messageHandler,
+    this.backgroundColor,
     this.foregroundColor,
+    this.symbol,
   }) : super(key: key);
 
   @override
@@ -48,32 +64,10 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
   late final NodeConnectionLimits? nodeConnectionLimits;
   late final String? nodeId;
 
-  late final ui.Image? symbol;
-
-  Future<ui.Image> loadRawImage() async {
-    ByteData data = await rootBundle
-        .load('assets/layer_tiles/' + widget.layerName! + '.png');
-    var image = im.decodePng(data.buffer.asUint8List());
-    ui.ImmutableBuffer buffer =
-        await ui.ImmutableBuffer.fromUint8List(image!.getBytes());
-    ui.ImageDescriptor id = ui.ImageDescriptor.raw(
-      buffer,
-      height: image.height,
-      width: image.width,
-      pixelFormat: ui.PixelFormat.rgba8888,
-    );
-    ui.Codec codec = await id.instantiateCodec(
-        targetHeight: image.height, targetWidth: image.width);
-    ui.FrameInfo fi = await codec.getNextFrame();
-    return fi.image;
-  }
-
   @override
   void initState() {
     super.initState();
-    if (widget.layerName != null) {
-      loadRawImage().then((value) => setState(() => symbol = value));
-    }
+    widget._entranceController.forward();
     sizeAnimation.addListener(() {
       setState(() {});
     });
@@ -91,8 +85,36 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
             nodeConnectionLimits = data.nodeConnectionLimits;
             nodeId = data.nodeId;
           });
+          print("Data saved. <InitWidget>");
         }
       });
+    }
+  }
+
+  @override
+  void didUpdateWidget(LayerTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!isGridChild) {
+      if (widget.changeNotifyCallback != null) {
+        sizeAnimation.addListener((() => widget.changeNotifyCallback!()));
+        widget._entranceAnimation
+            .addListener(() => setState(() => widget.changeNotifyCallback!()));
+      }
+      widget.messageHandler!.addListener(() {
+        var data = widget.messageHandler!.value;
+        if (data is CreationResponse) {
+          setState(() {
+            layerSettings = data.layerSettings;
+            nodeConnectionLimits = data.nodeConnectionLimits;
+            nodeId = data.nodeId;
+          });
+          print("Data saved. <UpdatedWidget>");
+        }
+      });
+    } else {
+      if (oldWidget.title != widget.title) {
+        widget._entranceController.forward();
+      }
     }
   }
 
@@ -105,38 +127,61 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
 
   bool get isGridChild => widget.messageHandler == null;
 
-  Widget makeDraggable(Widget child) {
+  bool get isPlaceholder => widget.foregroundColor == null;
+
+  Widget makeDraggable(Widget Function({bool hovering}) childFunction) {
     return Draggable<LayerTile>(
       data: widget,
       feedback: LimitedBox(
-        child: imageTile(hovering: true),
+        child: childFunction(hovering: true),
       ),
       hitTestBehavior: HitTestBehavior.translucent,
-      child: MouseRegion(
-        onEnter: (event) {
-          hoverController.forward();
-        },
-        onExit: (event) {
-          hoverController.reverse();
-        },
-        child: child,
-      ),
+      child: childFunction(),
     );
   }
 
   Widget makeLayerIcon({bool hovering = false}) {
-    final double foregroundSize = hovering
-        ? 16
-        : (isGridChild
-            ? sizeAnimation.value
-            : widget._entranceAnimation.value + sizeAnimation.value);
+    final double foregroundSize = 64 +
+        (hovering
+            ? 16
+            : (isGridChild
+                ? sizeAnimation.value
+                : widget._entranceAnimation.value + sizeAnimation.value));
 
-    Widget layerIcon = CustomPaint(
-      painter: LayerTilePainter(
-        foregroundSize,
-        const Color(0xff044862),
-        widget.foregroundColor!,
-        symbol,
+    final layerTilePainter = LayerTilePainter(
+      foregroundSize,
+      widget.backgroundColor!,
+      widget.foregroundColor!,
+      widget.layerName!,
+      widget.symbol,
+    );
+
+    final Widget layerIcon = MouseRegion(
+      onEnter: (event) {
+        if (isGridChild || widget._entranceAnimation.isCompleted) {
+          if (layerTilePainter.hitTest(event.localPosition)) {
+            hoverController.forward();
+          }
+        }
+      },
+      onHover: (event) {
+        if (isGridChild || widget._entranceAnimation.isCompleted) {
+          if (layerTilePainter.hitTest(event.localPosition)) {
+            hoverController.forward();
+          } else {
+            hoverController.reverse();
+          }
+        }
+      },
+      onExit: (_) {
+        hoverController.reverse();
+      },
+      child: CustomPaint(
+        painter: layerTilePainter,
+        child: SizedBox(
+          width: layerTilePainter.octogonBoundary.getBounds().width,
+          height: layerTilePainter.octogonBoundary.getBounds().height,
+        ),
       ),
     );
 
@@ -146,8 +191,8 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
     return layerIcon;
   }
 
-  Widget imageTile({bool hovering = false}) {
-    final Widget imageTile = Container(
+  Widget placeholderTile({bool hovering = false}) {
+    final Widget tile = Container(
       decoration: BoxDecoration(
         color: widget.i ~/ 3 < 4
             ? Colors.grey[100 * (widget.i ~/ 3 + 1)]
@@ -167,9 +212,9 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
       ),
     );
     if (hovering) {
-      return Opacity(opacity: 0.45, child: imageTile);
+      return Opacity(opacity: 0.45, child: tile);
     }
-    return imageTile;
+    return tile;
   }
 
   @override
@@ -189,60 +234,74 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
     if (isGridChild) {
       return ScaleTransition(
         scale: widget._entranceAnimation,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            makeDraggable(imageTile()),
-            title,
-          ],
-        ),
+        child: isPlaceholder
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  MouseRegion(
+                    onEnter: (event) {
+                      hoverController.forward();
+                    },
+                    onExit: (event) {
+                      hoverController.reverse();
+                    },
+                    child: makeDraggable(placeholderTile),
+                  ),
+                  title,
+                ],
+              )
+            : makeDraggable(makeLayerIcon),
       );
     } else {
       return LimitedBox(
-        child: Column(
-          children: [
-            MouseRegion(
-              onEnter: (event) {
-                if (widget._entranceAnimation.isCompleted) {
-                  hoverController.forward();
-                }
-              },
-              onExit: (event) {
-                hoverController.reverse();
-              },
-              child: imageTile(),
-            ),
-            title,
-          ],
-        ),
+        child: isPlaceholder
+            ? Column(
+                children: [
+                  MouseRegion(
+                    onEnter: (event) {
+                      if (widget._entranceAnimation.isCompleted) {
+                        hoverController.forward();
+                      }
+                    },
+                    onExit: (event) {
+                      hoverController.reverse();
+                    },
+                    child: placeholderTile(),
+                  ),
+                  title,
+                ],
+              )
+            : makeLayerIcon(),
       );
     }
   }
 }
 
 class LayerTilePainter extends CustomPainter {
-  final double imageSize;
+  final double foregroundSize;
   final Color backgroundColor;
-  final Color iconColor;
+  final Color foregroundColor;
+  final String layerName;
   final ui.Image? symbol;
   late final Path octogonBoundary;
 
   LayerTilePainter(
-    this.imageSize,
+    this.foregroundSize,
     this.backgroundColor,
-    this.iconColor,
+    this.foregroundColor,
+    this.layerName,
     this.symbol,
   ) {
     // Create a path that will form the octogon of the image
     octogonBoundary = Path()
-      ..moveTo(0, 6)
       ..addPolygon([
-        Offset(0, 6 * 3 + imageSize),
-        Offset(6, 6 * 4 + imageSize),
-        Offset(6 * 3 + imageSize, 6 * 4 + imageSize),
-        Offset(6 * 4 + imageSize, 6 * 3 + imageSize),
-        Offset(6 * 4 + imageSize, 6),
-        Offset(6 * 3 + imageSize, 0),
+        const Offset(0, 6),
+        Offset(0, 6 * 3 + foregroundSize),
+        Offset(6, 6 * 4 + foregroundSize),
+        Offset(6 * 3 + foregroundSize, 6 * 4 + foregroundSize),
+        Offset(6 * 4 + foregroundSize, 6 * 3 + foregroundSize),
+        Offset(6 * 4 + foregroundSize, 6),
+        Offset(6 * 3 + foregroundSize, 0),
         const Offset(6, 0),
       ], true);
   }
@@ -257,40 +316,73 @@ class LayerTilePainter extends CustomPainter {
           colors: [backgroundColor, Color.lerp(backgroundColor, null, 0.5)!],
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          stops: [18 / (24 + imageSize), 1.0]).createShader(widgetSize);
+          stops: [18 / (24 + foregroundSize), 1.0]).createShader(widgetSize);
     canvas.drawRect(widgetSize, backgroundPaint);
 
-    final highlightRect = Rect.fromLTWH(6, 6, 12 + imageSize, 6 + imageSize);
+    final highlightRect =
+        Rect.fromLTWH(6, 6, 12 + foregroundSize, 6 + foregroundSize);
     final highlightPaint = Paint()
       ..shader = LinearGradient(
           colors: [
             backgroundColor,
-            Color.lerp(backgroundColor, iconColor, 0.5)!
+            Color.lerp(backgroundColor, foregroundColor, 0.5)!
           ],
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          stops: [6 / (6 + imageSize), 1.0]).createShader(highlightRect);
+          stops: [6 / (6 + foregroundSize), 1.0]).createShader(highlightRect);
     canvas.drawRect(highlightRect, highlightPaint);
 
-    final iconForegroundPaint = Paint()..color = iconColor;
     canvas.drawRect(
-      Rect.fromLTWH(12, 12, imageSize, imageSize),
-      iconForegroundPaint,
+      Rect.fromLTWH(12, 12, foregroundSize, foregroundSize),
+      Paint()..color = foregroundColor,
     );
 
+    // If file hasn't loaded yet, display an ellipses instead of the image
     if (symbol != null) {
-      canvas.drawImage(
+      canvas.drawImageRect(
         symbol!,
-        Offset(12 + imageSize / 2 - 14, (3 / 40) * imageSize + 12),
+        Rect.fromLTWH(0, 0, symbol!.width * 1.0, symbol!.height * 1.0),
+        Rect.fromLTWH(
+            12 + foregroundSize / 2 - 14,
+            (3 / 40) * foregroundSize + 12,
+            foregroundSize / 2,
+            foregroundSize / 2),
         Paint(),
       );
+    } else {
+      for (var x = -6; x <= 6; x += 6) {
+        canvas.drawCircle(
+          Offset(12 + foregroundSize / 2 + x, 12 + foregroundSize / 2),
+          2,
+          Paint()..color = Colors.black,
+        );
+      }
     }
 
     // Display text with Paragraph object
+    final layerTitleBuilder = ui.ParagraphBuilder(
+      ui.ParagraphStyle(
+        textAlign: TextAlign.center,
+        fontSize: 14,
+        fontFamily: "Josefin Sans",
+      ),
+    )
+      ..pushStyle(ui.TextStyle(color: backgroundColor))
+      ..addText(layerName.toUpperCase());
+    final layerTitle = layerTitleBuilder.build()
+      ..layout(ui.ParagraphConstraints(width: foregroundSize));
+    canvas.drawParagraph(
+      layerTitle,
+      Offset(12, 12 + foregroundSize - layerTitle.height),
+    );
   }
 
   @override
+  bool hitTest(Offset position) => octogonBoundary.contains(position);
+
+  @override
   bool shouldRepaint(LayerTilePainter oldDelegate) {
-    return imageSize != oldDelegate.imageSize;
+    return foregroundSize != oldDelegate.foregroundSize ||
+        symbol != oldDelegate.symbol;
   }
 }
