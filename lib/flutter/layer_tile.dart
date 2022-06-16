@@ -60,7 +60,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
     end: 8.0,
   ).animate(hoverController);
 
-  late final Map<String, String>? layerSettings;
+  Map<String, String>? layerSettings;
   late final NodeConnectionLimits? nodeConnectionLimits;
   late final String? nodeId;
 
