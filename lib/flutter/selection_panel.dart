@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:ui' as ui;
+import 'package:image/image.dart' as im;
+
 import 'schemas/event_type_enum.dart';
+import 'schemas/command_type_enum.dart';
+import 'schemas/initialize_layers_event.dart';
+
 import 'window_style_dropdown_menu.dart';
 import 'layer_tile.dart';
 import 'main.dart';
 import 'pycontroller.dart';
-import 'schemas/command_type_enum.dart';
-import 'schemas/initialize_layers_event.dart';
 
 const categoryNames = <String>[
   "Tutorials",
@@ -15,6 +20,16 @@ const categoryNames = <String>[
   "Convolutional",
   "Recurrent",
 ];
+
+const categoryColors = {
+  "Core": Color(0xff044862),
+};
+
+Map<String, Map<String, dynamic>> layerTileAssetData = {
+  "Input": {"color": const Color(0xff72efdd)},
+  "Dense": {"color": const Color(0xff9ad1d4)},
+  "Output": {"color": const Color(0xff4ea8de)}
+};
 
 class SelectionPanel extends StatefulWidget {
   const SelectionPanel({Key? key}) : super(key: key);
@@ -28,11 +43,32 @@ class _SelectionPanelState extends State<SelectionPanel>
   String _selectedCategory = categoryNames[0];
 
   Map<String, List<String>>? _categoryList;
-  final GlobalKey<PopupMenuButtonState<int>> _key = GlobalKey();
+
+  Future<ui.Image> loadRawImage(String layerName) async {
+    ByteData data =
+        await rootBundle.load('assets/layer_tiles/' + layerName + '.png');
+    var image = im.decodePng(data.buffer.asUint8List());
+    ui.ImmutableBuffer buffer =
+        await ui.ImmutableBuffer.fromUint8List(image!.getBytes());
+    ui.ImageDescriptor id = ui.ImageDescriptor.raw(
+      buffer,
+      height: image.height,
+      width: image.width,
+      pixelFormat: ui.PixelFormat.rgba8888,
+    );
+    ui.Codec codec = await id.instantiateCodec(
+        targetHeight: image.height, targetWidth: image.width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return fi.image;
+  }
 
   @override
   void initState() {
     super.initState();
+    for (var layerName in layerTileAssetData.keys) {
+      loadRawImage(layerName).then((value) =>
+          setState(() => layerTileAssetData[layerName]!["symbol"] = value));
+    }
     PyController.init();
     PyController.registerEventHandler(
       EventType.initializeLayers,
@@ -204,19 +240,22 @@ class _SelectionPanelState extends State<SelectionPanel>
           curve: DramaticEntrance(_millesecondsToWait / _entranceTime),
         );
 
-        _entranceController.forward();
+        final String? name = _categoryList == null
+            ? null
+            : _categoryList![_selectedCategory] == null
+                ? null
+                : _categoryList![_selectedCategory]![i];
 
         return Center(
-          child: LayerTile(
+          child: LayerTile.gridChild(
             i,
             _selectedCategory,
             _entranceAnimation,
             _entranceController,
-            layerName: _categoryList == null
-                ? null
-                : _categoryList![_selectedCategory] == null
-                    ? null
-                    : _categoryList![_selectedCategory]![i],
+            backgroundColor: categoryColors[_selectedCategory],
+            foregroundColor: layerTileAssetData[name]?['color'],
+            symbol: layerTileAssetData[name]?['symbol'],
+            name: name,
           ),
         );
       },
