@@ -89,7 +89,7 @@ class TestDartEndpoint:
         self.request_and_response(
             mock_response,
             mock_input,
-            'create{"requestId": "'+ request_id +'" "layer": "BadLayer"}',
+            f'create{{"requestId": "{request_id}", "layer": "BadLayer"}}',
             error=True
         )
 
