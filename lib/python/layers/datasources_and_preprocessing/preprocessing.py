@@ -1,4 +1,4 @@
-from pydantic import ValidationError, validator
+from pydantic import ValidationError, validator, StrictInt
 from python.directed_acyclic_graph import Layer, LayerSettings, DagNode, CompileException, CompileErrorReason
 from python.layers.datasources_and_preprocessing.datasources import DatasetVars, KerasDatasource
 from typing import Literal
@@ -45,6 +45,13 @@ class MapRangeSettings(InputOrOutputSetting):
     new_range_min: float
     new_range_max: float
 
+    @validator("new_range_max")
+    def range_not_zero(cls, v, values):
+        if v == values['new_range_min']:
+            raise ValueError("Range must span distance greater than zero.")
+        if values['old_range_max'] == values['old_range_min']:
+            raise ValueError("Range must span distance greater than zero.")
+
 
 class MapRange(PreprocessingLayer):
     settings_validator = MapRangeSettings
@@ -72,7 +79,7 @@ class MapRange(PreprocessingLayer):
 
 
 class OneHotSettings(LayerSettings):
-    n_classes: int
+    n_classes: StrictInt
 
     @validator('n_classes')
     def classification_prob(cls, v):
