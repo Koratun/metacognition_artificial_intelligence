@@ -48,6 +48,7 @@ class MapRangeSettings(InputOrOutputSetting):
 
 class MapRange(PreprocessingLayer):
     settings_validator = MapRangeSettings
+    type = "map_range"
 
     def generate_code_line(self, node_being_built: DagNode) -> str:
         self.get_datasource(node_being_built)
@@ -85,6 +86,7 @@ class OneHotSettings(LayerSettings):
 
 class OneHotEncode(PreprocessingLayer):
     settings_validator = OneHotSettings
+    type = "one_hot_encode"
 
     def generate_code_line(self, node_being_built: DagNode) -> str:
         self.get_datasource(node_being_built)
