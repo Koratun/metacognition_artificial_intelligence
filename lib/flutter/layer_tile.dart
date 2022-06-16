@@ -341,11 +341,11 @@ class LayerTilePainter extends CustomPainter {
       canvas.drawImageRect(
         symbol!,
         Rect.fromLTWH(0, 0, symbol!.width * 1.0, symbol!.height * 1.0),
-        Rect.fromLTWH(
-            12 + foregroundSize / 2 - 14,
-            (3 / 40) * foregroundSize + 12,
-            foregroundSize / 2,
-            foregroundSize / 2),
+        Rect.fromCenter(
+            center:
+                Offset(12 + foregroundSize / 2, 12 + foregroundSize * (3 / 8)),
+            width: foregroundSize / 2,
+            height: foregroundSize / 2),
         Paint(),
       );
     } else {
@@ -362,11 +362,14 @@ class LayerTilePainter extends CustomPainter {
     final layerTitleBuilder = ui.ParagraphBuilder(
       ui.ParagraphStyle(
         textAlign: TextAlign.center,
-        fontSize: 14,
-        fontFamily: "Josefin Sans",
+        fontSize: 15,
+        fontFamily: "Segoe UI",
       ),
     )
-      ..pushStyle(ui.TextStyle(color: backgroundColor))
+      ..pushStyle(ui.TextStyle(
+        color: backgroundColor,
+        fontWeight: FontWeight.bold,
+      ))
       ..addText(name.toUpperCase());
     final layerTitle = layerTitleBuilder.build()
       ..layout(ui.ParagraphConstraints(width: foregroundSize));
