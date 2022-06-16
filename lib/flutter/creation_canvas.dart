@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'selection_panel.dart';
 import 'layer_tile.dart';
 import 'pycontroller.dart';
 import 'schemas/command_type_enum.dart';
@@ -34,14 +35,18 @@ class _CreationCanvasState extends State<CreationCanvas>
 
     _entranceController.forward();
 
-    LayerTile newTile = LayerTile(
+    LayerTile newTile = LayerTile.canvasChild(
       layerTile.i,
       layerTile.title,
       _entranceAnimation,
       _entranceController,
       changeNotifyCallback: notifyListeners,
+      backgroundColor: categoryColors[layerTile.title],
+      foregroundColor: layerTileAssetData[layerTile.layerName]?['color'],
+      symbol: layerTileAssetData[layerTile.layerName]?['symbol'],
       layerName: layerTile.layerName,
-      messageHandler: ValueNotifier<Schema?>(null),
+      messageHandler:
+          ValueNotifier<RequestResponseSchema>(RequestResponseSchema()),
     );
     tiles.add(newTile);
     positions.add(pos);
