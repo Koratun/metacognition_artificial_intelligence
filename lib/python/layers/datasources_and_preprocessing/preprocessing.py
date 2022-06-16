@@ -21,9 +21,9 @@ class PreprocessingLayer(Layer):
                 'errors': "This preprocessing node has already been constructed, you cannot construct a model twice."
             })
         upstream_layer = node.upstream_nodes[0].layer
-        if upstream_layer is PreprocessingLayer:
+        if isinstance(upstream_layer, PreprocessingLayer):
             self.datasource = upstream_layer.datasource
-        elif upstream_layer is KerasDatasource:
+        elif isinstance(upstream_layer, KerasDatasource):
             self.datasource = upstream_layer
         else:
             raise CompileException({
@@ -51,6 +51,7 @@ class MapRangeSettings(InputOrOutputSetting):
             raise ValueError("Range must span distance greater than zero.")
         if values['old_range_max'] == values['old_range_min']:
             raise ValueError("Range must span distance greater than zero.")
+        return v
 
 
 class MapRange(PreprocessingLayer):
@@ -63,7 +64,7 @@ class MapRange(PreprocessingLayer):
         try:
             ranges: MapRangeSettings = self.settings_validator(**self.settings_data)
             dataset: DatasetVars = self.datasource.dataset
-            lines = "\n".join(
+            lines = "# Mapping old range to new range\n" + "\n".join(
                 f"{dataset[i][ranges.io]} = ({dataset[i][ranges.io]} - {ranges.old_range_min}) / ({ranges.old_range_max} - {ranges.old_range_min}) "
                 f"* ({ranges.new_range_max} - {ranges.new_range_min}) + {ranges.new_range_min}"
                 for i in range(len(dataset))
@@ -101,7 +102,7 @@ class OneHotEncode(PreprocessingLayer):
         try:
             n_classes: int = self.settings_validator(**self.settings_data).n_classes
 
-            lines = "def one_hot_encode(y_data):\n"
+            lines = "\n# One hot encoding the Y data\ndef one_hot_encode(y_data):\n"
             lines += f"\tencoded_y = np.zeros((len(y_data), {n_classes}))\n"
             lines += "\tfor i, y in enumerate(y_data):\n"
             lines += "\t\tencoded_y[i][y] = 1\n"
