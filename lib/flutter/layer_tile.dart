@@ -101,13 +101,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
   @override
   void didUpdateWidget(LayerTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!isGridChild) {
-      if (widget.changeNotifyCallback != null) {
-        sizeAnimation.addListener((() => widget.changeNotifyCallback!()));
-        widget._entranceAnimation
-            .addListener(() => setState(() => widget.changeNotifyCallback!()));
-      }
-    } else {
+    if (isGridChild) {
       if (oldWidget.category != widget.category) {
         widget._entranceController.forward();
       } else {
