@@ -11,7 +11,7 @@ const bool _echo = true;
 
 class PyController {
   static Process? _python;
-  static Map<String, void Function(Schema)> responseActions = {};
+  static Map<String, void Function(RequestResponseSchema)> responseActions = {};
   static Map<EventType, List<void Function(Schema)>> eventHandlers = {};
   static Map<EventType, List<Schema>> eventQueue = {};
 
@@ -25,15 +25,9 @@ class PyController {
     _python?.stderr.transform(utf8.decoder).forEach(print);
   }
 
-  // static void bindInputCallback(void Function(String) callback) =>
-  //     _python?.stdout.transform(utf8.decoder).forEach(callback);
-
-  // static void bindErrorCallback(void Function(String) callback) =>
-  //     _python?.stderr.transform(utf8.decoder).forEach(callback);
-
   static void request(
     CommandType c,
-    void Function(Schema) responseAction, {
+    void Function(RequestResponseSchema) responseAction, {
     RequestResponseSchema? data,
   }) {
     data ??= RequestResponseSchema();
@@ -66,7 +60,8 @@ class PyController {
     // and the rest of the text.
     final Map<String, dynamic> responseData =
         json.decode(data.substring(data.indexOf(RegExp(r'[[{]'))));
-    // Wrap function in a try catch for StateError
+    // Will throw a StateError if the incoming data is
+    // an event rather than a response
     try {
       final ResponseType responseType = ResponseType.values.firstWhere(
           (e) => e.name == data.substring(0, data.indexOf(RegExp(r'[[{]'))));
