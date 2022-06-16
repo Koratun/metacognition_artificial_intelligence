@@ -115,19 +115,19 @@ class Layer:
             raise CompileException({
                 'node_id': str(node_being_built.id), 
                 'reason': CompileErrorReason.DOWNSTREAM_NODE_COUNT.camel(), 
-                'errors': 'Layer downstream node count does not meet requirements: '
+                'errors': f'{self.__class__.__name__} downstream node count does not meet requirements: '
                 f'{self.min_downstream_nodes} <= {len(node_being_built.downstream_nodes)} <= {self.max_downstream_nodes}'
             })
         if not self.valid_number_upstream_nodes(len(node_being_built.upstream_nodes)):
             raise CompileException({
                 'node_id': str(node_being_built.id), 
                 'reason': CompileErrorReason.UPSTREAM_NODE_COUNT.camel(), 
-                'errors': 'Layer upstream node count does not meet requirements: '
+                'errors': f'{self.__class__.__name__} upstream node count does not meet requirements: '
                 f'{self.min_upstream_nodes} <= {len(node_being_built.upstream_nodes)} <= {self.max_upstream_nodes}'
             })
 
     def construct_settings(self):
-        set_settings: dict = self.settings_validator(**self.settings_data).dict(exclude_defaults=True)
+        set_settings: dict = self.settings_validator(**self.settings_data).dict(exclude_defaults=True, exclude={'name'})
         return ', '.join(f'{k}={v}' for k, v in set_settings.items())
 
     def generate_code_line(self, node_being_built: 'DagNode') -> str:
@@ -140,7 +140,7 @@ class Layer:
             if self.constructed:
                 line = self.name + ' = ' + self.name
             else:
-                line = self.name + f' = {self.keras_module_location}.' + self.__name__ + '(' + self.construct_settings() + ')'
+                line = self.name + f' = {self.keras_module_location}.{self.__class__.__name__}(' + self.construct_settings() + ')'
                 self.constructed = True
             line += '(' + node_being_built.upstream_nodes[0].layer.name + ')'
             return line
@@ -234,7 +234,12 @@ class DirectedAcyclicGraph:
         with self._unsee():
             for e in self.edges:
                 e[1].seen = True
-            head_nodes = [n for n in self.nodes if not n.seen and not isinstance(n.layer, CompileArgLayer)]
+            head_nodes = [
+                n for n in self.nodes 
+                if not n.seen 
+                    and not isinstance(n.layer, CompileArgLayer) 
+                    and (n.upstream_nodes or n.downstream_nodes)
+            ]
         return head_nodes
 
 
@@ -245,27 +250,42 @@ class DirectedAcyclicGraph:
         raise DagException("Node not found")
 
 
-    def check_cyclic(self) -> bool:
+    def check_acyclic(self) -> bool:
         if len(self.edges) < 1:
             return True
         with self._unsee():
-            if heads := self.get_head_nodes():
+            if heads := (self.get_head_nodes() + 
+                [n for n in self.nodes 
+                if isinstance(n.layer, CompileArgLayer) 
+                    and n.downstream_nodes]
+            ):
                 for head in heads:
                     head.seen = True
-                    if not self._check_cyclic(head):
+                    if not self._check_acyclic(head):
                         return False
             else:
                 return False
-            cyclic = len([n for n in self.nodes if not n.seen]) == 0
+            cyclic = len([
+                n for n in self.nodes 
+                if not n.seen 
+                    and (n.upstream_nodes or n.downstream_nodes)
+            ]) == 0
             return cyclic
 
-    
-    def _check_cyclic(self, node: DagNode) -> bool:
+
+    def _check_acyclic(self, node: DagNode) -> bool:
         for n in node.downstream_nodes:
+            upstream_seen = True
+            for upstream_node in n.upstream_nodes:
+                if not upstream_node.seen and not isinstance(upstream_node.layer, CompileArgLayer):
+                    upstream_seen = False
+            if not upstream_seen:
+                return True
+
             if n.seen:
                 return False
             n.seen = True
-            if not self._check_cyclic(n):
+            if not self._check_acyclic(n):
                 return False
         return True
 
@@ -285,7 +305,7 @@ class DirectedAcyclicGraph:
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
                 raise DagException("Destination node has too many incoming connections")
-            elif not self.check_cyclic(): 
+            elif not self.check_acyclic(): 
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
                 raise DagException("Circular graphs not allowed")
@@ -314,7 +334,7 @@ class DirectedAcyclicGraph:
                 self.edges.remove(e)
 
 
-    def _check_graph_whole(self):
+    def _check_graph_whole(self) -> DagNode:
         with self._unsee():
             start_node = self.edges[0][0]
             start_node.seen = True
@@ -325,13 +345,33 @@ class DirectedAcyclicGraph:
                 n.seen = True
                 self._check_graph_whole_recurse(n, up=False)
             # Now check if there are any nodes in the graph that have not been seen
-            disjointed_node_ids = [str(n.id) for n in self.nodes if not n.seen]
+            disjointed_node_ids = [
+                str(n.id) for n in self.nodes 
+                if not n.seen and (n.upstream_nodes or n.downstream_nodes)
+            ]
             if disjointed_node_ids:
                 raise CompileException({
                     'node_ids': disjointed_node_ids,
                     'reason': CompileErrorReason.DISJOINTED_GRAPH.camel(),
                     'errors': 'The graph must be connected. If you are not using a node, disconnect it from all other nodes. The graph ignores fully disconnected nodes.'
                 })
+        
+        # Get tail nodes (It is an error if there is more than 1)
+        # and it shouldn't be possible for there to be 0 tail nodes
+        with self._unsee():
+            for e in self.edges:
+                e[0].seen = True
+            tail_nodes = [
+                n for n in self.nodes 
+                if not n.seen and (n.upstream_nodes or n.downstream_nodes)
+            ]
+            if len(tail_nodes) != 1:
+                raise CompileException({
+                    'node_ids': [str(n.id) for n in tail_nodes],
+                    'reason': CompileErrorReason.DISJOINTED_GRAPH.camel(),
+                    'errors': 'The graph must only have one final node.'
+                })
+            return tail_nodes[0]
             
 
     def _check_graph_whole_recurse(self, node: DagNode, up: bool):
@@ -347,7 +387,7 @@ class DirectedAcyclicGraph:
     def construct_keras(self):
         if not self.edges:
             raise DagException("The graph has no connections")
-        self._check_graph_whole()
+        last_node = self._check_graph_whole()
 
         model_file = "##~ Model code generated by MAI: DO NOT TOUCH! ~Mai\n\n"
         model_file += "import numpy as np\n"
@@ -360,7 +400,7 @@ class DirectedAcyclicGraph:
                 head.seen = True
                 model_file += head.code_gen() + '\n'
                 model_file += self._construct_keras(head)
-        return model_file
+        return model_file.rstrip()
 
 
     def _construct_keras(self, node: DagNode):
