@@ -11,14 +11,14 @@ from mock import patch, MagicMock
 @patch("python.dart_endpoint.write_back")
 class TestDartEndpoint:
     def request_and_response(
-            self, 
-            mock_response: MagicMock, 
-            mock_input: MagicMock, 
-            request: str, 
-            response: str = None, 
-            validation_scheme: BaseModel = None,
-            error=False
-        ):
+        self, 
+        mock_response: MagicMock, 
+        mock_input: MagicMock, 
+        request: str, 
+        response: str = None, 
+        validation_scheme: BaseModel = None,
+        error=False
+    ):
         mock_input.return_value = [request]
         main()
         if error:
