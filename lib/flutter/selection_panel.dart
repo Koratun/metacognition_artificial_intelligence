@@ -240,7 +240,7 @@ class _SelectionPanelState extends State<SelectionPanel>
           curve: DramaticEntrance(_millesecondsToWait / _entranceTime),
         );
 
-        final String? layerName = _categoryList == null
+        final String? name = _categoryList == null
             ? null
             : _categoryList![_selectedCategory] == null
                 ? null
@@ -253,9 +253,9 @@ class _SelectionPanelState extends State<SelectionPanel>
             _entranceAnimation,
             _entranceController,
             backgroundColor: categoryColors[_selectedCategory],
-            foregroundColor: layerTileAssetData[layerName]?['color'],
-            symbol: layerTileAssetData[layerName]?['symbol'],
-            layerName: layerName,
+            foregroundColor: layerTileAssetData[name]?['color'],
+            symbol: layerTileAssetData[name]?['symbol'],
+            name: name,
           ),
         );
       },

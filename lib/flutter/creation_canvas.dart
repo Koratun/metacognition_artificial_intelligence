@@ -37,24 +37,24 @@ class _CreationCanvasState extends State<CreationCanvas>
 
     LayerTile newTile = LayerTile.canvasChild(
       layerTile.i,
-      layerTile.title,
+      layerTile.category,
       _entranceAnimation,
       _entranceController,
       changeNotifyCallback: notifyListeners,
-      backgroundColor: categoryColors[layerTile.title],
-      foregroundColor: layerTileAssetData[layerTile.layerName]?['color'],
-      symbol: layerTileAssetData[layerTile.layerName]?['symbol'],
-      layerName: layerTile.layerName,
+      backgroundColor: categoryColors[layerTile.category],
+      foregroundColor: layerTileAssetData[layerTile.name]?['color'],
+      symbol: layerTileAssetData[layerTile.name]?['symbol'],
+      name: layerTile.name,
       messageHandler:
           ValueNotifier<RequestResponseSchema>(RequestResponseSchema()),
     );
     tiles.add(newTile);
     positions.add(pos);
-    if (newTile.layerName != null) {
+    if (newTile.name != null) {
       PyController.request(
         CommandType.create,
         (response) => newTile.messageHandler!.value = response,
-        data: CreateLayer(newTile.layerName!),
+        data: CreateLayer(newTile.name!),
       );
     }
   }
