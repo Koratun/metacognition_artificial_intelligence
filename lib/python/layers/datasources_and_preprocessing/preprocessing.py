@@ -36,7 +36,7 @@ class PreprocessingLayer(Layer):
 
 
 class InputOrOutputSetting(LayerSettings):
-    io: Literal[0, 1] # x or y
+    io: Literal[0, 1] = 0 # x or y
 
 
 class MapRangeSettings(InputOrOutputSetting):
