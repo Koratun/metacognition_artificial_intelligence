@@ -9,7 +9,7 @@ part of 'creation_response.dart';
 CreationResponse _$CreationResponseFromJson(Map<String, dynamic> json) =>
     CreationResponse(
       json['nodeId'] as String,
-      (json['layerSettings'] as List<dynamic>).map((e) => e as String).toList(),
+      Map<String, String>.from(json['layerSettings'] as Map),
       NodeConnectionLimits.fromJson(
           json['nodeConnectionLimits'] as Map<String, dynamic>),
     )..requestId = json['requestId'] as String;

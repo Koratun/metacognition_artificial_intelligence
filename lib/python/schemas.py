@@ -164,7 +164,7 @@ class NodeConnectionLimits(CamelModel):
 
 class CreationResponse(RequestResponseModel):
     node_id: UUID
-    layer_settings: list[str]
+    layer_settings: dict[str, str]
     node_connection_limits: NodeConnectionLimits
 
 
