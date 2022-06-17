@@ -10,7 +10,7 @@ class Output(Layer):
     min_downstream_nodes = 0
     max_downstream_nodes = inf
 
-    def check_number_downstream_nodes(self, _: int) -> bool:
+    def valid_number_downstream_nodes(self, _: int) -> bool:
         # This will always be true because n is a positive number and
         # the limits being checked are positive numbers 0 <= n <= inf is always True
         return True 
@@ -46,21 +46,12 @@ class Output(Layer):
         return input_nodes
 
 
-    def generate_code_line(self, node_being_built: DagNode) -> str:
-        if len(node_being_built.upstream_nodes) < 1:
-            raise CompileException({
-                'node_id': str(node_being_built.id),
-                'reason': CompileErrorReason.UPSTREAM_NODE_COUNT.camel(),
-                'errors': 'Output layer must have at least one upstream node'
-            })
-        
+    def generate_code_line(self, node_being_built: DagNode) -> str:        
         line = self.name + ' = keras.Model'+ '(' + self._get_inputs(node_being_built) + ', '
         if len(node_being_built.upstream_nodes) > 1:
             line += "[" + ', '.join(n.layer.name for n in node_being_built.upstream_nodes) + "]" 
         else:
             line += node_being_built.upstream_nodes[0].layer.name
         line += ')\n'
-        # TODO: This will need to be reworked after losses, optimizations, and metrics are implemented.
-        line += self.name + '.compile(' + self.construct_settings() + ')'
         self.constructed = True
         return line

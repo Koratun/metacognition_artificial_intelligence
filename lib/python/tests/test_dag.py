@@ -82,3 +82,8 @@ def test_add_remove_nodes(
     dag.remove_node(output_node.id)
 
     assert dag.nodes == []
+
+
+def test_compile(simple_dag: DirectedAcyclicGraph):
+    print(simple_dag.construct_keras())
+    # assert False
