@@ -211,15 +211,6 @@ class Compile(Layer):
 class CompileArgLayer(Layer):
     min_upstream_nodes = 0
     max_upstream_nodes = 0
-
-
-class Metric(CompileArgLayer):
-    keras_module_location = 'metrics'
-
-
-class Loss(Metric):
-    keras_module_location = 'losses'
-
     def generate_code_line(self, node_being_built: 'DagNode') -> str:
         if not self.check_number_downstream_nodes(len(node_being_built.downstream_nodes)):
             raise CompileException({
@@ -244,6 +235,15 @@ class Loss(Metric):
         
         line = f"{self.keras_module_location}.{self.__class__.__name__}({self.construct_settings()})"
         return line
+
+class Metric(CompileArgLayer):
+    keras_module_location = 'metrics'
+
+
+class Loss(Metric):
+    keras_module_location = 'losses'
+
+   
 
 
 class Optimizer(CompileArgLayer):
