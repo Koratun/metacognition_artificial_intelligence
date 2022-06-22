@@ -1,10 +1,16 @@
-from python.directed_acyclic_graph import Metric, NamedLayerSettings
+from typing import Optional
+from python.directed_acyclic_graph import LayerSettings, Metric, NamedLayerSettings
+from python.layers.layers import Dtype
 
-class MetricSettings(NamedLayerSettings):
-    pass
+class AccuracySettings(LayerSettings):
+    dtype: Optional[Dtype] = None
+class PoissonSettings(LayerSettings):
+    dtype: Optional[Dtype] = None
+class LogCoshErrorSetings(LayerSettings):
+    dtype: Optional[Dtype] = None
 class Accuracy(Metric):
-    pass
+    settings_validator = AccuracySettings
 class Poisson(Metric):
-    pass
+    settings_validator = PoissonSettings
 class LogCoshError(Metric):
-    pass
+    settings_validator = LogCoshErrorSetings
