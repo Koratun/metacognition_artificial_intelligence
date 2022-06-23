@@ -59,4 +59,5 @@ logs/
 **/mai_python_internals.egg-info/
 
 NvidiaCUDA.exe
+MAI.py
 
