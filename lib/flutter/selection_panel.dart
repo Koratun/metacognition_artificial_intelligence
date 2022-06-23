@@ -148,7 +148,7 @@ class _SelectionPanelState extends State<SelectionPanel>
   @override
   Widget build(BuildContext context) {
     final toolbar = Container(
-      color: const Color.fromARGB(255, 14, 14, 14),
+      color: Theme.of(context).backgroundColor,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -264,19 +264,19 @@ class _SelectionPanelState extends State<SelectionPanel>
     return LimitedBox(
       maxHeight: MediaQuery.of(context).size.height,
       maxWidth: Main.getSidePanelWidth(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        textDirection: TextDirection.ltr,
-        children: [
-          toolbar,
-          categories,
-          Expanded(
-            child: Container(
-              color: Theme.of(context).backgroundColor,
+      child: Container(
+        color: Theme.of(context).backgroundColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          textDirection: TextDirection.ltr,
+          children: [
+            toolbar,
+            categories,
+            Expanded(
               child: layerTiles,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
