@@ -85,5 +85,5 @@ def test_add_remove_nodes(
 
 
 def test_compile(simple_dag: DirectedAcyclicGraph):
-    print(simple_dag.construct_keras())
-    # assert False
+    with open("MAI.py", 'w') as f:
+        f.write(simple_dag.construct_keras())
