@@ -75,7 +75,7 @@ class _CreationCanvasState extends State<CreationCanvas>
                 )
             ],
           ),
-          color: Colors.black,
+          color: Theme.of(context).canvasColor,
         );
       },
       onAcceptWithDetails: (DragTargetDetails details) =>
