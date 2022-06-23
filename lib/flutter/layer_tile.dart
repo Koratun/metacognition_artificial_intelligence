@@ -60,7 +60,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
     end: 8.0,
   ).animate(hoverController);
 
-  late final List<String>? layerSettings;
+  Map<String, String>? layerSettings;
   late final NodeConnectionLimits? nodeConnectionLimits;
   late final String? nodeId;
 
@@ -187,9 +187,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
   Widget placeholderTile({bool hovering = false}) {
     final Widget tile = Container(
       decoration: BoxDecoration(
-        color: widget.i ~/ 3 < 4
-            ? Colors.grey[100 * (widget.i ~/ 3 + 1)]
-            : Colors.grey[100 * (widget.i ~/ 3 + 2)],
+        color: Theme.of(context).primaryColor,
         border: Border.all(color: Colors.lightBlueAccent[700]!),
         borderRadius: BorderRadius.circular(8.0),
       ),

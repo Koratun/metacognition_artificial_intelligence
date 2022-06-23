@@ -1,6 +1,7 @@
 from python.directed_acyclic_graph import Layer
 from typing import Type
 from pathlib import Path
+from python.layers.datasources_and_preprocessing.datasources import keras_datasources
 # When a new layer is created, add it to the list!
 from python.layers import (
     input,
@@ -9,6 +10,9 @@ from python.layers import (
 )
 from python.layers.compilation import (
     compile,
+)
+from python.layers.datasources_and_preprocessing import (
+    preprocessing
 )
 
 
@@ -32,16 +36,16 @@ for glob_mod_name, glob_mod in reversed(dict(globals()).items()):
         # This is a module!
         # Iterate through the module to find an attribute of type Layer
         for attr_name, attr in reversed(glob_mod.__dict__.items()):
-            if not isinstance(attr, type(input)):
-                if issubclass(attr, Layer):
+            if isinstance(attr, type):
+                if issubclass(attr, Layer) and attr.type != Layer.type:
                     layer_classes[attr_name] = attr
                     if package_list := layer_packages.get(mod_parent):
                         package_list.insert(0, attr_name)
                     else:
                         layer_packages[mod_parent] = [attr_name]
-                    break
-            else:
-                break
 
     if breakflag:
         break
+
+layer_classes.update({c.label: c for c in keras_datasources})
+layer_packages['datasources_and_preprocessing'] += [c.label for c in keras_datasources]
