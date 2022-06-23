@@ -24,6 +24,19 @@ class Main extends StatefulWidget {
   State<Main> createState() => _MainState();
 }
 
+const MaterialColor mainColors = MaterialColor(0xFF007EA7, <int, Color>{
+  50: Color(0xFFCCDBDC),
+  100: Color.fromARGB(255, 153, 207, 211),
+  200: Color(0xFF9AD1D4),
+  300: Color.fromARGB(255, 137, 204, 209),
+  400: Color.fromARGB(255, 62, 185, 199),
+  500: Color(0xFF007EA7),
+  600: Color.fromARGB(255, 0, 102, 136),
+  700: Color.fromARGB(255, 0, 77, 102),
+  800: Color(0xFF003249),
+  900: Color.fromARGB(255, 0, 27, 39),
+});
+
 class _MainState extends State<Main>
     with TickerProviderStateMixin, ChangeNotifier {
   // This widget is the root of the application.
@@ -33,7 +46,8 @@ class _MainState extends State<Main>
       title: 'Metacognition Artificial Intelligence',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.black,
+        primaryColor: mainColors,
+        backgroundColor: mainColors[900],
         canvasColor: Colors.black,
         textTheme: Typography.blackRedmond,
       ),
