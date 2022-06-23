@@ -37,8 +37,6 @@ const MaterialColor mainColors = MaterialColor(0xFF007EA7, <int, Color>{
   900: Color.fromARGB(255, 0, 27, 39),
 });
 
-const Color test = Color.fromARGB(255, 62, 185, 199);
-
 class _MainState extends State<Main>
     with TickerProviderStateMixin, ChangeNotifier {
   // This widget is the root of the application.
@@ -49,8 +47,8 @@ class _MainState extends State<Main>
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         primaryColor: mainColors,
-        backgroundColor: mainColors[800],
-        canvasColor: mainColors[900],
+        backgroundColor: mainColors[900],
+        canvasColor: Colors.black,
         textTheme: Typography.blackRedmond,
       ),
       home: Scaffold(
