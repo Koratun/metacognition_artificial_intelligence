@@ -73,7 +73,7 @@ class KerasDatasource(Layer):
             # and patching how Keras normally reports progress so that we can feed the progress
             # back to the user through whatever format we desire.
             # TODO: Update this when we know how the AI will be returning data to Flutter
-            lines = f"\n# Loading in the {self.label} dataset" + """
+            lines = f"\nfrom keras.datasets import {self.datasource_name}\n\n# Loading in the {self.label} dataset" + """
 def convert_bytes(num):
     for x in ['bytes', 'KB', 'MB', 'GB']:
         if num < 1024.0:
