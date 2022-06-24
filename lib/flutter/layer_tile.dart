@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
-import 'schemas/node_connection_limits.dart';
 
+import 'schemas/node_connection_limits.dart';
 import 'schemas/creation_response.dart';
 import 'schemas/schema.dart';
+
+import 'node_socket.dart';
 
 class LayerTile extends StatefulWidget {
   final int i;
@@ -61,15 +65,33 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
   ).animate(hoverController);
 
   Map<String, String>? layerSettings;
-  late final NodeConnectionLimits? nodeConnectionLimits;
-  late final String? nodeId;
+  int? minUpstreamNodes;
+  //This is only a double so we can access the infinity property
+  double? maxUpstreamNodes;
+  int? minDownstreamNodes;
+  //This is only a double so we can access the infinity property
+  double? maxDownstreamNodes;
+  String? nodeId;
 
   void _handleMessages() {
     var data = widget.messageHandler!.value;
     if (data is CreationResponse) {
       setState(() {
         layerSettings = data.layerSettings;
-        nodeConnectionLimits = data.nodeConnectionLimits;
+        minUpstreamNodes = data.nodeConnectionLimits.minUpstream;
+        minDownstreamNodes = data.nodeConnectionLimits.minDownstream;
+        var n = double.tryParse(data.nodeConnectionLimits.maxUpstream);
+        if (n == null) {
+          maxUpstreamNodes = double.infinity;
+        } else {
+          maxUpstreamNodes = n;
+        }
+        n = double.tryParse(data.nodeConnectionLimits.maxDownstream);
+        if (n == null) {
+          maxDownstreamNodes = double.infinity;
+        } else {
+          maxDownstreamNodes = n;
+        }
         nodeId = data.nodeId;
       });
     }
@@ -172,14 +194,57 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
       child: CustomPaint(
         painter: layerTilePainter,
         child: SizedBox(
-          width: layerTilePainter.octogonBoundary.getBounds().width,
-          height: layerTilePainter.octogonBoundary.getBounds().height,
+          width: layerTilePainter.iconSize.width,
+          height: layerTilePainter.iconSize.height,
         ),
       ),
     );
 
     if (hovering) {
       return Opacity(opacity: 0.45, child: layerIcon);
+    } else if (!isGridChild) {
+      List<Positioned> sockets = [];
+      if (nodeId != null) {
+        if (maxUpstreamNodes! > 0) {
+          sockets.add(Positioned(
+            left: 0,
+            top: layerTilePainter.iconSize.height / 2 - 10 + 8,
+            child: NodeSocket(
+              true,
+              minUpstreamNodes!,
+              maxUpstreamNodes!,
+              0,
+              widget.backgroundColor!,
+            ),
+          ));
+          layerTilePainter.clipSocketPosition(SocketDirection.west);
+        }
+        if (maxDownstreamNodes! > 0) {
+          sockets.add(Positioned(
+            right: 0,
+            top: layerTilePainter.iconSize.height / 2 - 10 + 8,
+            child: NodeSocket(
+              false,
+              minUpstreamNodes!,
+              maxUpstreamNodes!,
+              0,
+              widget.backgroundColor!,
+            ),
+          ));
+          layerTilePainter.clipSocketPosition(SocketDirection.east);
+        }
+      }
+
+      return SizedBox(
+        width: layerTilePainter.iconSize.width + 16,
+        height: layerTilePainter.iconSize.height + 16,
+        child: Stack(
+          children: [
+            Positioned.fill(child: Center(child: layerIcon)),
+            for (var socket in sockets) socket,
+          ],
+        ),
+      );
     }
     return layerIcon;
   }
@@ -274,7 +339,9 @@ class LayerTilePainter extends CustomPainter {
   final Color foregroundColor;
   final String name;
   final ui.Image? symbol;
-  late final Path octogonBoundary;
+  late Path octogonBoundary;
+  late final Rect iconSize;
+  final List<SocketDirection> socketsToClip = [];
 
   LayerTilePainter(
     this.foregroundSize,
@@ -295,11 +362,31 @@ class LayerTilePainter extends CustomPainter {
         Offset(6 * 3 + foregroundSize, 0),
         const Offset(6, 0),
       ], true);
+    iconSize = Offset.zero & octogonBoundary.getBounds().size;
+  }
+
+  void clipSocketPosition(SocketDirection dir) {
+    socketsToClip.add(dir);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Rect widgetSize = octogonBoundary.getBounds();
+    for (var dir in socketsToClip) {
+      Path p = Path()
+        ..addRect(Rect.fromCenter(
+          center: Offset(size.width / 2 - 2, 0),
+          width: 20,
+          height: 20,
+        ));
+      p = p.transform(Matrix4.rotationZ(dir.radians).storage).transform(
+          Matrix4.translationValues(size.width / 2, size.height / 2, 0)
+              .storage);
+      octogonBoundary = Path.combine(
+        PathOperation.difference,
+        octogonBoundary,
+        p,
+      );
+    }
     canvas.clipPath(octogonBoundary);
 
     final backgroundPaint = Paint()
@@ -307,8 +394,8 @@ class LayerTilePainter extends CustomPainter {
           colors: [backgroundColor, Color.lerp(backgroundColor, null, 0.5)!],
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          stops: [18 / (24 + foregroundSize), 1.0]).createShader(widgetSize);
-    canvas.drawRect(widgetSize, backgroundPaint);
+          stops: [18 / (24 + foregroundSize), 1.0]).createShader(iconSize);
+    canvas.drawRect(iconSize, backgroundPaint);
 
     final highlightRect =
         Rect.fromLTWH(6, 6, 12 + foregroundSize, 6 + foregroundSize);
