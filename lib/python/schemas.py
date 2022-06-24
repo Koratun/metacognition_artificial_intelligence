@@ -156,9 +156,9 @@ class NodeConnectionLimits(CamelModel):
     # These must be strings because pydantic can convert int to str
     # But dart cannot store a Union type where pydantic can,
     # Dart will have to check if the value is an int or a str
-    min_upstream: str
+    min_upstream: int
     max_upstream: str
-    min_downstream: str
+    min_downstream: int
     max_downstream: str
 
 
