@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'main.dart';
+
 class NodeConnection extends StatefulWidget {
   final Offset start;
   final Offset end;
@@ -34,12 +36,32 @@ class _NodeConnectionState extends State<NodeConnection>
 class ConnectionPainter extends CustomPainter {
   final Offset start;
   final Offset end;
+  late final Path curve;
+  late final Rect bounds;
 
-  ConnectionPainter(this.start, this.end);
+  ConnectionPainter(this.start, this.end) {
+    curve = Path()
+      ..moveTo(start.dx, start.dy)
+      ..lineTo(end.dx, end.dy);
+    bounds = curve.getBounds();
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    // TODO: implement paint
+    canvas.drawPath(
+        curve,
+        Paint()
+          ..shader = LinearGradient(
+            colors: [mainColors[400]!, mainColors[200]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            tileMode: TileMode.mirror,
+          ).createShader(Rect.fromLTWH(
+            bounds.left,
+            bounds.top,
+            bounds.width / 10,
+            bounds.height / 10,
+          )));
   }
 
   @override
