@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
-import 'schemas/node_connection_limits.dart';
 import 'schemas/creation_response.dart';
 import 'schemas/schema.dart';
 
@@ -35,7 +32,7 @@ class LayerTile extends StatefulWidget {
         messageHandler = null,
         super(key: key);
 
-  const LayerTile.canvasChild(
+  LayerTile.canvasChild(
     this.i,
     this.category,
     this._entranceAnimation,
@@ -43,11 +40,12 @@ class LayerTile extends StatefulWidget {
     Key? key,
     this.changeNotifyCallback,
     this.name,
-    required this.messageHandler,
     this.backgroundColor,
     this.foregroundColor,
     this.symbol,
-  }) : super(key: key);
+  })  : messageHandler =
+            ValueNotifier<RequestResponseSchema>(RequestResponseSchema()),
+        super(key: key);
 
   @override
   State<LayerTile> createState() => LayerTileState();
@@ -210,10 +208,14 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
             left: 0,
             top: layerTilePainter.iconSize.height / 2 - 10 + 8,
             child: NodeSocket(
+              nodeId!,
+              Offset(
+                16,
+                layerTilePainter.iconSize.height / 2,
+              ),
               true,
               minUpstreamNodes!,
               maxUpstreamNodes!,
-              0,
               widget.backgroundColor!,
             ),
           ));
@@ -224,10 +226,14 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
             right: 0,
             top: layerTilePainter.iconSize.height / 2 - 10 + 8,
             child: NodeSocket(
+              nodeId!,
+              Offset(
+                layerTilePainter.iconSize.width,
+                layerTilePainter.iconSize.height / 2,
+              ),
               false,
               minUpstreamNodes!,
               maxUpstreamNodes!,
-              0,
               widget.backgroundColor!,
             ),
           ));

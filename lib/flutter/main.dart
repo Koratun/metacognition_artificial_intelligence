@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'selection_panel.dart';
 import 'creation_canvas.dart';
 
@@ -28,7 +30,7 @@ const MaterialColor mainColors = MaterialColor(0xFF007EA7, <int, Color>{
   50: Color(0xFFCCDBDC),
   100: Color.fromARGB(255, 153, 207, 211),
   200: Color(0xFF9AD1D4),
-  300: Color.fromARGB(255, 137, 204, 209),
+  300: Color.fromARGB(255, 122, 211, 221),
   400: Color.fromARGB(255, 62, 185, 199),
   500: Color(0xFF007EA7),
   600: Color.fromARGB(255, 0, 102, 136),
@@ -37,8 +39,7 @@ const MaterialColor mainColors = MaterialColor(0xFF007EA7, <int, Color>{
   900: Color.fromARGB(255, 0, 27, 39),
 });
 
-class _MainState extends State<Main>
-    with TickerProviderStateMixin, ChangeNotifier {
+class _MainState extends State<Main> with TickerProviderStateMixin {
   // This widget is the root of the application.
   @override
   Widget build(BuildContext context) {
@@ -53,66 +54,71 @@ class _MainState extends State<Main>
       ),
       home: Scaffold(
         body: Builder(
-          builder: (context) => Stack(
-            children: [
-              const Positioned.fill(
-                child: CreationCanvas(),
-              ),
-              Positioned.fill(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SelectionPanel(),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          SizedBox(
-                            width: 150,
-                            height: 40,
-                            child: Container(
-                              color: Colors.orange,
-                              child: Center(
-                                child: Text(
-                                  'Tools',
-                                  style: Theme.of(context).textTheme.headline6,
+          builder: (context) => ChangeNotifierProvider(
+            create: (context) => CreationCanvasState(this),
+            child: Stack(
+              children: [
+                const Positioned.fill(
+                  child: CreationCanvas(),
+                ),
+                Positioned.fill(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SelectionPanel(),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              height: 40,
+                              child: Container(
+                                color: Colors.orange,
+                                child: Center(
+                                  child: Text(
+                                    'Tools',
+                                    style:
+                                        Theme.of(context).textTheme.headline6,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: 800,
-                            height: 200,
-                            child: Container(
-                              color: Colors.green,
-                              child: Center(
-                                child: Text(
-                                  'Report',
-                                  style: Theme.of(context).textTheme.headline6,
+                            SizedBox(
+                              width: 800,
+                              height: 200,
+                              child: Container(
+                                color: Colors.green,
+                                child: Center(
+                                  child: Text(
+                                    'Report',
+                                    style:
+                                        Theme.of(context).textTheme.headline6,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: Main.getSidePanelWidth(context),
-                      height: 600,
-                      child: Container(
-                        color: Colors.yellow,
-                        child: Center(
-                          child: Text(
-                            'Dialogue',
-                            style: Theme.of(context).textTheme.headline6,
+                      SizedBox(
+                        width: Main.getSidePanelWidth(context),
+                        height: 600,
+                        child: Container(
+                          color: Colors.yellow,
+                          child: Center(
+                            child: Text(
+                              'Dialogue',
+                              style: Theme.of(context).textTheme.headline6,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
