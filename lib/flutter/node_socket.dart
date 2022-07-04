@@ -112,48 +112,71 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
   @override
   void didUpdateWidget(NodeSocket oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (currentNodes > 0) {
+      if (widget.centerPos != oldWidget.centerPos) {
+        if (!widget.incoming) {
+          Provider.of<CreationCanvasState>(context)
+              .updateStartConnection(widget.nodeId, widget.centerPos);
+        } else {
+          Provider.of<CreationCanvasState>(context)
+              .updateEndConnection(widget.nodeId, widget.centerPos);
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget thePaint = DragTarget<_NodeSocketState>(
-      onAccept: (incomingState) {
-        var canvasState =
-            Provider.of<CreationCanvasState>(context, listen: false);
-        if (widget.incoming) {
-          if (currentNodes == widget.maxNodes) {
-            canvasState.cancelConnection(incomingState.widget.nodeId);
-          } else {
-            PyController.request(
-              CommandType.connect,
-              (response) {
-                if (response is SuccessFailResponse) {
-                  if (response.error != null) {
-                    canvasState.cancelConnection(incomingState.widget.nodeId);
-                  } else {
-                    canvasState.connectNodes(
-                      incomingState.widget.nodeId,
-                      widget.nodeId,
-                      widget.centerPos,
-                    );
-                    currentNodes += 1;
-                    incomingState.currentNodes += 1;
-                  }
-                }
-              },
-              data: Connection(incomingState.widget.nodeId, widget.nodeId),
-            );
-          }
-        }
-      },
-      builder: (context, candidateData, rejectedData) => CustomPaint(
-        painter: SocketPainter(currentColor, facing),
-        child: const SizedBox(
-          width: 20,
-          height: 20,
-        ),
+    CreationCanvasState canvasStateListen =
+        Provider.of<CreationCanvasState>(context);
+
+    Widget thePaint = CustomPaint(
+      painter: SocketPainter(currentColor, facing),
+      child: const SizedBox(
+        width: 20,
+        height: 20,
       ),
     );
+
+    if (widget.incoming) {
+      thePaint = DragTarget<_NodeSocketState>(
+        onAccept: (incomingState) {
+          if (widget.incoming) {
+            if (currentNodes == widget.maxNodes) {
+              canvasStateListen.cancelConnection(incomingState.widget.nodeId);
+            } else {
+              PyController.request(
+                CommandType.connect,
+                (response) {
+                  if (response is SuccessFailResponse) {
+                    if (response.error != null) {
+                      canvasStateListen
+                          .cancelConnection(incomingState.widget.nodeId);
+                    } else {
+                      canvasStateListen.connectNodes(
+                        incomingState.widget.nodeId,
+                        widget.nodeId,
+                        widget.centerPos,
+                      );
+                      currentNodes += 1;
+                      incomingState.currentNodes += 1;
+                    }
+                  }
+                },
+                data: Connection(incomingState.widget.nodeId, widget.nodeId),
+              );
+            }
+          }
+        },
+        builder: (context, candidateData, rejectedData) => CustomPaint(
+          painter: SocketPainter(currentColor, facing),
+          child: const SizedBox(
+            width: 20,
+            height: 20,
+          ),
+        ),
+      );
+    }
 
     if ((!widget.incoming && currentNodes != widget.maxNodes) ||
         (widget.incoming && currentNodes > 0)) {
@@ -164,22 +187,20 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
           var canvasState =
               Provider.of<CreationCanvasState>(context, listen: false);
           if (!widget.incoming && currentNodes != widget.maxNodes) {
-            canvasState.startConnection(
+            canvasState.newConnection(
               widget.nodeId,
               widget.centerPos,
             );
           }
         },
         onDragUpdate: (details) {
-          Provider.of<CreationCanvasState>(context, listen: false)
-              .updateConnection(
-            startId: widget.nodeId,
-            endPos: details.globalPosition,
+          canvasStateListen.updateNewConnection(
+            widget.nodeId,
+            details.globalPosition,
           );
         },
         onDraggableCanceled: (_, __) {
-          Provider.of<CreationCanvasState>(context, listen: false)
-              .cancelConnection(widget.nodeId);
+          canvasStateListen.cancelConnection(widget.nodeId);
         },
         onDragCompleted: () {},
         child: thePaint,
