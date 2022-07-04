@@ -101,25 +101,21 @@ class ConnectionPainter extends CustomPainter {
       },
       bottomLeft: () {
         return Path()
-          ..moveTo(-3, 3)
-          ..lineTo(-distanceVector.dx - 3, distanceVector.dy + 3)
-          ..transform(
-              Matrix4.translationValues(distanceVector.dx + 6, 0, 0).storage);
+          ..moveTo(-distanceVector.dx + 3, 3)
+          ..lineTo(3, distanceVector.dy + 3);
       },
       topLeft: () {
         return Path()
-          ..moveTo(-3, -3)
-          ..lineTo(-distanceVector.dx - 3, -distanceVector.dy - 3)
+          ..moveTo(3, 3)
+          ..lineTo(-distanceVector.dx + 3, -distanceVector.dy + 3)
           ..transform(Matrix4.translationValues(
                   distanceVector.dx + 6, distanceVector.dy + 6, 0)
               .storage);
       },
       topRight: () {
         return Path()
-          ..moveTo(3, -3)
-          ..lineTo(distanceVector.dx + 3, -distanceVector.dy - 3)
-          ..transform(
-              Matrix4.translationValues(0, distanceVector.dy + 6, 0).storage);
+          ..moveTo(3, -distanceVector.dy + 3)
+          ..lineTo(distanceVector.dx + 3, 3);
       },
     );
     bounds = curve.getBounds().inflate(3);
@@ -127,21 +123,26 @@ class ConnectionPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    double gradiantAngle = 0;
+    double gradientAngle = 0;
+    Offset gradientMirrorStart;
     if (start.dy == end.dy) {
       if (start.dx <= end.dx) {
-        gradiantAngle = 0;
+        gradientAngle = 0;
+        gradientMirrorStart = Offset(glowTick * 18, 0);
       } else {
-        gradiantAngle = math.pi;
+        gradientAngle = math.pi;
+        gradientMirrorStart = Offset(-glowTick * 18, 0);
       }
     } else if (start.dx == end.dx) {
       if (start.dy < end.dy) {
-        gradiantAngle = math.pi / 2;
+        gradientAngle = math.pi / 2;
+        gradientMirrorStart = Offset(0, glowTick * 18);
       } else {
-        gradiantAngle = math.pi * 1.5;
+        gradientAngle = math.pi * 1.5;
+        gradientMirrorStart = Offset(0, -glowTick * 18);
       }
     } else {
-      gradiantAngle = quadrantSwitch(
+      gradientAngle = quadrantSwitch(
         bottomRight: () => math.acos((end.dx - start.dx) / distance),
         bottomLeft: () =>
             math.acos((end.dy - start.dy) / distance) + math.pi / 2,
@@ -149,6 +150,24 @@ class ConnectionPainter extends CustomPainter {
             1.5 * math.pi - math.acos((start.dy - end.dy) / distance),
         topRight: () =>
             1.5 * math.pi + math.acos((start.dy - end.dy) / distance),
+      );
+      gradientMirrorStart = quadrantSwitch(
+        bottomRight: () => Offset(
+          math.cos(gradientAngle) * glowTick * 18,
+          math.sin(gradientAngle) * glowTick * 18,
+        ),
+        bottomLeft: () => Offset(
+          -math.sin(gradientAngle - math.pi / 2) * glowTick * 18,
+          math.cos(gradientAngle - math.pi / 2) * glowTick * 18,
+        ),
+        topLeft: () => Offset(
+          -math.cos(gradientAngle - math.pi) * glowTick * 18,
+          -math.sin(gradientAngle - math.pi) * glowTick * 18,
+        ),
+        topRight: () => Offset(
+          math.sin(gradientAngle - math.pi * 1.5) * glowTick * 18,
+          -math.cos(gradientAngle - math.pi * 1.5) * glowTick * 18,
+        ),
       );
     }
     canvas.drawPath(
@@ -159,13 +178,8 @@ class ConnectionPainter extends CustomPainter {
         ..shader = LinearGradient(
           colors: [mainColors[500]!, mainColors[300]!],
           tileMode: TileMode.mirror,
-          transform: GradientRotation(gradiantAngle),
-        ).createShader(Rect.fromLTWH(
-          glowTick * 18,
-          6,
-          18,
-          6,
-        )),
+          transform: GradientRotation(gradientAngle),
+        ).createShader(gradientMirrorStart & const Size(18, 6)),
     );
   }
 
