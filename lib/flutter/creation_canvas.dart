@@ -102,21 +102,27 @@ class CreationCanvasState extends ChangeNotifier {
     }
   }
 
-  void startConnection(String nodeId, Offset pos) {
-    conns[nodeId + ":"] = NodeConnection(pos);
+  void newConnection(String nodeId, Offset pos) {
+    conns[nodeId + ":"] = NodeConnection(pos + positions[nodeId]!);
   }
 
-  void updateConnection({
-    required String startId,
-    String endId = "",
-    required Offset endPos,
-    Offset? startPos,
-  }) {
-    conns[startId + ":" + endId]?.end = endPos;
-    if (startPos != null && endId != "") {
-      conns[startId + ":" + endId]?.start = startPos;
-    }
+  void updateNewConnection(String startId, Offset endPos) {
+    conns[startId + ":"]?.end = endPos;
     notifyListeners();
+  }
+
+  void updateStartConnection(String startId, Offset startPos) {
+    for (var pair
+        in conns.entries.where((e) => e.key.split(':').first == startId)) {
+      pair.value.start = startPos + positions[startId]!;
+    }
+  }
+
+  void updateEndConnection(String endId, Offset endPos) {
+    for (var pair
+        in conns.entries.where((e) => e.key.split(':').last == endId)) {
+      pair.value.end = endPos + positions[endId]!;
+    }
   }
 
   void cancelConnection(String id) {
@@ -125,7 +131,8 @@ class CreationCanvasState extends ChangeNotifier {
   }
 
   void connectNodes(String startId, String endId, Offset endPos) {
-    conns[startId + ":" + endId] = conns.remove(startId + ":")!..end = endPos;
+    conns[startId + ":" + endId] = conns.remove(startId + ":")!
+      ..end = endPos + positions[endId]!;
     notifyListeners();
   }
 }
