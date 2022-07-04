@@ -210,8 +210,8 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
             child: NodeSocket(
               nodeId!,
               Offset(
-                16,
-                layerTilePainter.iconSize.height / 2,
+                -layerTilePainter.iconSize.width / 2,
+                0,
               ),
               true,
               minUpstreamNodes!,
@@ -228,8 +228,8 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
             child: NodeSocket(
               nodeId!,
               Offset(
-                layerTilePainter.iconSize.width,
-                layerTilePainter.iconSize.height / 2,
+                layerTilePainter.iconSize.width / 2,
+                0,
               ),
               false,
               minUpstreamNodes!,
