@@ -7,6 +7,7 @@ import 'creation_canvas.dart';
 import 'schemas/command_type_enum.dart';
 import 'schemas/connection.dart';
 import 'schemas/success_fail_response.dart';
+import 'schemas/graph_exception_response.dart';
 
 class NodeSocket extends StatefulWidget {
   final String nodeId;
@@ -160,6 +161,9 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
                       currentNodes += 1;
                       incomingState.currentNodes += 1;
                     }
+                  } else if (response is GraphExceptionResponse) {
+                    canvasStateListen
+                        .cancelConnection(incomingState.widget.nodeId);
                   }
                 },
                 data: Connection(incomingState.widget.nodeId, widget.nodeId),
