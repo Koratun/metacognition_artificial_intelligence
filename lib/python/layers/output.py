@@ -7,7 +7,6 @@ class Output(Layer):
     type = 'model'
     keras_module_location = 'keras'
     max_upstream_nodes = inf
-    min_downstream_nodes = 0
     max_downstream_nodes = inf
 
     def valid_number_downstream_nodes(self, _: int) -> bool:

@@ -7,9 +7,9 @@ part 'node_connection_limits.g.dart';
 class NodeConnectionLimits extends Schema {
 	NodeConnectionLimits(this.minUpstream, this.maxUpstream, this.minDownstream, this.maxDownstream, );
 
-	String minUpstream;
+	int minUpstream;
 	String maxUpstream;
-	String minDownstream;
+	int minDownstream;
 	String maxDownstream;
 
 	factory NodeConnectionLimits.fromJson(Map<String, dynamic> json) => _$NodeConnectionLimitsFromJson(json);
