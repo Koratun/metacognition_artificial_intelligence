@@ -36,6 +36,7 @@ class _NodeConnectionState extends State<NodeConnection>
     with TickerProviderStateMixin {
   late final AnimationController glow = AnimationController(
     vsync: this,
+    upperBound: 2,
     duration: const Duration(milliseconds: 1000),
   );
 
@@ -48,13 +49,12 @@ class _NodeConnectionState extends State<NodeConnection>
 
   @override
   void dispose() {
-    super.dispose();
     glow.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Alignment startCorner = Alignment.topLeft;
     return CustomPaint(
       painter: ConnectionPainter(widget.start, widget.end, glow.value),
       size: Size(
@@ -152,21 +152,23 @@ class ConnectionPainter extends CustomPainter {
       );
     }
     canvas.drawPath(
-        curve,
-        Paint()
-          ..strokeWidth = 6
-          ..shader = LinearGradient(
-            colors: [mainColors[400]!, mainColors[200]!],
-            tileMode: TileMode.mirror,
-            transform: GradientRotation(gradiantAngle),
-          ).createShader(Rect.fromLTWH(
-            bounds.left + glowTick * bounds.width / 10,
-            bounds.top + glowTick * bounds.height / 10,
-            bounds.width / 10,
-            bounds.height / 10,
-          )));
+      curve,
+      Paint()
+        ..strokeWidth = 6
+        ..style = PaintingStyle.stroke
+        ..shader = LinearGradient(
+          colors: [mainColors[500]!, mainColors[300]!],
+          tileMode: TileMode.mirror,
+          transform: GradientRotation(gradiantAngle),
+        ).createShader(Rect.fromLTWH(
+          glowTick * 18,
+          6,
+          18,
+          6,
+        )),
+    );
   }
 
   @override
-  bool shouldRepaint(covariant ConnectionPainter oldDelegate) => false;
+  bool shouldRepaint(covariant ConnectionPainter oldDelegate) => true;
 }
