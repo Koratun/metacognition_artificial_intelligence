@@ -42,7 +42,7 @@ class _StatusColors {
 class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
   late final AnimationController colorTransition = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1000),
+    duration: const Duration(milliseconds: 500),
   );
 
   late Color targetColor;
@@ -59,20 +59,19 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
       lastColor = currentColor;
 
       // Determine what color the socket should be
-      if (currentNodes == 0 && widget.minNodes > 0) {
+      if (v == 0 && widget.minNodes > 0) {
         targetColor = _StatusColors.noNodes;
-      } else if (currentNodes == widget.minNodes - 1) {
+      } else if (v == widget.minNodes - 1) {
         targetColor = _StatusColors.oneMoreNode;
-      } else if (currentNodes == widget.maxNodes) {
+      } else if (v == widget.maxNodes) {
         targetColor = _StatusColors.maxNodes;
-      } else if (currentNodes >= widget.minNodes &&
-          currentNodes < widget.maxNodes) {
+      } else if (v >= widget.minNodes && v < widget.maxNodes) {
         targetColor = widget.backgroundColor;
       } else {
         targetColor = Color.lerp(
           _StatusColors.noNodes,
           _StatusColors.oneMoreNode,
-          currentNodes / (widget.minNodes - 1),
+          v / (widget.minNodes - 1),
         )!;
       }
       colorTransition.forward(from: 0);
