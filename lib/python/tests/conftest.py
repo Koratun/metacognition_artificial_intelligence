@@ -3,10 +3,7 @@ from python.directed_acyclic_graph import DirectedAcyclicGraph
 from python.layers.dense import Dense
 from python.layers.input import Input
 from python.layers.output import Output
-from python.layers.datasources_and_preprocessing.preprocessing import (
-    MapRange,
-    OneHotEncode
-)
+from python.layers.datasources_and_preprocessing.preprocessing import MapRange, OneHotEncode
 from python.layers.datasources_and_preprocessing.datasources import keras_datasources
 
 
@@ -21,14 +18,14 @@ def dag() -> DirectedAcyclicGraph:
 @pytest.fixture
 def basic_dense():
     d = Dense()
-    d.update_settings(dict(units='16'))
+    d.update_settings(dict(units="16"))
     return d
 
 
 @pytest.fixture
 def basic_input():
     inp = Input()
-    inp.update_settings(dict(shape='(16,)'))
+    inp.update_settings(dict(shape="(16,)"))
     return inp
 
 
@@ -47,31 +44,34 @@ def mnist():
 @pytest.fixture
 def map_range_image():
     m = MapRange()
-    m.update_settings(dict(
-        io=0, 
-        old_range_min='0', 
-        old_range_max='255', 
-        new_range_min='-1', 
-        new_range_max='1'))
+    m.update_settings(
+        dict(
+            io=0,
+            old_range_min="0",
+            old_range_max="255",
+            new_range_min="-1",
+            new_range_max="1",
+        )
+    )
     return m
 
 
 @pytest.fixture
 def one_hot_mnist():
     h = OneHotEncode()
-    h.update_settings(dict(n_classes='10'))
+    h.update_settings(dict(n_classes="10"))
     return h
 
 
 @pytest.fixture
 def simple_dag(
-    dag: DirectedAcyclicGraph, 
-    basic_dense, 
-    basic_input, 
-    basic_output, 
+    dag: DirectedAcyclicGraph,
+    basic_dense,
+    basic_input,
+    basic_output,
     mnist,
     map_range_image,
-    one_hot_mnist
+    one_hot_mnist,
 ):
     data_node = dag.add_node(mnist)
     map_node = dag.add_node(map_range_image)

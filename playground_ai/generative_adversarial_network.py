@@ -14,44 +14,39 @@ def plot_losses(history):
 
     # Plot Disc and Gen losses
     plt.subplot(2, 1, 1)
-    plt.plot(history['d_real_loss'], label='Disc Real Loss',
-             color='blue', linestyle='-')
-    plt.plot(history['d_fake_loss'], label='Disc Fake Loss',
-             color='red', linestyle='--')
-    plt.plot(history['gen_loss'], label='Generator Loss',
-             color='green')
+    plt.plot(history["d_real_loss"], label="Disc Real Loss", color="blue", linestyle="-")
+    plt.plot(history["d_fake_loss"], label="Disc Fake Loss", color="red", linestyle="--")
+    plt.plot(history["gen_loss"], label="Generator Loss", color="green")
     plt.xlabel("Batches", fontsize=20)
     plt.ylabel("Loss", fontsize=20)
-    plt.xlim(0, len(history['d_real_loss']) - 1)
+    plt.xlim(0, len(history["d_real_loss"]) - 1)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
     plt.legend(fontsize=15)
 
     # Plot Disc accuracy
     plt.subplot(2, 1, 2)
-    plt.plot(history['d_real_acc'], label="Disc Real Accuracy",
-            color='blue', linestyle='-')
-    plt.plot(history['d_fake_acc'], label='Disc Fake Accuracy',
-             color='red', linestyle='--')
+    plt.plot(history["d_real_acc"], label="Disc Real Accuracy", color="blue", linestyle="-")
+    plt.plot(history["d_fake_acc"], label="Disc Fake Accuracy", color="red", linestyle="--")
     plt.xlabel("Batches", fontsize=20)
     plt.ylabel("Accuracy", fontsize=20)
-    plt.xlim(0, len(history['d_real_loss']) - 1)
+    plt.xlim(0, len(history["d_real_loss"]) - 1)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
     plt.legend(fontsize=15)
     plt.show()
 
     # Show predictions generated over training time
-    for x in range(len(history['prediction'])):
-        plt.subplot(1, len(history['prediction']), x+1)
+    for x in range(len(history["prediction"])):
+        plt.subplot(1, len(history["prediction"]), x + 1)
         plt.axis("off")
-        plt.imshow(history['prediction'][x][0, :, :, :])
+        plt.imshow(history["prediction"][x][0, :, :, :])
 
     plt.show()
 
 
 # define the discriminator
-def define_discriminator(image_input_shape=(32,32,3), n_classes=10):
+def define_discriminator(image_input_shape=(32, 32, 3), n_classes=10):
     # label input
     label_input = layers.Input(shape=(1,))
 
@@ -84,7 +79,7 @@ def define_discriminator(image_input_shape=(32,32,3), n_classes=10):
     disc = layers.Conv2D(128, (3, 3))(disc)
     disc = layers.LeakyReLU()(disc)
     disc = layers.BatchNormalization()(disc)
-    disc = layers.Dropout(.3)(disc)
+    disc = layers.Dropout(0.3)(disc)
 
     # Input through a convolutional layer, activate it with a non-linear function (the leaky ReLU)
     # disc = layers.Conv2D(172, (3, 3))(disc)
@@ -95,7 +90,7 @@ def define_discriminator(image_input_shape=(32,32,3), n_classes=10):
     # Transpose tensor from (batch, rows, cols, channels) to (batch, channels, rows, cols)
     disc = tf.transpose(disc, (0, 3, 1, 2))
     # Add fifth dimension for convLSTM layer
-    disc = tf.expand_dims(disc, axis=-1) 
+    disc = tf.expand_dims(disc, axis=-1)
 
     # Identify any possible sequences of features in the data by processing all the features using recurrent
     # techniques both forwards and backwards.
@@ -103,9 +98,9 @@ def define_discriminator(image_input_shape=(32,32,3), n_classes=10):
     # disc = layers.Dropout(.4)(disc)
 
     # Disc will be (batch, features (time), rows, cols, channels (1)
-    disc = layers.ConvLSTM2D(32, (3,3))(disc)
+    disc = layers.ConvLSTM2D(32, (3, 3))(disc)
     # Output is (batch, filters, new_rows, new_cols)
-    disc = layers.Dropout(.4)(disc)
+    disc = layers.Dropout(0.4)(disc)
 
     # Flatten for final feed through dense layers
     disc = Flatten()(disc)
@@ -118,21 +113,26 @@ def define_discriminator(image_input_shape=(32,32,3), n_classes=10):
     disc = layers.Dense(512)(disc)
     disc = layers.LeakyReLU()(disc)
     disc = layers.BatchNormalization()(disc)
-    disc = layers.Dropout(.4)(disc)
+    disc = layers.Dropout(0.4)(disc)
 
     disc = layers.Dense(128)(disc)
     disc = layers.LeakyReLU()(disc)
     disc = layers.BatchNormalization()(disc)
-    disc = layers.Dropout(.3)(disc)
-    
+    disc = layers.Dropout(0.3)(disc)
+
     # output
-    out_layer = layers.Dense(1, activation='sigmoid')(disc)
+    out_layer = layers.Dense(1, activation="sigmoid")(disc)
     # define model
     model = keras.Model([in_image, label_input], out_layer)
     # compile model
-    model.compile(loss='binary_crossentropy', optimizer=optimizers.adamax_v2.Adamax(learning_rate=0.0003, beta_1=0.7), metrics=['accuracy'])
+    model.compile(
+        loss="binary_crossentropy",
+        optimizer=optimizers.adamax_v2.Adamax(learning_rate=0.0003, beta_1=0.7),
+        metrics=["accuracy"],
+    )
     return model
- 
+
+
 # define the generator
 def define_generator(random_size, n_classes=10):
     # label input
@@ -161,19 +161,20 @@ def define_generator(random_size, n_classes=10):
     merge = layers.Concatenate()([gen, li])
 
     # upsample to 16x16
-    gen = layers.Conv2DTranspose(128, (4,4), strides=(2,2), padding='same')(merge)
+    gen = layers.Conv2DTranspose(128, (4, 4), strides=(2, 2), padding="same")(merge)
     gen = layers.LeakyReLU(alpha=0.2)(gen)
 
     # upsample to 32x32
-    gen = layers.Conv2DTranspose(172, (4,4), strides=(2,2), padding='same')(gen)
+    gen = layers.Conv2DTranspose(172, (4, 4), strides=(2, 2), padding="same")(gen)
     gen = layers.LeakyReLU(alpha=0.2)(gen)
 
     # output
-    out_layer = layers.Conv2D(3, (8,8), activation='tanh', padding='same')(gen)
+    out_layer = layers.Conv2D(3, (8, 8), activation="tanh", padding="same")(gen)
 
     model = keras.Model([random_input, label_input], out_layer)
     return model
- 
+
+
 # define the combined generator and discriminator model, for updating the generator
 def define_gan(generator, discriminator):
     # make weights in the discriminator not trainable
@@ -193,24 +194,26 @@ def define_gan(generator, discriminator):
 
     # compile model
     opt = optimizers.adamax_v2.Adamax(learning_rate=0.0003, beta_1=0.7)
-    model.compile(loss='binary_crossentropy', optimizer=opt)
+    model.compile(loss="binary_crossentropy", optimizer=opt)
 
     # reset trainability for discriminator only (gan ignores this since it has been compiled already)
     discriminator.trainable = True
     return model
- 
+
+
 # load cifar10 and scale the image data for the AI
 def load_data():
     # load dataset
     (trainX, trainy), (_, _) = cifar10.load_data()
 
     # convert from ints to floats
-    X = trainX.astype('float32')
+    X = trainX.astype("float32")
 
     # scale from [0,255] to [-1,1]
     X = (X - 127.5) / 127.5
     return [X, trainy]
- 
+
+
 # select real samples
 def generate_real_samples(dataset, n_samples):
     # split into images and labels
@@ -226,7 +229,8 @@ def generate_real_samples(dataset, n_samples):
     y = np.ones((n_samples, 1))
 
     return [X, labels], y
- 
+
+
 # generate noise as input for the generator
 def generate_noise(random_size, n_samples, n_classes=10):
     # generate points in the latent space
@@ -239,7 +243,8 @@ def generate_noise(random_size, n_samples, n_classes=10):
     labels = np.random.randint(0, n_classes, n_samples)
 
     return [z_input, labels]
- 
+
+
 # use the generator to generate n fake examples, with class labels
 def generate_fake_samples(generator, random_size, n_samples):
     # generate points in latent space
@@ -259,12 +264,12 @@ def train_hours(generator, discriminator, gan, dataset, random_size, batch_size,
     half_batch = int(batch_size / 2)
     start = tf.timestamp()
     runtime_secs = runtime_hours * 60 * 60
-    
+
     # Execute training while time is left
     # Enumerate epochs
     i = 0
     # timer for generating examples across training
-    generate_time = tf.timestamp() + float(runtime_secs)/10
+    generate_time = tf.timestamp() + float(runtime_secs) / 10
     while runtime_secs > (tf.timestamp() - start):
         # Enumerate batches
         for j in range(bat_per_epo):
@@ -280,7 +285,7 @@ def train_hours(generator, discriminator, gan, dataset, random_size, batch_size,
 
             # update discriminator model weights
             d_loss_fake, d_acc_fake = discriminator.train_on_batch([X_fake, labels], y_fake)
-            
+
             # prepare noise as input for the generator
             [z_input, labels_input] = generate_noise(random_size, batch_size)
 
@@ -291,16 +296,16 @@ def train_hours(generator, discriminator, gan, dataset, random_size, batch_size,
             g_loss = gan.train_on_batch([z_input, labels_input], inverted_labels)
 
             # Keep a history of the losses to display after completion
-            history['d_real_loss'].append(d_loss_real)
-            history['d_fake_loss'].append(d_loss_fake)
-            history['d_real_acc'].append(d_acc_real)
-            history['d_fake_acc'].append(d_acc_fake)
-            history['gen_loss'].append(g_loss)
+            history["d_real_loss"].append(d_loss_real)
+            history["d_fake_loss"].append(d_loss_fake)
+            history["d_real_acc"].append(d_acc_real)
+            history["d_fake_acc"].append(d_acc_fake)
+            history["gen_loss"].append(g_loss)
 
             # Get time info
             sec_elapsed = int(tf.timestamp() - start)
             batch_sec = tf.timestamp() - batch_start
-            percent_done = float(sec_elapsed)/runtime_secs*100
+            percent_done = float(sec_elapsed) / runtime_secs * 100
             if percent_done == 0:
                 percent_done = 1e-5
             elif percent_done > 100:
@@ -310,33 +315,42 @@ def train_hours(generator, discriminator, gan, dataset, random_size, batch_size,
                 time_remaining = 0
 
             # summarize loss on this batch
-            print(f'>{i+1:3d}, {j+1:3d}/{bat_per_epo:d}, d_r={d_loss_real:.3f}, d_f={d_loss_fake:.3f}, g={g_loss:.3f} '
-                    f'[Elapsed: {(sec_elapsed // 60) // 60:02.0f}h {(sec_elapsed // 60) % 60:02.0f}m {sec_elapsed % 60:02.0f}s, '
-                    f'{batch_size*2/batch_sec:6.1f} examples/s, '
-                    f'ETC: {(time_remaining // 60) // 60:02.0f}h {(time_remaining // 60) % 60:02.0f}m {time_remaining % 60:02.0f}s, '
-                    f'{percent_done:.1f}% Done]')
+            print(
+                f">{i+1:3d}, {j+1:3d}/{bat_per_epo:d}, d_r={d_loss_real:.3f}, d_f={d_loss_fake:.3f}, g={g_loss:.3f} "
+                f"[Elapsed: {(sec_elapsed // 60) // 60:02.0f}h {(sec_elapsed // 60) % 60:02.0f}m {sec_elapsed % 60:02.0f}s, "
+                f"{batch_size*2/batch_sec:6.1f} examples/s, "
+                f"ETC: {(time_remaining // 60) // 60:02.0f}h {(time_remaining // 60) % 60:02.0f}m {time_remaining % 60:02.0f}s, "
+                f"{percent_done:.1f}% Done]"
+            )
 
         # increment epoch counter
         i += 1
 
         # Create an image with the current weights and scale it for display at the end.
         if generate_time < tf.timestamp():
-            generate_time = tf.timestamp() + float(runtime_secs)/10
+            generate_time = tf.timestamp() + float(runtime_secs) / 10
             noise, _ = generate_noise(random_size, 1)
-            history['prediction'].append((generator.predict([noise, np.asarray([0])])+1)/2)
-        
+            history["prediction"].append((generator.predict([noise, np.asarray([0])]) + 1) / 2)
+
     # Generate final example for end of this training.
     noise, _ = generate_noise(random_size, 1)
-    history['prediction'].append((generator.predict([noise, np.asarray([0])])+1)/2)
+    history["prediction"].append((generator.predict([noise, np.asarray([0])]) + 1) / 2)
     # save the GAN
     generator.save("playground_ai\\cifar_generator")
     discriminator.save("playground_ai\\cifar_disc")
     return history
 
- 
+
 # train the generator and discriminator
-def train(generator, discriminator, gan, dataset, random_size, n_epochs=100, batch_size=128, runtime_hours = 0):
-    history = {"d_real_loss": [], "d_real_acc": [], "d_fake_loss": [], "d_fake_acc": [], "gen_loss": [], "prediction": []}
+def train(generator, discriminator, gan, dataset, random_size, n_epochs=100, batch_size=128, runtime_hours=0):
+    history = {
+        "d_real_loss": [],
+        "d_real_acc": [],
+        "d_fake_loss": [],
+        "d_fake_acc": [],
+        "gen_loss": [],
+        "prediction": [],
+    }
     if runtime_hours > 0:
         return train_hours(generator, discriminator, gan, dataset, random_size, batch_size, runtime_hours, history)
     bat_per_epo = int(dataset[0].shape[0] / batch_size)
@@ -359,7 +373,7 @@ def train(generator, discriminator, gan, dataset, random_size, n_epochs=100, bat
 
             # update discriminator model weights
             d_loss_fake, d_acc_fake = discriminator.train_on_batch([X_fake, labels], y_fake)
-            
+
             # prepare noise as input for the generator
             [z_input, labels_input] = generate_noise(random_size, batch_size)
 
@@ -370,52 +384,58 @@ def train(generator, discriminator, gan, dataset, random_size, n_epochs=100, bat
             g_loss = gan.train_on_batch([z_input, labels_input], inverted_labels)
 
             # Keep a history of the losses to display after completion
-            history['d_real_loss'].append(d_loss_real)
-            history['d_fake_loss'].append(d_loss_fake)
-            history['d_real_acc'].append(d_acc_real)
-            history['d_fake_acc'].append(d_acc_fake)
-            history['gen_loss'].append(g_loss)
+            history["d_real_loss"].append(d_loss_real)
+            history["d_fake_loss"].append(d_loss_fake)
+            history["d_real_acc"].append(d_acc_real)
+            history["d_fake_acc"].append(d_acc_fake)
+            history["gen_loss"].append(g_loss)
 
             # Get time info
             sec_elapsed = int(tf.timestamp() - start)
             batch_sec = tf.timestamp() - batch_start
-            percent_done = float(i*bat_per_epo+j)/total_batches*100
+            percent_done = float(i * bat_per_epo + j) / total_batches * 100
             if percent_done == 0:
                 percent_done = 1e-5
             time_remaining = int(100 * sec_elapsed / percent_done) - sec_elapsed
             if time_remaining < 0:
                 time_remaining = 0
-            
+
             # summarize loss on this batch
-            print(f'>{i+1:3d}, {j+1:3d}/{bat_per_epo:d}, d_r={d_loss_real:.3f}, d_f={d_loss_fake:.3f}, g={g_loss:.3f} '
-                    f'[Elapsed: {(sec_elapsed // 60) // 60:02.0f}h {(sec_elapsed // 60) % 60:02.0f}m {sec_elapsed % 60:02.0f}s, '
-                    f'{batch_size*2/batch_sec:6.1f} examples/s, '
-                    f'ETC: {(time_remaining // 60) // 60:02.0f}h {(time_remaining // 60) % 60:02.0f}m {time_remaining % 60:02.0f}s, '
-                    f'{percent_done:.1f}% Done]')
+            print(
+                f">{i+1:3d}, {j+1:3d}/{bat_per_epo:d}, d_r={d_loss_real:.3f}, d_f={d_loss_fake:.3f}, g={g_loss:.3f} "
+                f"[Elapsed: {(sec_elapsed // 60) // 60:02.0f}h {(sec_elapsed // 60) % 60:02.0f}m {sec_elapsed % 60:02.0f}s, "
+                f"{batch_size*2/batch_sec:6.1f} examples/s, "
+                f"ETC: {(time_remaining // 60) // 60:02.0f}h {(time_remaining // 60) % 60:02.0f}m {time_remaining % 60:02.0f}s, "
+                f"{percent_done:.1f}% Done]"
+            )
 
         # Create an image with the current weights and scale it for display at the end.
         if n_epochs >= 10:
             if i % (n_epochs // 10) == 0:
                 noise, _ = generate_noise(random_size, 1)
-                history['prediction'].append((generator.predict([noise, np.asarray([0])])+1)/2)
+                history["prediction"].append((generator.predict([noise, np.asarray([0])]) + 1) / 2)
         else:
             noise, _ = generate_noise(random_size, 1)
-            history['prediction'].append((generator.predict([noise, np.asarray([0])])+1)/2)
-        
+            history["prediction"].append((generator.predict([noise, np.asarray([0])]) + 1) / 2)
+
     noise, _ = generate_noise(random_size, 1)
-    history['prediction'].append((generator.predict([noise, np.asarray([0])])+1)/2)
+    history["prediction"].append((generator.predict([noise, np.asarray([0])]) + 1) / 2)
     # save the GAN
     # gan.save("cifar_gan")
     generator.save("playground_ai\\cifar_generator")
     discriminator.save("playground_ai\\cifar_disc")
     return history
- 
+
 
 def load_gan():
     gan = keras.models.load_model("cifar_gan")
     generator = keras.Model(gan.input, gan.layers[-2].output)
     discriminator = gan.layers[-1]
-    discriminator.compile(loss='binary_crossentropy', optimizer=optimizers.Adam(lr=0.0003, beta_1=0.7), metrics=['accuracy'])
+    discriminator.compile(
+        loss="binary_crossentropy",
+        optimizer=optimizers.Adam(lr=0.0003, beta_1=0.7),
+        metrics=["accuracy"],
+    )
     return gan, generator, discriminator
 
 
@@ -439,12 +459,12 @@ def main():
     random_size = 100
 
     # create the discriminator
-    #discriminator = define_discriminator()
+    # discriminator = define_discriminator()
     # discriminator.summary()
     discriminator = keras.models.load_model("playground_ai\\cifar_disc")
 
     # create the generator
-    #generator = define_generator(random_size)
+    # generator = define_generator(random_size)
     # generator.summary()
     generator = keras.models.load_model("playground_ai\\cifar_generator")
 
@@ -460,11 +480,11 @@ def main():
     history = train(generator, discriminator, gan, dataset, random_size, n_epochs=1, batch_size=128, runtime_hours=0)
 
     # Save the GAN and its submodels (gen and disc)
-    #save_models(gan, generator, discriminator)
+    # save_models(gan, generator, discriminator)
 
     # Print history of algorithm
     plot_losses(history)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
