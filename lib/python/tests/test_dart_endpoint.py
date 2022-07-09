@@ -11,40 +11,41 @@ from mock import patch, MagicMock
 @patch("python.dart_endpoint.write_back")
 class TestDartEndpoint:
     def request_and_response(
-        self, 
-        mock_response: MagicMock, 
-        mock_input: MagicMock, 
-        request: str, 
-        response: str = None, 
+        self,
+        mock_response: MagicMock,
+        mock_input: MagicMock,
+        request: str,
+        response: str = None,
         validation_scheme: BaseModel = None,
-        error=False
+        error=False,
     ):
         mock_input.return_value = [request]
         main()
         if error:
-            assert mock_response.call_args.kwargs['error']
+            assert mock_response.call_args.kwargs["error"]
         elif validation_scheme:
             try:
-                validation_scheme.parse_raw(request[request.find('{'):])
+                validation_scheme.parse_raw(request[request.find("{") :])
                 assert False
             except ValidationError as e:
-                assert mock_response.call_args[0][0] == format_response(ResponseType.VALIDATION_ERROR, errors=e.errors())
+                assert mock_response.call_args[0][0] == format_response(
+                    ResponseType.VALIDATION_ERROR, errors=e.errors()
+                )
         elif response:
             assert mock_response.call_args[0][0] == response
         else:
             print("This test was constructed incorrectly.")
             assert False
 
-
     def build_request(self, c: CommandType, model: BaseModel) -> str:
         return c.camel() + model.json(by_alias=True)
-        
 
     def test_init_layer_tiles(self, mock_response: MagicMock, mock_input: MagicMock):
         mock_input.return_value = []
         main()
-        assert mock_response.call_args[0][0] == format_response(EventType.INITIALIZE_LAYERS, category_list=layer_packages)
-
+        assert mock_response.call_args[0][0] == format_response(
+            EventType.INITIALIZE_LAYERS, category_list=layer_packages
+        )
 
     def test_create_layer(self, mock_response: MagicMock, mock_input: MagicMock):
         # Test success state
@@ -67,8 +68,8 @@ class TestDartEndpoint:
                         max_upstream=layer.max_upstream_nodes,
                         min_downstream=layer.min_downstream_nodes,
                         max_downstream=layer.max_downstream_nodes,
-                    )
-                )
+                    ),
+                ),
             )
 
         # Test error states
@@ -76,20 +77,19 @@ class TestDartEndpoint:
             mock_response,
             mock_input,
             "create{baaaaaaad request}",
-            error=True
+            error=True,
         )
 
         self.request_and_response(
             mock_response,
             mock_input,
             'create{"wrongSchema": null}',
-            error=True
+            error=True,
         )
 
         self.request_and_response(
             mock_response,
             mock_input,
             f'create{{"requestId": "{request_id}", "layer": "BadLayer"}}',
-            error=True
+            error=True,
         )
-
