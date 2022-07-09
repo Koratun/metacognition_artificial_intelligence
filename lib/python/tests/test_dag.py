@@ -20,11 +20,11 @@ class AssertException:
 
 
 def test_add_remove_nodes(
-        dag: DirectedAcyclicGraph, 
-        basic_input: Input, 
-        basic_dense: Dense,
-        basic_output: Output
-    ):
+    dag: DirectedAcyclicGraph,
+    basic_input: Input,
+    basic_dense: Dense,
+    basic_output: Output,
+):
     input_node = dag.add_node(basic_input)
     dense_node = dag.add_node(basic_dense)
     output_node = dag.add_node(basic_output)
@@ -45,7 +45,7 @@ def test_add_remove_nodes(
 
     with AssertException(DagException, "Circular graphs not allowed"):
         dag.connect_nodes(dense_node.id, input_node.id)
-    
+
     with AssertException(DagException, "Destination node has too many incoming connections"):
         dag.connect_nodes(output_node.id, dense_node.id)
 
@@ -85,5 +85,5 @@ def test_add_remove_nodes(
 
 
 def test_compile(simple_dag: DirectedAcyclicGraph):
-    with open("MAI.py", 'w') as f:
+    with open("MAI.py", "w") as f:
         f.write(simple_dag.construct_keras())
