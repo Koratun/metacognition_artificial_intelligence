@@ -15,28 +15,31 @@ class PreprocessingLayer(Layer):
         which must be either a Preprocessing Layer or a Datasource.
         """
         if self.constructed:
-            raise CompileException({
-                'node_id': str(node.id), 
-                'reason': CompileErrorReason.COMPILATION_VALIDATION.camel(), 
-                'errors': "This preprocessing node has already been constructed, you cannot construct a model twice."
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node.id),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION,
+                    "errors": "This preprocessing node has already been constructed, you cannot construct a model twice.",
+                }
+            )
         upstream_layer = node.upstream_nodes[0].layer
         if isinstance(upstream_layer, PreprocessingLayer):
             self.datasource = upstream_layer.datasource
         elif isinstance(upstream_layer, KerasDatasource):
             self.datasource = upstream_layer
         else:
-            raise CompileException({
-                'node_id': str(node.id), 
-                'reason': CompileErrorReason.INPUT_MISSING.camel(), 
-                'errors': "This preprocessing layer requires either a datasource"
-                " or another preprocessing layer as its incoming connection."
-            })
-
+            raise CompileException(
+                {
+                    "node_id": str(node.id),
+                    "reason": CompileErrorReason.INPUT_MISSING,
+                    "errors": "This preprocessing layer requires either a datasource"
+                    " or another preprocessing layer as its incoming connection.",
+                }
+            )
 
 
 class InputOrOutputSetting(LayerSettings):
-    io: Literal[0, 1] = 0 # x or y
+    io: Literal[0, 1] = 0  # x or y
 
 
 class MapRangeSettings(InputOrOutputSetting):
@@ -47,9 +50,9 @@ class MapRangeSettings(InputOrOutputSetting):
 
     @validator("new_range_max")
     def range_not_zero(cls, v, values):
-        if v == values['new_range_min']:
+        if v == values["new_range_min"]:
             raise ValueError("Range must span distance greater than zero.")
-        if values['old_range_max'] == values['old_range_min']:
+        if values["old_range_max"] == values["old_range_min"]:
             raise ValueError("Range must span distance greater than zero.")
         return v
 
@@ -72,17 +75,19 @@ class MapRange(PreprocessingLayer):
             self.constructed = True
             return lines
         except ValidationError as e:
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.SETTINGS_VALIDATION.camel(), 
-                'errors': e.errors()
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
+                    "errors": e.errors(),
+                }
+            )
 
 
 class OneHotSettings(LayerSettings):
     n_classes: StrictInt
 
-    @validator('n_classes')
+    @validator("n_classes")
     def classification_prob(cls, v):
         if v > 2:
             return v
@@ -112,9 +117,10 @@ class OneHotEncode(PreprocessingLayer):
             self.constructed = True
             return lines
         except ValidationError as e:
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.SETTINGS_VALIDATION.camel(), 
-                'errors': e.errors()
-            })
-
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
+                    "errors": e.errors(),
+                }
+            )

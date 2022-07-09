@@ -34,7 +34,7 @@ class MetaSchema(BaseModel):
 class SchemaEnum(Enum):
     @classmethod
     @property
-    def model_rep(cls) -> dict['SchemaEnum', Type[BaseModel]]:
+    def model_rep(cls) -> dict["SchemaEnum", Type[BaseModel]]:
         raise NotImplementedError()
 
     def get_model(self) -> Type[BaseModel]:
@@ -49,23 +49,23 @@ class SchemaEnum(Enum):
 
 # NOTE: Commands will come from the frontend in camelCase
 class CommandType(SchemaEnum):
-    CREATE = 'create'
-    UPDATE = 'update'
-    DELETE = 'delete'
-    CONNECT = 'connect'
-    DISCONNECT = 'disconnect'
-    COMPILE = 'compile'
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+    CONNECT = "connect"
+    DISCONNECT = "disconnect"
+    COMPILE = "compile"
 
     @classmethod
     @property
-    def model_rep(cls) -> dict['SchemaEnum', Type[BaseModel]]:
+    def model_rep(cls) -> dict["SchemaEnum", Type[BaseModel]]:
         return command_model_rep
 
 
 class CreateLayer(RequestResponseModel):
     layer: str
 
-    @validator('layer', pre=True)
+    @validator("layer", pre=True)
     def is_valid_layer(cls, v):
         if layer_classes.get(v):
             return v
@@ -76,9 +76,9 @@ class UpdateLayer(CreateLayer):
     id: UUID
     settings: dict[str, str]
 
-    @validator('settings', pre=True)
+    @validator("settings", pre=True)
     def setting_fields_match(cls, v: dict, values: dict, **kwargs):
-        layer: Type[Layer] = layer_classes.get(values.get('layer'))
+        layer: Type[Layer] = layer_classes.get(values.get("layer"))
         if not layer:
             raise ValueError("Layer not provided")
         setting_schema = MetaSchema.parse_obj(layer.settings_validator.schema())
@@ -104,7 +104,7 @@ command_model_rep = {
     CommandType.DELETE: DeleteNode,
     CommandType.CONNECT: Connection,
     CommandType.DISCONNECT: Connection,
-    CommandType.COMPILE: RequestResponseModel,  
+    CommandType.COMPILE: RequestResponseModel,
 }
 
 
@@ -115,10 +115,10 @@ command_model_rep = {
 
 class EventType(SchemaEnum):
     INITIALIZE_LAYERS = "initialize_layers"
-    
+
     @classmethod
     @property
-    def model_rep(self) -> dict['EventType', Type[BaseModel]]:
+    def model_rep(self) -> dict["EventType", Type[BaseModel]]:
         return event_model_rep
 
 
@@ -148,7 +148,7 @@ class ResponseType(SchemaEnum):
 
     @classmethod
     @property
-    def model_rep(cls) -> dict['ResponseType', Type[BaseModel]]:
+    def model_rep(cls) -> dict["ResponseType", Type[BaseModel]]:
         return response_model_rep
 
 
