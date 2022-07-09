@@ -8,21 +8,20 @@ from pydantic import BaseModel, ValidationError, validator
 from pydantic.fields import ModelField
 
 
-# This class would normally go inside the schemas file, 
+# This class would normally go inside the schemas file,
 # but it is here to prevent circular import errors
 class CompileErrorReason(Enum):
     """
     The reason why a layer failed to construct.
     """
-    UPSTREAM_NODE_COUNT = 'upstream_node_count'
-    DOWNSTREAM_NODE_COUNT = 'downstream_node_count'
-    SETTINGS_VALIDATION = 'settings_validation'
-    COMPILATION_VALIDATION = 'compilation_validation'
-    INPUT_MISSING = 'input_missing'
-    DISJOINTED_GRAPH = 'disjointed_graph'
 
-    def camel(self) -> str:
-        return camelize(self.value)
+    # Values must be in camelCase to transfer to dart properly
+    UPSTREAM_NODE_COUNT = "upstreamNodeCount"
+    DOWNSTREAM_NODE_COUNT = "downstreamNodeCount"
+    SETTINGS_VALIDATION = "settingsValidation"
+    COMPILATION_VALIDATION = "compilationValidation"
+    INPUT_MISSING = "inputMissing"
+    DISJOINTED_GRAPH = "disjointedGraph"
 
 
 class CompileException(Exception):
@@ -32,18 +31,19 @@ class CompileException(Exception):
 
 
 class LayerSettings(BaseModel):
-    @validator('*', pre=True)
+    @validator("*", pre=True)
     def string_validator(cls, v, field: ModelField):
-        if v == '':
+        if v == "":
             return None
-        if (field.type_ is str 
+        if (
+            field.type_ is str
             or field.type_ is UUID
-            or getattr(field.outer_type_, '__origin__', None) is Literal
+            or getattr(field.outer_type_, "__origin__", None) is Literal
             or issubclass(field.outer_type_, Enum)
         ):
             return v
         try:
-            # The empty dictionary is to prevent security threats 
+            # The empty dictionary is to prevent security threats
             # in the form of injection attacks
             return eval(v, {})
         except Exception:
@@ -53,7 +53,7 @@ class LayerSettings(BaseModel):
 class NamedLayerSettings(LayerSettings):
     name: str
 
-    @validator('name')
+    @validator("name")
     def snakecase(cls, v):
         if re.search(r"^[^a-z]|[^a-z0-9_]", v):
             raise ValueError(f"Name must adhere to python variable naming conventions (snake_case).")
@@ -61,8 +61,8 @@ class NamedLayerSettings(LayerSettings):
 
 class Layer:
     settings_validator: Type[LayerSettings] = None
-    type = 'base_layer'
-    keras_module_location = 'layers'
+    type = "base_layer"
+    keras_module_location = "layers"
     min_upstream_nodes = 1
     max_upstream_nodes = 1
     min_downstream_nodes = 1
@@ -75,20 +75,20 @@ class Layer:
 
     @classmethod
     def get_settings_data_fields(cls) -> dict:
-        response: dict[str, dict] = cls.settings_validator.schema()['properties']
+        response: dict[str, dict] = cls.settings_validator.schema()["properties"]
         default_fields = {}
         for k, v in response.items():
-            if k == 'name':
+            if k == "name":
                 default_fields[k] = cls.type
-            elif 'default' in v:
-                default_fields[k] = str(v['default'])
+            elif "default" in v:
+                default_fields[k] = str(v["default"])
             else:
-                default_fields[k] = ''
+                default_fields[k] = ""
         return default_fields
 
     @property
     def name(self):
-        return self.settings_data['name']
+        return self.settings_data["name"]
 
     def update_settings(self, settings: dict[str, str]):
         """This method assumes that the settings match this layer's schema"""
@@ -105,32 +105,36 @@ class Layer:
         self.constructed = False
 
     def valid_number_upstream_nodes(self, n: int) -> bool:
-        return self.min_upstream_nodes <= n and n <= self.max_upstream_nodes 
+        return self.min_upstream_nodes <= n and n <= self.max_upstream_nodes
 
     def valid_number_downstream_nodes(self, n: int) -> bool:
-        return self.min_downstream_nodes <= n and n <= self.max_downstream_nodes 
+        return self.min_downstream_nodes <= n and n <= self.max_downstream_nodes
 
-    def validate_nodestreams(self, node_being_built: 'DagNode'):
+    def validate_nodestreams(self, node_being_built: "DagNode"):
         if not self.valid_number_downstream_nodes(len(node_being_built.downstream_nodes)):
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.DOWNSTREAM_NODE_COUNT.camel(), 
-                'errors': f'{self.__class__.__name__} downstream node count does not meet requirements: '
-                f'{self.min_downstream_nodes} <= {len(node_being_built.downstream_nodes)} <= {self.max_downstream_nodes}'
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.DOWNSTREAM_NODE_COUNT,
+                    "errors": f"{self.__class__.__name__} downstream node count does not meet requirements: "
+                    f"{self.min_downstream_nodes} <= {len(node_being_built.downstream_nodes)} <= {self.max_downstream_nodes}",
+                }
+            )
         if not self.valid_number_upstream_nodes(len(node_being_built.upstream_nodes)):
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.UPSTREAM_NODE_COUNT.camel(), 
-                'errors': f'{self.__class__.__name__} upstream node count does not meet requirements: '
-                f'{self.min_upstream_nodes} <= {len(node_being_built.upstream_nodes)} <= {self.max_upstream_nodes}'
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.UPSTREAM_NODE_COUNT,
+                    "errors": f"{self.__class__.__name__} upstream node count does not meet requirements: "
+                    f"{self.min_upstream_nodes} <= {len(node_being_built.upstream_nodes)} <= {self.max_upstream_nodes}",
+                }
+            )
 
     def construct_settings(self):
-        set_settings: dict = self.settings_validator(**self.settings_data).dict(exclude_defaults=True, exclude={'name'})
-        return ', '.join(f'{k}={v}' for k, v in set_settings.items())
+        set_settings: dict = self.settings_validator(**self.settings_data).dict(exclude_defaults=True, exclude={"name"})
+        return ", ".join(f"{k}={v}" for k, v in set_settings.items())
 
-    def generate_code_line(self, node_being_built: 'DagNode') -> str:
+    def generate_code_line(self, node_being_built: "DagNode") -> str:
         """
         Generate the code line for this layer.
         It must validate the syntax first before continuing.
@@ -138,21 +142,28 @@ class Layer:
         """
         try:
             if self.constructed:
-                line = self.name + ' = ' + self.name
+                line = self.name + " = " + self.name
             else:
-                line = self.name + f' = {self.keras_module_location}.{self.__class__.__name__}(' + self.construct_settings() + ')'
+                line = (
+                    self.name
+                    + f" = {self.keras_module_location}.{self.__class__.__name__}("
+                    + self.construct_settings()
+                    + ")"
+                )
                 self.constructed = True
-            line += '(' + node_being_built.upstream_nodes[0].layer.name + ')'
+            line += "(" + node_being_built.upstream_nodes[0].layer.name + ")"
             return line
         except ValidationError as e:
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.SETTINGS_VALIDATION.camel(), 
-                'errors': e.errors()
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
+                    "errors": e.errors(),
+                }
+            )
 
 
-# These classes would normally go inside the compilation folder, 
+# These classes would normally go inside the compilation folder,
 # but they are here to prevent circular import errors.
 class CompileArgLayer(Layer):
     min_upstream_nodes = 0
@@ -160,15 +171,15 @@ class CompileArgLayer(Layer):
 
 
 class Metric(CompileArgLayer):
-    keras_module_location = 'metrics'
+    keras_module_location = "metrics"
 
 
 class Loss(Metric):
-    keras_module_location = 'losses'
+    keras_module_location = "losses"
 
 
 class Optimizer(CompileArgLayer):
-    keras_module_location = 'optimizers'
+    keras_module_location = "optimizers"
 
 
 class DagException(Exception):
@@ -188,11 +199,11 @@ class DagNode:
         self.layer.validate_nodestreams(self)
         return self.layer.generate_code_line(self)
 
-    def connect_to(self, node: 'DagNode'):
+    def connect_to(self, node: "DagNode"):
         self.add_downstream_node(node)
         node.add_upstream_node(self)
 
-    def disconnect_from(self, node: 'DagNode'):
+    def disconnect_from(self, node: "DagNode"):
         self.remove_downstream_node(node)
         node.remove_upstream_node(self)
 
@@ -202,16 +213,16 @@ class DagNode:
     def check_downstream_node_connection_limits(self):
         return len(self.downstream_nodes) <= self.layer.max_downstream_nodes
 
-    def add_upstream_node(self, node: 'DagNode'):
+    def add_upstream_node(self, node: "DagNode"):
         self.upstream_nodes.append(node)
 
-    def add_downstream_node(self, node: 'DagNode'):
+    def add_downstream_node(self, node: "DagNode"):
         self.downstream_nodes.append(node)
 
-    def remove_upstream_node(self, node: 'DagNode'):
+    def remove_upstream_node(self, node: "DagNode"):
         self.upstream_nodes.remove(node)
 
-    def remove_downstream_node(self, node: 'DagNode'):
+    def remove_downstream_node(self, node: "DagNode"):
         self.downstream_nodes.remove(node)
 
 
@@ -219,7 +230,6 @@ class DirectedAcyclicGraph:
     def __init__(self):
         self.nodes: list[DagNode] = []
         self.edges: list[tuple[DagNode, DagNode]] = []
-
 
     @contextmanager
     def _unsee(self, construct=False):
@@ -229,19 +239,16 @@ class DirectedAcyclicGraph:
             if construct:
                 n.layer.reset_construct()
 
-
     def get_head_nodes(self) -> list[DagNode]:
         with self._unsee():
             for e in self.edges:
                 e[1].seen = True
             head_nodes = [
-                n for n in self.nodes 
-                if not n.seen 
-                    and not isinstance(n.layer, CompileArgLayer) 
-                    and (n.upstream_nodes or n.downstream_nodes)
+                n
+                for n in self.nodes
+                if not n.seen and not isinstance(n.layer, CompileArgLayer) and (n.upstream_nodes or n.downstream_nodes)
             ]
         return head_nodes
-
 
     def get_node(self, node_id: UUID) -> DagNode:
         for n in self.nodes:
@@ -249,15 +256,13 @@ class DirectedAcyclicGraph:
                 return n
         raise DagException("Node not found")
 
-
     def check_acyclic(self) -> bool:
         if len(self.edges) < 1:
             return True
         with self._unsee():
-            if heads := (self.get_head_nodes() + 
-                [n for n in self.nodes 
-                if isinstance(n.layer, CompileArgLayer) 
-                    and n.downstream_nodes]
+            if heads := (
+                self.get_head_nodes()
+                + [n for n in self.nodes if isinstance(n.layer, CompileArgLayer) and n.downstream_nodes]
             ):
                 for head in heads:
                     head.seen = True
@@ -265,13 +270,8 @@ class DirectedAcyclicGraph:
                         return False
             else:
                 return False
-            cyclic = len([
-                n for n in self.nodes 
-                if not n.seen 
-                    and (n.upstream_nodes or n.downstream_nodes)
-            ]) == 0
+            cyclic = len([n for n in self.nodes if not n.seen and (n.upstream_nodes or n.downstream_nodes)]) == 0
             return cyclic
-
 
     def _check_acyclic(self, node: DagNode) -> bool:
         for n in node.downstream_nodes:
@@ -289,7 +289,6 @@ class DirectedAcyclicGraph:
                 return False
         return True
 
-
     def connect_nodes(self, source_id: UUID, dest_id: UUID):
         source_node, dest_node = self.get_node(source_id), self.get_node(dest_id)
         if (source_node, dest_node) in self.edges:
@@ -305,11 +304,10 @@ class DirectedAcyclicGraph:
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
                 raise DagException("Destination node has too many incoming connections")
-            elif not self.check_acyclic(): 
+            elif not self.check_acyclic():
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
                 raise DagException("Circular graphs not allowed")
-
 
     def disconnect_nodes(self, source_id: UUID, dest_id: UUID):
         source_node, dest_node = self.get_node(source_id), self.get_node(dest_id)
@@ -319,12 +317,10 @@ class DirectedAcyclicGraph:
         else:
             raise DagException("Connection not found")
 
-
     def add_node(self, layer: Layer) -> DagNode:
         node = DagNode(layer)
         self.nodes.append(node)
         return node
-
 
     def remove_node(self, node_id: UUID):
         node = self.get_node(node_id)
@@ -332,7 +328,6 @@ class DirectedAcyclicGraph:
         for e in list(self.edges):
             if node in e:
                 self.edges.remove(e)
-
 
     def _check_graph_whole(self) -> DagNode:
         with self._unsee():
@@ -346,33 +341,32 @@ class DirectedAcyclicGraph:
                 self._check_graph_whole_recurse(n, up=False)
             # Now check if there are any nodes in the graph that have not been seen
             disjointed_node_ids = [
-                str(n.id) for n in self.nodes 
-                if not n.seen and (n.upstream_nodes or n.downstream_nodes)
+                str(n.id) for n in self.nodes if not n.seen and (n.upstream_nodes or n.downstream_nodes)
             ]
             if disjointed_node_ids:
-                raise CompileException({
-                    'node_ids': disjointed_node_ids,
-                    'reason': CompileErrorReason.DISJOINTED_GRAPH.camel(),
-                    'errors': 'The graph must be connected. If you are not using a node, disconnect it from all other nodes. The graph ignores fully disconnected nodes.'
-                })
-        
+                raise CompileException(
+                    {
+                        "node_ids": disjointed_node_ids,
+                        "reason": CompileErrorReason.DISJOINTED_GRAPH,
+                        "errors": "The graph must be connected. If you are not using a node, disconnect it from all other nodes. The graph ignores fully disconnected nodes.",
+                    }
+                )
+
         # Get tail nodes (It is an error if there is more than 1)
         # and it shouldn't be possible for there to be 0 tail nodes
         with self._unsee():
             for e in self.edges:
                 e[0].seen = True
-            tail_nodes = [
-                n for n in self.nodes 
-                if not n.seen and (n.upstream_nodes or n.downstream_nodes)
-            ]
+            tail_nodes = [n for n in self.nodes if not n.seen and (n.upstream_nodes or n.downstream_nodes)]
             if len(tail_nodes) != 1:
-                raise CompileException({
-                    'node_ids': [str(n.id) for n in tail_nodes],
-                    'reason': CompileErrorReason.DISJOINTED_GRAPH.camel(),
-                    'errors': 'The graph must only have one final node.'
-                })
+                raise CompileException(
+                    {
+                        "node_ids": [str(n.id) for n in tail_nodes],
+                        "reason": CompileErrorReason.DISJOINTED_GRAPH,
+                        "errors": "The graph must only have one final node.",
+                    }
+                )
             return tail_nodes[0]
-            
 
     def _check_graph_whole_recurse(self, node: DagNode, up: bool):
         if up:
@@ -382,7 +376,6 @@ class DirectedAcyclicGraph:
         for n in nodes:
             n.seen = True
             self._check_graph_whole_recurse(n, up=up)
-
 
     def construct_keras(self):
         if not self.edges:
@@ -398,13 +391,12 @@ class DirectedAcyclicGraph:
         with self._unsee(construct=True):
             for head in self.get_head_nodes():
                 head.seen = True
-                model_file += head.code_gen() + '\n'
+                model_file += head.code_gen() + "\n"
                 model_file += self._construct_keras(head)
         return model_file.rstrip()
 
-
     def _construct_keras(self, node: DagNode):
-        model_file = ''
+        model_file = ""
         for n in node.downstream_nodes:
             upstream_loaded = True
             for upstream_node in n.upstream_nodes:
@@ -412,9 +404,7 @@ class DirectedAcyclicGraph:
                     upstream_loaded = False
             if upstream_loaded:
                 n.seen = True
-                model_file += n.code_gen() + '\n'
+                model_file += n.code_gen() + "\n"
                 model_file += self._construct_keras(n)
 
-        return model_file + '\n'
-
-
+        return model_file + "\n"

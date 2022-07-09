@@ -164,6 +164,9 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
                   } else if (response is GraphExceptionResponse) {
                     canvasStateListen
                         .cancelConnection(incomingState.widget.nodeId);
+                  } else {
+                    debugPrint(
+                        "WARNING!! Unhandled response: $response from incoming Node Socket on ${widget.nodeId}");
                   }
                 },
                 data: Connection(incomingState.widget.nodeId, widget.nodeId),

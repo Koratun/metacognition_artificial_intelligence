@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import 'selection_panel.dart';
 import 'creation_canvas.dart';
+import 'toolbar.dart';
+import 'pycontroller.dart';
 
 void main() {
   runApp(const Main());
@@ -42,6 +44,18 @@ const MaterialColor mainColors = MaterialColor(0xFF007EA7, <int, Color>{
 class _MainState extends State<Main> with TickerProviderStateMixin {
   // This widget is the root of the application.
   @override
+  void initState() {
+    super.initState();
+    PyController.init();
+  }
+
+  @override
+  void dispose() {
+    PyController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Metacognition Artificial Intelligence',
@@ -70,20 +84,7 @@ class _MainState extends State<Main> with TickerProviderStateMixin {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            SizedBox(
-                              width: 150,
-                              height: 40,
-                              child: Container(
-                                color: Colors.orange,
-                                child: Center(
-                                  child: Text(
-                                    'Tools',
-                                    style:
-                                        Theme.of(context).textTheme.headline6,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            const Toolbar(),
                             SizedBox(
                               width: 800,
                               height: 200,

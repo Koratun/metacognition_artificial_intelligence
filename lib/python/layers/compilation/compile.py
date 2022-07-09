@@ -14,7 +14,7 @@ class CompileSettings(LayerSettings):
 
 class Compile(Layer):
     settings_validator = CompileSettings
-    type = 'compile'
+    type = "compile"
     min_upstream_nodes = 3
     max_upstream_nodes = inf
     max_downstream_nodes = inf
@@ -34,11 +34,13 @@ class Compile(Layer):
 
     def generate_code_line(self, node_being_built: DagNode) -> str:
         if self.constructed:
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.COMPILATION_VALIDATION.camel(), 
-                'errors': "This compile node has already been constructed, you cannot construct a model twice."
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION,
+                    "errors": "This compile node has already been constructed, you cannot construct a model twice.",
+                }
+            )
         try:
             # Perform setting validation
             node_connections: CompileSettings = self.settings_validator(**self.settings_data)
@@ -65,8 +67,10 @@ class Compile(Layer):
             self.constructed = True
             return line
         except ValidationError as e:
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.COMPILATION_VALIDATION.camel(), 
-                'errors': e.errors()
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION,
+                    "errors": e.errors(),
+                }
+            )
