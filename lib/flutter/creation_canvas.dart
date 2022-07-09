@@ -95,6 +95,9 @@ class CreationCanvasState extends ChangeNotifier {
             positions[id] = pos;
             newTile.messageHandler!.value = response;
             notifyListeners();
+          } else {
+            debugPrint(
+                "WARNING!! Unhandled response: $response from Canvas.addLayer");
           }
         },
         data: CreateLayer(newTile.name!),
