@@ -20,7 +20,7 @@ The trick with this AI is in training. While training this AI is actually two se
 
 Feel free to look up the concept of GANs online as they explain it far more concisely than I do, but that is the general premise of how this AI functions.
 
-Unfortunately, what I did not expect was the sheer amount of computational power that an AI like this requires to train. I ran this AI for 3 straight days uninterrupted, and the best images it could come with were colored blobs.
+Unfortunately, what I did not expect was the sheer amount of computational power that an AI like this requires to train. I ran this AI for 2 straight days uninterrupted, and the best images it could come with were colored blobs.
 
 Now I don't have a supercomputer, but my computer (Nvidia card) can handle games that are very intense on the graphics card with ease, so the fact that this AI literally took days to barely produce some different colors is astounding.
 
