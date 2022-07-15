@@ -5,9 +5,8 @@ part 'update_layer.g.dart';
 
 @JsonSerializable()
 class UpdateLayer extends RequestResponseSchema {
-	UpdateLayer(this.layer, this.id, this.settings, );
+	UpdateLayer(this.id, this.settings, );
 
-	String layer;
 	String id;
 	Map<String, String> settings;
 

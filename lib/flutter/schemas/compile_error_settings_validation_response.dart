@@ -9,7 +9,7 @@ part 'compile_error_settings_validation_response.g.dart';
 class CompileErrorSettingsValidationResponse extends RequestResponseSchema {
 	CompileErrorSettingsValidationResponse(this.errors, this.nodeId, this.reason, );
 
-	List<ValidationError> errors;
+	List<ValidationError>? errors;
 	String nodeId;
 	CompileErrorReason reason;
 
