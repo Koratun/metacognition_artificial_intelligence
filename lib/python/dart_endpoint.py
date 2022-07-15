@@ -120,9 +120,9 @@ def process(command: str, payload: str):
     except DagException as e:
         return format_response(ResponseType.GRAPH_EXCEPTION, request_id=request_id, error=str(e))
     except CompileException as e:
-        if e.error_data["reason"] == CompileErrorReason.DISJOINTED_GRAPH.camel():
+        if e.error_data["reason"] == CompileErrorReason.DISJOINTED_GRAPH:
             return format_response(ResponseType.COMPILE_ERROR_DISJOINTED, request_id=request_id, **e.error_data)
-        elif e.error_data["reason"] == CompileErrorReason.SETTINGS_VALIDATION.camel():
+        elif e.error_data["reason"] == CompileErrorReason.SETTINGS_VALIDATION:
             return format_response(
                 ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION, request_id=request_id, **e.error_data
             )

@@ -73,10 +73,23 @@ class TestDartEndpoint:
             )
 
         # Test error states
-        self.request_and_response(mock_response, mock_input, "create{baaaaaaad request}", error=True)
-
-        self.request_and_response(mock_response, mock_input, 'create{"wrongSchema": null}', error=True)
+        self.request_and_response(
+            mock_response,
+            mock_input,
+            "create{baaaaaaad request}",
+            error=True,
+        )
 
         self.request_and_response(
-            mock_response, mock_input, f'create{{"requestId": "{request_id}", "layer": "BadLayer"}}', error=True
+            mock_response,
+            mock_input,
+            'create{"wrongSchema": null}',
+            error=True,
+        )
+
+        self.request_and_response(
+            mock_response,
+            mock_input,
+            f'create{{"requestId": "{request_id}", "layer": "BadLayer"}}',
+            error=True,
         )

@@ -62,7 +62,13 @@ class TestUpdateLayer:
     def test_io_range(self):
         layer = layer_classes["MapRange"]()
         assert not layer.update_settings(
-            dict(io=1, old_range_min="0", old_range_max="10", new_range_min="0", new_range_max="1")
+            dict(
+                io=1,
+                old_range_min="0",
+                old_range_max="10",
+                new_range_min="0",
+                new_range_max="1",
+            )
         )
         assert layer.update_settings(dict(io="a"))
         assert layer.update_settings(dict(io=2))

@@ -69,7 +69,6 @@ class _SelectionPanelState extends State<SelectionPanel>
       loadRawImage(layerName).then((value) =>
           setState(() => layerTileAssetData[layerName]!["symbol"] = value));
     }
-    PyController.init();
     PyController.registerEventHandler(
       EventType.initializeLayers,
       (response) {
@@ -87,15 +86,12 @@ class _SelectionPanelState extends State<SelectionPanel>
               },
             ),
           );
+        } else {
+          debugPrint(
+              "WARNING!! Unhandled response: $response from init layers event");
         }
       },
     );
-  }
-
-  @override
-  void dispose() {
-    PyController.dispose();
-    super.dispose();
   }
 
   Widget _buildLayerCategory(String title) {

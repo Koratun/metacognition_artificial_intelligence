@@ -234,11 +234,11 @@ if __name__ == "__main__":
     ]
 
     # Train model
-    history = model.fit(tfgen, steps_per_epoch=len(train_data_generator), epochs=2, callbacks=callbacks)
+    history = model.fit(tfgen, steps_per_epoch=len(train_data_generator), epochs=5, callbacks=callbacks)
 
     test_model(model, train_data_generator)
 
     # model.save("D:\\Documents\\Programming\\Night Tours\\DroneMovement")
 
     # Not helpful when you only have 1 epoch
-    # plot_losses(history)
+    plot_losses(history)
