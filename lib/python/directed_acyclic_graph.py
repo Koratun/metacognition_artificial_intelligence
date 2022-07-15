@@ -16,15 +16,13 @@ class CompileErrorReason(Enum):
     The reason why a layer failed to construct.
     """
 
-    UPSTREAM_NODE_COUNT = "upstream_node_count"
-    DOWNSTREAM_NODE_COUNT = "downstream_node_count"
-    SETTINGS_VALIDATION = "settings_validation"
-    COMPILATION_VALIDATION = "compilation_validation"
-    INPUT_MISSING = "input_missing"
-    DISJOINTED_GRAPH = "disjointed_graph"
-
-    def camel(self) -> str:
-        return camelize(self.value)
+    # Values must be in camelCase to transfer to dart properly
+    UPSTREAM_NODE_COUNT = "upstreamNodeCount"
+    DOWNSTREAM_NODE_COUNT = "downstreamNodeCount"
+    SETTINGS_VALIDATION = "settingsValidation"
+    COMPILATION_VALIDATION = "compilationValidation"
+    INPUT_MISSING = "inputMissing"
+    DISJOINTED_GRAPH = "disjointedGraph"
 
 
 class CompileException(Exception):
@@ -118,7 +116,7 @@ class Layer:
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.DOWNSTREAM_NODE_COUNT.camel(),
+                    "reason": CompileErrorReason.DOWNSTREAM_NODE_COUNT,
                     "errors": f"{self.__class__.__name__} downstream node count does not meet requirements: "
                     f"{self.min_downstream_nodes} <= {len(node_being_built.downstream_nodes)} <= {self.max_downstream_nodes}",
                 }
@@ -127,7 +125,7 @@ class Layer:
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.UPSTREAM_NODE_COUNT.camel(),
+                    "reason": CompileErrorReason.UPSTREAM_NODE_COUNT,
                     "errors": f"{self.__class__.__name__} upstream node count does not meet requirements: "
                     f"{self.min_upstream_nodes} <= {len(node_being_built.upstream_nodes)} <= {self.max_upstream_nodes}",
                 }
@@ -231,7 +229,7 @@ class Compile(Layer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.COMPILATION_VALIDATION.camel(),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
                     "errors": e.errors(),
                 }
             )
@@ -452,7 +450,7 @@ class DirectedAcyclicGraph:
                 raise CompileException(
                     {
                         "node_ids": disjointed_node_ids,
-                        "reason": CompileErrorReason.DISJOINTED_GRAPH.camel(),
+                        "reason": CompileErrorReason.DISJOINTED_GRAPH,
                         "errors": "The graph must be connected. If you are not using a node, disconnect it from all other nodes. The graph ignores fully disconnected nodes.",
                     }
                 )
@@ -467,7 +465,7 @@ class DirectedAcyclicGraph:
                 raise CompileException(
                     {
                         "node_ids": [str(n.id) for n in tail_nodes],
-                        "reason": CompileErrorReason.DISJOINTED_GRAPH.camel(),
+                        "reason": CompileErrorReason.DISJOINTED_GRAPH,
                         "errors": "The graph must only have one final node.",
                     }
                 )

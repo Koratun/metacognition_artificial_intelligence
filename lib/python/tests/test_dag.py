@@ -19,7 +19,12 @@ class AssertException:
         return True
 
 
-def test_add_remove_nodes(dag: DirectedAcyclicGraph, basic_input: Input, basic_dense: Dense, basic_output: Output):
+def test_add_remove_nodes(
+    dag: DirectedAcyclicGraph,
+    basic_input: Input,
+    basic_dense: Dense,
+    basic_output: Output,
+):
     input_node = dag.add_node(basic_input)
     dense_node = dag.add_node(basic_dense)
     output_node = dag.add_node(basic_output)

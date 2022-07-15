@@ -18,7 +18,7 @@ class PreprocessingLayer(Layer):
             raise CompileException(
                 {
                     "node_id": str(node.id),
-                    "reason": CompileErrorReason.COMPILATION_VALIDATION.camel(),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION,
                     "errors": "This preprocessing node has already been constructed, you cannot construct a model twice.",
                 }
             )
@@ -31,7 +31,7 @@ class PreprocessingLayer(Layer):
             raise CompileException(
                 {
                     "node_id": str(node.id),
-                    "reason": CompileErrorReason.INPUT_MISSING.camel(),
+                    "reason": CompileErrorReason.INPUT_MISSING,
                     "errors": "This preprocessing layer requires either a datasource"
                     " or another preprocessing layer as its incoming connection.",
                 }
@@ -78,7 +78,7 @@ class MapRange(PreprocessingLayer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.SETTINGS_VALIDATION.camel(),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
                     "errors": e.errors(),
                 }
             )
@@ -120,7 +120,7 @@ class OneHotEncode(PreprocessingLayer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.SETTINGS_VALIDATION.camel(),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
                     "errors": e.errors(),
                 }
             )

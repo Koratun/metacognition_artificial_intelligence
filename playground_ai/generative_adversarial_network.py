@@ -432,7 +432,9 @@ def load_gan():
     generator = keras.Model(gan.input, gan.layers[-2].output)
     discriminator = gan.layers[-1]
     discriminator.compile(
-        loss="binary_crossentropy", optimizer=optimizers.Adam(lr=0.0003, beta_1=0.7), metrics=["accuracy"]
+        loss="binary_crossentropy",
+        optimizer=optimizers.Adam(lr=0.0003, beta_1=0.7),
+        metrics=["accuracy"],
     )
     return gan, generator, discriminator
 

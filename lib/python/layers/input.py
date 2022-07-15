@@ -19,7 +19,7 @@ class Input(Layer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.COMPILATION_VALIDATION.camel(),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION,
                     "errors": "This Input node has already been constructed, you cannot construct an input twice.",
                 }
             )
@@ -36,7 +36,7 @@ class Input(Layer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.SETTINGS_VALIDATION.camel(),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
                     "errors": e.errors(),
                 }
             )

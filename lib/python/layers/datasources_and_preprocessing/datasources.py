@@ -58,7 +58,7 @@ class KerasDatasource(Layer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.COMPILATION_VALIDATION.camel(),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION,
                     "errors": "This datasource node has already been constructed, you cannot construct a datasource twice.",
                 }
             )
@@ -105,7 +105,7 @@ with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.SETTINGS_VALIDATION.camel(),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
                     "errors": e.errors(),
                 }
             )

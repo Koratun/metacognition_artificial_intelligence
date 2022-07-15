@@ -44,7 +44,15 @@ def mnist():
 @pytest.fixture
 def map_range_image():
     m = MapRange()
-    m.update_settings(dict(io=0, old_range_min="0", old_range_max="255", new_range_min="-1", new_range_max="1"))
+    m.update_settings(
+        dict(
+            io=0,
+            old_range_min="0",
+            old_range_max="255",
+            new_range_min="-1",
+            new_range_max="1",
+        )
+    )
     return m
 
 
@@ -57,7 +65,13 @@ def one_hot_mnist():
 
 @pytest.fixture
 def simple_dag(
-    dag: DirectedAcyclicGraph, basic_dense, basic_input, basic_output, mnist, map_range_image, one_hot_mnist
+    dag: DirectedAcyclicGraph,
+    basic_dense,
+    basic_input,
+    basic_output,
+    mnist,
+    map_range_image,
+    one_hot_mnist,
 ):
     data_node = dag.add_node(mnist)
     map_node = dag.add_node(map_range_image)
