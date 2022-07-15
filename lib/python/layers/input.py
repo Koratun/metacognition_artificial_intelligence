@@ -11,23 +11,32 @@ class InputSettings(NamedLayerSettings):
 
 class Input(Layer):
     settings_validator = InputSettings
-    type = 'input'
+    type = "input"
     max_upstream_nodes = 2
 
     def generate_code_line(self, node_being_built: DagNode) -> str:
         if self.constructed:
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.COMPILATION_VALIDATION.camel(), 
-                'errors': "This Input node has already been constructed, you cannot construct an input twice."
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION.camel(),
+                    "errors": "This Input node has already been constructed, you cannot construct an input twice.",
+                }
+            )
         try:
-            line = self.name + f' = {self.keras_module_location}.{self.__class__.__name__}(' + self.construct_settings() + ')'
+            line = (
+                self.name
+                + f" = {self.keras_module_location}.{self.__class__.__name__}("
+                + self.construct_settings()
+                + ")"
+            )
             self.constructed = True
             return line
         except ValidationError as e:
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.SETTINGS_VALIDATION.camel(), 
-                'errors': e.errors()
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION.camel(),
+                    "errors": e.errors(),
+                }
+            )

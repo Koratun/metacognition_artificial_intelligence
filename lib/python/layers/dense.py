@@ -7,4 +7,4 @@ class DenseSettings(NamedLayerSettings):
 
 class Dense(Layer):
     settings_validator = DenseSettings
-    type = 'dense'
+    type = "dense"

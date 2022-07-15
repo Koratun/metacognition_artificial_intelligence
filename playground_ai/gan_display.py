@@ -5,21 +5,24 @@ from generative_adversarial_network import generate_noise
 
 # create and save a plot of generated images
 def save_plot(examples, n):
-	# plot images
-	for i in range(n * n):
-		# define subplot
-		pyplot.subplot(n, n, 1 + i)
-		# turn off axis
-		pyplot.axis('off')
-		# plot raw pixel data
-		pyplot.imshow(examples[i, :, :, :])
-	pyplot.show()
- 
+    # plot images
+    for i in range(n * n):
+        # define subplot
+        pyplot.subplot(n, n, 1 + i)
+        # turn off axis
+        pyplot.axis("off")
+        # plot raw pixel data
+        pyplot.imshow(examples[i, :, :, :])
+    pyplot.show()
+
+
 # load model
 generator = load_model("playground_ai\\cifar_generator")
 # generate noise for generator
 noise, _ = generate_noise(100, 100)
-print("\n\n\n\n\nPlease type the number of the kind of images you want to see! The generator will display 100 images in a 10x10 grid.")
+print(
+    "\n\n\n\n\nPlease type the number of the kind of images you want to see! The generator will display 100 images in a 10x10 grid."
+)
 print("0) Airplane")
 print("1) Car")
 print("2) Bird")
@@ -61,7 +64,7 @@ else:
 print("Generating...")
 
 # generate images
-X  = generator.predict([noise, labels])
+X = generator.predict([noise, labels])
 # scale from [-1,1] to [0,1]
 X = (X + 1) / 2
 
