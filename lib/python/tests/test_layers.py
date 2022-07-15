@@ -1,4 +1,3 @@
-from curses import mousemask
 from python.layers import layer_classes
 from python.layers.datasources_and_preprocessing.datasources import KerasDatasource
 from python.directed_acyclic_graph import Layer, LayerSettings
