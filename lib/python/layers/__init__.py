@@ -1,17 +1,11 @@
-from python.directed_acyclic_graph import Layer
+from python.directed_acyclic_graph import Layer, Loss, Metric, NamedLayerSettings, Optimizer
 from typing import Type
 from pathlib import Path
 from python.layers.datasources_and_preprocessing.datasources import keras_datasources
 
 # When a new layer is created, add it to the list!
-from python.layers import (
-    input,
-    dense,
-    output,
-)
-from python.layers.compilation import (
-    compile,
-)
+from python.layers import input, dense, output
+from python.layers.compilation import optimizer, metrics, losses
 from python.layers.datasources_and_preprocessing import preprocessing
 
 
@@ -36,7 +30,12 @@ for glob_mod_name, glob_mod in reversed(dict(globals()).items()):
         # Iterate through the module to find an attribute of type Layer
         for attr_name, attr in reversed(glob_mod.__dict__.items()):
             if isinstance(attr, type):
-                if issubclass(attr, Layer) and attr.type != Layer.type:
+                if (
+                    attr is not Layer
+                    and issubclass(attr, Layer)
+                    and attr not in (preprocessing.PreprocessingLayer, Loss, Metric, Optimizer)
+                    and (attr.type != Layer.type or not issubclass(attr.settings_validator, NamedLayerSettings))
+                ):
                     layer_classes[attr_name] = attr
                     if package_list := layer_packages.get(mod_parent):
                         package_list.insert(0, attr_name)
