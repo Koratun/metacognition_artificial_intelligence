@@ -1,4 +1,4 @@
-from lib.python.directed_acyclic_graph import Layer, LayerSettings
+from python.directed_acyclic_graph import Layer, LayerSettings
 from python.directed_acyclic_graph import NamedLayerSettings, Optimizer, LayerSettings
 from pydantic import validator
 
