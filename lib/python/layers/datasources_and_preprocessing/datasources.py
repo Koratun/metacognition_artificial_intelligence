@@ -31,7 +31,6 @@ class KerasDatasource(Layer):
     max_upstream_nodes = 0
     max_downstream_nodes = 2
 
-
     def __init__(self, name: str, label: str, shape: tuple[int, ...], dtype: Dtype, classes: int):
         """
         Args:
@@ -48,32 +47,31 @@ class KerasDatasource(Layer):
         self.dtype: Dtype = dtype
         self.classes: int = classes
         self.dataset = DatasetVars(
-            *[
-                IO(f"{name}_{dset}_x", f"{name}_{dset}_y") 
-                for dset in ["train", "validation", "test"]
-            ]
+            *[IO(f"{name}_{dset}_x", f"{name}_{dset}_y") for dset in ["train", "validation", "test"]]
         )
-
 
     def __call__(self):
         return self
 
-
     def generate_code_line(self, node_being_built: DagNode) -> str:
         if self.constructed:
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.COMPILATION_VALIDATION.camel(), 
-                'errors': "This datasource node has already been constructed, you cannot construct a datasource twice."
-            })
-        try: 
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION.camel(),
+                    "errors": "This datasource node has already been constructed, you cannot construct a datasource twice.",
+                }
+            )
+        try:
             split: float = self.settings_validator(**self.settings_data).validation_test_split
 
             # The following is a couple of helper functions to display progress to the user
             # and patching how Keras normally reports progress so that we can feed the progress
             # back to the user through whatever format we desire.
             # TODO: Update this when we know how the AI will be returning data to Flutter
-            lines = f"\nfrom keras.datasets import {self.datasource_name}\n\n# Loading in the {self.label} dataset" + """
+            lines = (
+                f"\nfrom keras.datasets import {self.datasource_name}\n\n# Loading in the {self.label} dataset"
+                + """
 def convert_bytes(num):
     for x in ['bytes', 'KB', 'MB', 'GB']:
         if num < 1024.0:
@@ -96,6 +94,7 @@ from mock import patch
 import keras.utils.data_utils
 
 with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
+            )
 
             lines += f"\n\t({self.dataset.train.x}, {self.dataset.train.y}), ({self.dataset.test.x}, {self.dataset.test.y}) = {self.datasource_name}.load_data()\n\n"
             lines += f"{self.dataset.validation.x}, {self.dataset.test.x} = np.split({self.dataset.test.x}, int(len({self.dataset.test.x}) * {split}))\n"
@@ -103,11 +102,14 @@ with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
             self.constructed = True
             return lines
         except ValidationError as e:
-            raise CompileException({
-                'node_id': str(node_being_built.id), 
-                'reason': CompileErrorReason.SETTINGS_VALIDATION.camel(), 
-                'errors': e.errors()
-            })
+            raise CompileException(
+                {
+                    "node_id": str(node_being_built.id),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION.camel(),
+                    "errors": e.errors(),
+                }
+            )
+
 
 # from keras.datasets import (
 #     cifar10,          # image class
@@ -119,13 +121,13 @@ with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
 #     fashion_mnist     # image class
 # )
 
-# cifar10.load_data()          
-# cifar100.load_data()         
-# # reuters.load_data()          
-# imdb.load_data()             
-# boston_housing.load_data()   
-# mnist.load_data()            
-# fashion_mnist.load_data()    
+# cifar10.load_data()
+# cifar100.load_data()
+# # reuters.load_data()
+# imdb.load_data()
+# boston_housing.load_data()
+# mnist.load_data()
+# fashion_mnist.load_data()
 
 keras_datasources = [
     KerasDatasource(name="boston_housing", label="Boston Housing", shape=(13,), dtype=Dtype.float32, classes=0),
@@ -133,10 +135,7 @@ keras_datasources = [
     KerasDatasource(name="fashion_mnist", label="Fashion MNIST", shape=(28, 28), dtype=Dtype.int16, classes=10),
     KerasDatasource(name="cifar10", label="CIFAR10", shape=(32, 32, 3), dtype=Dtype.int16, classes=10),
     KerasDatasource(name="cifar100", label="CIFAR100", shape=(32, 32, 3), dtype=Dtype.int16, classes=100),
-    # KerasDatasource(name="reuters", label="Reuters", shape=(1, None), dtype=Dtype.int32, classes=90),  
+    # KerasDatasource(name="reuters", label="Reuters", shape=(1, None), dtype=Dtype.int32, classes=90),
     # This dataset is too complex. Each document can have multiple classes which is out of scope for now.
     KerasDatasource(name="imdb", label="IMDB", shape=(1, None), dtype=Dtype.int32, classes=2),
 ]
-
-
-

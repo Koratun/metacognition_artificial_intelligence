@@ -4,22 +4,17 @@ import traceback
 from humps import camelize
 from pydantic import ValidationError
 from python.layers import layer_packages, layer_classes
-from python.directed_acyclic_graph import (
-    CompileErrorReason, 
-    DagException, 
-    DirectedAcyclicGraph, 
-    CompileException
-)
+from python.directed_acyclic_graph import CompileErrorReason, DagException, DirectedAcyclicGraph, CompileException
 from python.schemas import (
     RequestResponseModel,
     SchemaEnum,
-    ResponseType, 
+    ResponseType,
     EventType,
-    CommandType, 
+    CommandType,
     CreateLayer,
-    UpdateLayer, 
-    DeleteNode, 
-    Connection
+    UpdateLayer,
+    DeleteNode,
+    Connection,
 )
 
 
@@ -55,17 +50,20 @@ def main():
 
     for line in fileinput.input():
         inp: str = line.rstrip()
-        if 'Exit' == inp:
+        if "Exit" == inp:
             break
         error = False
         try:
-            if '{' not in inp or '}' not in inp:
-                raise ValueError(f'Improperly formatted request: "{inp}". '+'Expected string followed by json format. e.g. startup{} or create{"layer": "Input"}')
-            command = inp[:inp.find('{')]
-            payload = inp[inp.find('{'):]
+            if "{" not in inp or "}" not in inp:
+                raise ValueError(
+                    f'Improperly formatted request: "{inp}". '
+                    + 'Expected string followed by json format. e.g. startup{} or create{"layer": "Input"}'
+                )
+            command = inp[: inp.find("{")]
+            payload = inp[inp.find("{") :]
             response = process(command, payload)
         except Exception as e:
-            response = f"Fatal exception occurred: {str(e)}\n"+traceback.format_exc()
+            response = f"Fatal exception occurred: {str(e)}\n" + traceback.format_exc()
             error = True
         write_back(response, error=error)
 
@@ -93,24 +91,24 @@ def process(command: str, payload: str):
                     max_upstream=layer.max_upstream_nodes,
                     min_downstream=layer.min_downstream_nodes,
                     max_downstream=layer.max_downstream_nodes,
-                )
+                ),
             )
         elif command == CommandType.UPDATE.value:
             request = UpdateLayer.parse_raw(payload)
             request_id = request.request_id
             error = dag.get_node(request.id).layer.update_settings(request.settings)
-            
+
             return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id, error=error)
         elif command == CommandType.DELETE.value:
             request = DeleteNode.parse_raw(payload)
             request_id = request.request_id
             dag.remove_node(request.node_id)
-            
+
             return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id)
         elif command == CommandType.CONNECT.value or command == CommandType.DISCONNECT.value:
             request = Connection.parse_raw(payload)
             request_id = request.request_id
-            if 'd' in command:
+            if "d" in command:
                 dag.disconnect_nodes(request.source_id, request.dest_id)
             else:
                 dag.connect_nodes(request.source_id, request.dest_id)
@@ -122,13 +120,15 @@ def process(command: str, payload: str):
     except DagException as e:
         return format_response(ResponseType.GRAPH_EXCEPTION, request_id=request_id, error=str(e))
     except CompileException as e:
-        if e.error_data['reason'] == CompileErrorReason.DISJOINTED_GRAPH.camel():
+        if e.error_data["reason"] == CompileErrorReason.DISJOINTED_GRAPH.camel():
             return format_response(ResponseType.COMPILE_ERROR_DISJOINTED, request_id=request_id, **e.error_data)
-        elif e.error_data['reason'] == CompileErrorReason.SETTINGS_VALIDATION.camel():
-            return format_response(ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION, request_id=request_id, **e.error_data)
+        elif e.error_data["reason"] == CompileErrorReason.SETTINGS_VALIDATION.camel():
+            return format_response(
+                ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION, request_id=request_id, **e.error_data
+            )
         else:
             return format_response(ResponseType.COMPILE_ERROR, request_id=request_id, **e.error_data)
-    
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
