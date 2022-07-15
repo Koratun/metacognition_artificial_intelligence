@@ -1,8 +1,7 @@
 from pydantic import ValidationError, validator, StrictInt
-from python.directed_acyclic_graph import Layer, LayerSettings, DagNode, CompileException, CompileErrorReason
+from python.directed_acyclic_graph import LayerSettings, DagNode, CompileException, CompileErrorReason,Layer
 from python.layers.datasources_and_preprocessing.datasources import DatasetVars, KerasDatasource
 from typing import Literal
-
 
 class PreprocessingLayer(Layer):
     def __init__(self):
