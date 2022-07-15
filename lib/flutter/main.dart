@@ -72,8 +72,8 @@ class _MainState extends State<Main> with TickerProviderStateMixin {
           builder: (context) => MultiProvider(
             providers: [
               ChangeNotifierProvider(
-                  create: (context) => CreationCanvasState(this)),
-              ChangeNotifierProvider(create: (context) => DialoguePanelState()),
+                  create: (context) => CreationCanvasInterface(this)),
+              ChangeNotifierProvider(create: (context) => DialogueInterface()),
             ],
             child: Stack(
               children: [
@@ -107,19 +107,7 @@ class _MainState extends State<Main> with TickerProviderStateMixin {
                           ],
                         ),
                       ),
-                      SizedBox(
-                        width: Main.getSidePanelWidth(context),
-                        height: 600,
-                        child: Container(
-                          color: Colors.yellow,
-                          child: Center(
-                            child: Text(
-                              'Dialogue',
-                              style: Theme.of(context).textTheme.headline6,
-                            ),
-                          ),
-                        ),
-                      ),
+                      const DialoguePanel(),
                     ],
                   ),
                 ),
