@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
 
-import 'schemas/creation_response.dart';
 import 'schemas/schema.dart';
+import 'schemas/creation_response.dart';
+import 'schemas/validation_response.dart';
 
 import 'node_socket.dart';
+import 'dialogue_panel.dart';
 
 class LayerTile extends StatefulWidget {
   final int i;
   final String category;
-  final String? name;
+  final String? type;
   final Animation<double> _entranceAnimation;
   final AnimationController _entranceController;
   final void Function()? changeNotifyCallback;
@@ -24,7 +27,7 @@ class LayerTile extends StatefulWidget {
     this._entranceAnimation,
     this._entranceController, {
     Key? key,
-    this.name,
+    this.type,
     this.backgroundColor,
     this.foregroundColor,
     this.symbol,
@@ -39,7 +42,7 @@ class LayerTile extends StatefulWidget {
     this._entranceController, {
     Key? key,
     this.changeNotifyCallback,
-    this.name,
+    this.type,
     this.backgroundColor,
     this.foregroundColor,
     this.symbol,
@@ -92,6 +95,9 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
         }
         nodeId = data.nodeId;
       });
+    } else {
+      debugPrint(
+          "WARNING!! Unhandled response: $data from layer message handler: $nodeId");
     }
   }
 
@@ -165,7 +171,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
       foregroundSize,
       widget.backgroundColor!,
       widget.foregroundColor!,
-      widget.name!,
+      widget.type!,
       widget.symbol,
     );
 
@@ -246,7 +252,18 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
         height: layerTilePainter.iconSize.height + 16,
         child: Stack(
           children: [
-            Positioned.fill(child: Center(child: layerIcon)),
+            Positioned.fill(
+              child: Center(
+                child: GestureDetector(
+                  child: layerIcon,
+                  onTap: nodeId == null
+                      ? null
+                      : () =>
+                          Provider.of<DialogueInterface>(context, listen: false)
+                              .displaySettings(this),
+                ),
+              ),
+            ),
             for (var socket in sockets) socket,
           ],
         ),
@@ -284,7 +301,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
     final title = Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Text(
-        widget.name ?? "${widget.category} ${widget.i}",
+        widget.type ?? "${widget.category} ${widget.i}",
         style: const TextStyle(
           fontSize: 16.0,
           color: Colors.white,
