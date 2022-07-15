@@ -251,7 +251,7 @@ class _SelectionPanelState extends State<SelectionPanel>
             backgroundColor: categoryColors[_selectedCategory],
             foregroundColor: layerTileAssetData[name]?['color'],
             symbol: layerTileAssetData[name]?['symbol'],
-            name: name,
+            type: name,
           ),
         );
       },

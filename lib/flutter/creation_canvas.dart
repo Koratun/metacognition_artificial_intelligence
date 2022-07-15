@@ -15,25 +15,25 @@ class CreationCanvas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CreationCanvasState>(
-      builder: (context, canvasState, child) {
+    return Consumer<CreationCanvasInterface>(
+      builder: (context, canvasInterface, child) {
         return DragTarget<LayerTile>(
           builder: (context, candidateData, rejectedData) {
             return Container(
               color: Theme.of(context).canvasColor,
               child: CustomMultiChildLayout(
                 delegate: CreationCanvasDelegate(
-                  changeNotifier: canvasState,
-                  positions: canvasState.positions,
-                  conns: canvasState.conns,
+                  changeNotifier: canvasInterface,
+                  positions: canvasInterface.positions,
+                  conns: canvasInterface.conns,
                 ),
                 children: [
-                  for (var pair in canvasState.conns.entries)
+                  for (var pair in canvasInterface.conns.entries)
                     LayoutId(
                       id: pair.key,
                       child: pair.value,
                     ),
-                  for (var pair in canvasState.tiles.entries)
+                  for (var pair in canvasInterface.tiles.entries)
                     LayoutId(
                       id: pair.key,
                       child: pair.value,
@@ -43,20 +43,20 @@ class CreationCanvas extends StatelessWidget {
             );
           },
           onAcceptWithDetails: (DragTargetDetails details) =>
-              canvasState.addTile(details.data, details.offset),
+              canvasInterface.addTile(details.data, details.offset),
         );
       },
     );
   }
 }
 
-class CreationCanvasState extends ChangeNotifier {
+class CreationCanvasInterface extends ChangeNotifier {
   final TickerProvider _ticker;
   final Map<String, LayerTile> tiles = {};
   final Map<String, Offset> positions = {};
   final Map<String, NodeConnection> conns = {};
 
-  CreationCanvasState(this._ticker);
+  CreationCanvasInterface(this._ticker);
 
   void addTile(LayerTile layerTile, Offset pos) {
     final AnimationController entranceController = AnimationController(
@@ -81,11 +81,11 @@ class CreationCanvasState extends ChangeNotifier {
       entranceController,
       changeNotifyCallback: notifyListeners,
       backgroundColor: categoryColors[layerTile.category],
-      foregroundColor: layerTileAssetData[layerTile.name]?['color'],
-      symbol: layerTileAssetData[layerTile.name]?['symbol'],
-      name: layerTile.name,
+      foregroundColor: layerTileAssetData[layerTile.type]?['color'],
+      symbol: layerTileAssetData[layerTile.type]?['symbol'],
+      type: layerTile.type,
     );
-    if (newTile.name != null) {
+    if (newTile.type != null) {
       PyController.request(
         CommandType.create,
         (response) {
@@ -100,7 +100,7 @@ class CreationCanvasState extends ChangeNotifier {
                 "WARNING!! Unhandled response: $response from Canvas.addLayer");
           }
         },
-        data: CreateLayer(newTile.name!),
+        data: CreateLayer(newTile.type!),
       );
     }
   }
