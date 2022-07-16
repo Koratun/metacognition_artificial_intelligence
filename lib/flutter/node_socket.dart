@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
-import 'pycontroller.dart';
-import 'creation_canvas.dart';
 import 'schemas/command_type_enum.dart';
 import 'schemas/connection.dart';
 import 'schemas/success_fail_response.dart';
 import 'schemas/graph_exception_response.dart';
+
+import 'console.dart';
+import 'pycontroller.dart';
+import 'creation_canvas.dart';
 
 class NodeSocket extends StatefulWidget {
   final String nodeId;
@@ -127,8 +129,7 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    CreationCanvasInterface canvasStateListen =
-        Provider.of<CreationCanvasInterface>(context);
+    var interfaceListen = Provider.of<CreationCanvasInterface>(context);
 
     Widget thePaint = CustomPaint(
       painter: SocketPainter(currentColor, facing),
@@ -142,31 +143,44 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
       thePaint = DragTarget<_NodeSocketState>(
         onAccept: (incomingState) {
           if (widget.incoming) {
+            var console = Provider.of<ConsoleInterface>(context, listen: false);
             if (currentNodes == widget.maxNodes) {
-              canvasStateListen.cancelConnection(incomingState.widget.nodeId);
+              interfaceListen.cancelConnection(incomingState.widget.nodeId);
+              console.log(
+                "This node has already reached its maximum number of incoming connections",
+                Logging.error,
+              );
             } else {
               PyController.request(
                 CommandType.connect,
                 (response) {
                   if (response is SuccessFailResponse) {
                     if (response.error != null) {
-                      canvasStateListen
+                      interfaceListen
                           .cancelConnection(incomingState.widget.nodeId);
+                      console.log(response.error!, Logging.error);
                     } else {
-                      canvasStateListen.connectNodes(
+                      interfaceListen.connectNodes(
                         incomingState.widget.nodeId,
                         widget.nodeId,
                         widget.centerPos,
                       );
                       currentNodes += 1;
                       incomingState.currentNodes += 1;
+                      console.log(
+                        "Successfully connected",
+                        Logging.info,
+                      );
                     }
                   } else if (response is GraphExceptionResponse) {
-                    canvasStateListen
+                    interfaceListen
                         .cancelConnection(incomingState.widget.nodeId);
+                    console.log(response.error, Logging.error);
                   } else {
-                    debugPrint(
-                        "WARNING!! Unhandled response: $response from incoming Node Socket on ${widget.nodeId}");
+                    console.log(
+                      "WARNING!! Unhandled response: $response from incoming Node Socket on ${widget.nodeId}",
+                      Logging.devError,
+                    );
                   }
                 },
                 data: Connection(incomingState.widget.nodeId, widget.nodeId),
@@ -190,23 +204,23 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
         data: this,
         feedback: Container(),
         onDragStarted: () {
-          var canvasState =
+          var interface =
               Provider.of<CreationCanvasInterface>(context, listen: false);
           if (!widget.incoming && currentNodes != widget.maxNodes) {
-            canvasState.newConnection(
+            interface.newConnection(
               widget.nodeId,
               widget.centerPos,
             );
           }
         },
         onDragUpdate: (details) {
-          canvasStateListen.updateNewConnection(
+          interfaceListen.updateNewConnection(
             widget.nodeId,
             details.globalPosition,
           );
         },
         onDraggableCanceled: (_, __) {
-          canvasStateListen.cancelConnection(widget.nodeId);
+          interfaceListen.cancelConnection(widget.nodeId);
         },
         onDragCompleted: () {},
         child: thePaint,

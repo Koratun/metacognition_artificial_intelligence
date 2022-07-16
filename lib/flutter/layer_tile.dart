@@ -8,6 +8,7 @@ import 'schemas/validation_response.dart';
 
 import 'node_socket.dart';
 import 'dialogue_panel.dart';
+import 'console.dart';
 
 class LayerTile extends StatefulWidget {
   final int i;
@@ -76,6 +77,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
 
   void _handleMessages() {
     var data = widget.messageHandler!.value;
+    var console = Provider.of<ConsoleInterface>(context, listen: false);
     if (data is CreationResponse) {
       setState(() {
         layerSettings = data.layerSettings;
@@ -96,8 +98,10 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
         nodeId = data.nodeId;
       });
     } else {
-      debugPrint(
-          "WARNING!! Unhandled response: $data from layer message handler: $nodeId");
+      console.log(
+        "WARNING!! Unhandled response: $data from layer message handler: $nodeId",
+        Logging.devError,
+      );
     }
   }
 

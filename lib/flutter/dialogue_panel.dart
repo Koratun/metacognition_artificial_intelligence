@@ -9,6 +9,7 @@ import 'schemas/graph_exception_response.dart';
 import 'schemas/validation_response.dart';
 
 import 'layer_tile.dart';
+import 'console.dart';
 import 'pycontroller.dart';
 import 'main.dart';
 
@@ -32,9 +33,12 @@ class _DialoguePanelState extends State<DialoguePanel> {
     PyController.request(
       CommandType.update,
       (response) {
+        var console = Provider.of<ConsoleInterface>(context, listen: false);
         if (response is GraphExceptionResponse) {
-          debugPrint(
-              "$fieldName setting is incorrect for this layer type: ${layerState.nodeId}");
+          console.log(
+            "$fieldName setting is incorrect for this layer type: ${layerState.nodeId}",
+            Logging.devError,
+          );
         } else if (response is ValidationResponse) {
           Map<String, String> errors = {};
           if (response.errors != null) {
@@ -45,11 +49,19 @@ class _DialoguePanelState extends State<DialoguePanel> {
           setState(() {
             for (var field in _widgetErrors.keys) {
               _widgetErrors[field] = errors[field];
+              if (errors.containsKey(field)) {
+                console.log(
+                  "${layerState.layerSettings!['name'] ?? layerState.widget.type} -> $field: ${errors[field]!}",
+                  Logging.error,
+                );
+              }
             }
           });
         } else {
-          debugPrint(
-              "WARNING!! Unhandled response: $response from $fieldName setting widget");
+          console.log(
+            "WARNING!! Unhandled response: $response from $fieldName setting widget",
+            Logging.devError,
+          );
         }
       },
       data: UpdateLayer(layerState.nodeId!, {fieldName: v}),
