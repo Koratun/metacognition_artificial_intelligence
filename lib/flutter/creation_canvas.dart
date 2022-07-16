@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'selection_panel.dart';
+import 'console.dart';
 import 'layer_tile.dart';
 import 'node_connection.dart';
 import 'pycontroller.dart';
@@ -43,7 +44,7 @@ class CreationCanvas extends StatelessWidget {
             );
           },
           onAcceptWithDetails: (DragTargetDetails details) =>
-              canvasInterface.addTile(details.data, details.offset),
+              canvasInterface.addTile(details.data, details.offset, context),
         );
       },
     );
@@ -58,7 +59,7 @@ class CreationCanvasInterface extends ChangeNotifier {
 
   CreationCanvasInterface(this._ticker);
 
-  void addTile(LayerTile layerTile, Offset pos) {
+  void addTile(LayerTile layerTile, Offset pos, BuildContext context) {
     final AnimationController entranceController = AnimationController(
       vsync: _ticker,
       duration: const Duration(seconds: 1),
@@ -89,15 +90,19 @@ class CreationCanvasInterface extends ChangeNotifier {
       PyController.request(
         CommandType.create,
         (response) {
+          var console = Provider.of<ConsoleInterface>(context, listen: false);
           if (response is CreationResponse) {
             String id = response.nodeId;
             tiles[id] = newTile;
             positions[id] = pos;
             newTile.messageHandler!.value = response;
+            console.log("${layerTile.type} created", Logging.info);
             notifyListeners();
           } else {
-            debugPrint(
-                "WARNING!! Unhandled response: $response from Canvas.addLayer");
+            console.log(
+              "WARNING!! Unhandled response: $response from Canvas.addLayer",
+              Logging.devError,
+            );
           }
         },
         data: CreateLayer(newTile.type!),
