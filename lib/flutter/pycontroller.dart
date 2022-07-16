@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:convert';
 
@@ -21,8 +22,8 @@ class PyController {
       [".\\lib\\python\\dart_endpoint.py"],
       runInShell: true,
     );
-    _python?.stdout.transform(utf8.decoder).forEach(pyInputHandler);
-    _python?.stderr.transform(utf8.decoder).forEach(print);
+    _python?.stdout.transform(utf8.decoder).forEach(_pyInputHandler);
+    _python?.stderr.transform(utf8.decoder).forEach(debugPrint);
   }
 
   static void request(
@@ -34,7 +35,7 @@ class PyController {
     PyController.responseActions[data.requestId] = responseAction;
     _python?.stdin.writeln(c.name + json.encode(data.toJson()));
     if (_echo) {
-      print("Request sent: ${c.name + json.encode(data.toJson())}");
+      debugPrint("Request sent: ${c.name + json.encode(data.toJson())}");
     }
   }
 
@@ -55,7 +56,7 @@ class PyController {
     }
   }
 
-  static void pyInputHandler(String data) {
+  static void _pyInputHandler(String data) {
     // Separate the text preceding the first [ or {
     // and the rest of the text.
     final Map<String, dynamic> responseData =
@@ -71,7 +72,7 @@ class PyController {
       responseActions[response.requestId]!(response);
       responseActions.remove(response.requestId);
       if (_echo) {
-        print("Response: $responseData");
+        debugPrint("Response: $responseData");
       }
     } on StateError {
       // If response is not a response type, then it is an event type
@@ -91,7 +92,7 @@ class PyController {
         }
       }
       if (_echo) {
-        print("Event: ${eventType.name} -> $responseData");
+        debugPrint("Event: ${eventType.name} -> $responseData");
       }
     }
   }

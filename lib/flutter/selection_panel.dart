@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
 import 'package:image/image.dart' as im;
 
 import 'schemas/event_type_enum.dart';
-import 'schemas/command_type_enum.dart';
 import 'schemas/initialize_layers_event.dart';
 
 import 'window_style_dropdown_menu.dart';
+import 'console.dart';
 import 'layer_tile.dart';
 import 'main.dart';
 import 'pycontroller.dart';
@@ -87,8 +88,10 @@ class _SelectionPanelState extends State<SelectionPanel>
             ),
           );
         } else {
-          debugPrint(
-              "WARNING!! Unhandled response: $response from init layers event");
+          Provider.of<ConsoleInterface>(context, listen: false).log(
+            "WARNING!! Unhandled response: $response from init layers event",
+            Logging.devError,
+          );
         }
       },
     );
@@ -212,7 +215,6 @@ class _SelectionPanelState extends State<SelectionPanel>
 
     final layerTiles = GridView.builder(
       controller: scrollController,
-      shrinkWrap: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         mainAxisExtent: 100,

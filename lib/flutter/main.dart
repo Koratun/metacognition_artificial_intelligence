@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'dialogue_panel.dart';
 import 'selection_panel.dart';
+import 'console.dart';
 import 'creation_canvas.dart';
 import 'toolbar.dart';
 import 'pycontroller.dart';
@@ -74,6 +75,7 @@ class _MainState extends State<Main> with TickerProviderStateMixin {
               ChangeNotifierProvider(
                   create: (context) => CreationCanvasInterface(this)),
               ChangeNotifierProvider(create: (context) => DialogueInterface()),
+              ChangeNotifierProvider(create: (context) => ConsoleInterface()),
             ],
             child: Stack(
               children: [
@@ -88,23 +90,7 @@ class _MainState extends State<Main> with TickerProviderStateMixin {
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Toolbar(),
-                            SizedBox(
-                              width: 800,
-                              height: 200,
-                              child: Container(
-                                color: Colors.green,
-                                child: Center(
-                                  child: Text(
-                                    'Report',
-                                    style:
-                                        Theme.of(context).textTheme.headline6,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                          children: const [Toolbar(), Console()],
                         ),
                       ),
                       const DialoguePanel(),
