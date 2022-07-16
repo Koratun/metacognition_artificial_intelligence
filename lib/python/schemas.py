@@ -3,6 +3,7 @@ from uuid import UUID
 from typing import Optional, Type, Any
 from pydantic import BaseModel, validator
 from python.directed_acyclic_graph import CompileErrorReason, Layer
+from python.layers.utils import Dtype
 from humps import camelize
 from python.layers import layer_classes
 
@@ -72,21 +73,9 @@ class CreateLayer(RequestResponseModel):
         raise ValueError("Layer type not found")
 
 
-class UpdateLayer(CreateLayer):
+class UpdateLayer(RequestResponseModel):
     id: UUID
     settings: dict[str, str]
-
-    @validator("settings", pre=True)
-    def setting_fields_match(cls, v: dict, values: dict, **kwargs):
-        layer: Type[Layer] = layer_classes.get(values.get("layer"))
-        if not layer:
-            raise ValueError("Layer not provided")
-        setting_schema = MetaSchema.parse_obj(layer.settings_validator.schema())
-        all_fields = list(setting_schema.properties.keys())
-        for given_field in v.keys():
-            if given_field not in all_fields:
-                raise ValueError(f"{given_field} is not a valid setting field for: {layer.__name__}")
-        return v
 
 
 class DeleteNode(RequestResponseModel):
@@ -139,7 +128,7 @@ event_model_rep = {
 class ResponseType(SchemaEnum):
     SUCCESS_FAIL = "success_fail"
     CREATION = "creation"
-    VALIDATION_ERROR = "validation_error"
+    VALIDATION = "validation"
     GRAPH_EXCEPTION = "graph_exception"
     COMPILE_ERROR = "compile_error"
     COMPILE_ERROR_DISJOINTED = "compile_error_disjointed"
@@ -182,8 +171,8 @@ class ValidationError(BaseModel):
     type: str
 
 
-class ValidationErrorResponse(RequestResponseModel):
-    errors: list[ValidationError]
+class ValidationResponse(RequestResponseModel):
+    errors: Optional[list[ValidationError]]
 
 
 class CompileErrorResponse(RequestResponseModel):
@@ -204,7 +193,8 @@ class CompileErrorDisjointedResponse(RequestResponseModel):
         use_enum_values = True
 
 
-class CompileErrorSettingsValidationResponse(ValidationErrorResponse):
+class CompileErrorSettingsValidationResponse(RequestResponseModel):
+    errors: list[ValidationError]
     node_id: UUID
     reason: CompileErrorReason
 
@@ -219,7 +209,7 @@ class GraphExceptionResponse(RequestResponseModel):
 response_model_rep = {
     ResponseType.SUCCESS_FAIL: SuccessFailResponse,
     ResponseType.CREATION: CreationResponse,
-    ResponseType.VALIDATION_ERROR: ValidationErrorResponse,
+    ResponseType.VALIDATION: ValidationResponse,
     ResponseType.GRAPH_EXCEPTION: GraphExceptionResponse,
     ResponseType.COMPILE_ERROR: CompileErrorResponse,
     ResponseType.COMPILE_ERROR_DISJOINTED: CompileErrorDisjointedResponse,

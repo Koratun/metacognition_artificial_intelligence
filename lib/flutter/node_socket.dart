@@ -115,10 +115,10 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
     if (currentNodes > 0) {
       if (widget.centerPos != oldWidget.centerPos) {
         if (!widget.incoming) {
-          Provider.of<CreationCanvasState>(context)
+          Provider.of<CreationCanvasInterface>(context)
               .updateStartConnection(widget.nodeId, widget.centerPos);
         } else {
-          Provider.of<CreationCanvasState>(context)
+          Provider.of<CreationCanvasInterface>(context)
               .updateEndConnection(widget.nodeId, widget.centerPos);
         }
       }
@@ -127,8 +127,8 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    CreationCanvasState canvasStateListen =
-        Provider.of<CreationCanvasState>(context);
+    CreationCanvasInterface canvasStateListen =
+        Provider.of<CreationCanvasInterface>(context);
 
     Widget thePaint = CustomPaint(
       painter: SocketPainter(currentColor, facing),
@@ -191,7 +191,7 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
         feedback: Container(),
         onDragStarted: () {
           var canvasState =
-              Provider.of<CreationCanvasState>(context, listen: false);
+              Provider.of<CreationCanvasInterface>(context, listen: false);
           if (!widget.incoming && currentNodes != widget.maxNodes) {
             canvasState.newConnection(
               widget.nodeId,
