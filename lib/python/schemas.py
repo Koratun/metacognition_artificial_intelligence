@@ -193,7 +193,8 @@ class CompileErrorDisjointedResponse(RequestResponseModel):
         use_enum_values = True
 
 
-class CompileErrorSettingsValidationResponse(ValidationResponse):
+class CompileErrorSettingsValidationResponse(RequestResponseModel):
+    errors: list[ValidationError]
     node_id: UUID
     reason: CompileErrorReason
 
