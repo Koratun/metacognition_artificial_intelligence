@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'schemas/command_type_enum.dart';
 import 'schemas/compile_error_disjointed_response.dart';
@@ -7,6 +8,7 @@ import 'schemas/compile_error_settings_validation_response.dart';
 import 'schemas/compile_success_response.dart';
 import 'schemas/graph_exception_response.dart';
 
+import 'console.dart';
 import 'pycontroller.dart';
 import 'main.dart';
 
@@ -64,8 +66,11 @@ class _ToolbarState extends State<Toolbar> {
                         } else if (response is GraphExceptionResponse) {
                           setState(() => compileSuccess = false);
                         } else {
-                          debugPrint(
-                              "WARNING!! Unhandled response: $response from Compile button");
+                          Provider.of<ConsoleInterface>(context, listen: false)
+                              .log(
+                            "WARNING!! Unhandled response: $response from Compile button",
+                            Logging.devError,
+                          );
                         }
                       });
                     }
