@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'dialogue_panel.dart';
 import 'selection_panel.dart';
 import 'creation_canvas.dart';
 import 'toolbar.dart';
@@ -68,8 +69,12 @@ class _MainState extends State<Main> with TickerProviderStateMixin {
       ),
       home: Scaffold(
         body: Builder(
-          builder: (context) => ChangeNotifierProvider(
-            create: (context) => CreationCanvasState(this),
+          builder: (context) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                  create: (context) => CreationCanvasInterface(this)),
+              ChangeNotifierProvider(create: (context) => DialogueInterface()),
+            ],
             child: Stack(
               children: [
                 const Positioned.fill(
@@ -102,19 +107,7 @@ class _MainState extends State<Main> with TickerProviderStateMixin {
                           ],
                         ),
                       ),
-                      SizedBox(
-                        width: Main.getSidePanelWidth(context),
-                        height: 600,
-                        child: Container(
-                          color: Colors.yellow,
-                          child: Center(
-                            child: Text(
-                              'Dialogue',
-                              style: Theme.of(context).textTheme.headline6,
-                            ),
-                          ),
-                        ),
-                      ),
+                      const DialoguePanel(),
                     ],
                   ),
                 ),

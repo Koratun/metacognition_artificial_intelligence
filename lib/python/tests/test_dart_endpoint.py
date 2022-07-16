@@ -28,9 +28,7 @@ class TestDartEndpoint:
                 validation_scheme.parse_raw(request[request.find("{") :])
                 assert False
             except ValidationError as e:
-                assert mock_response.call_args[0][0] == format_response(
-                    ResponseType.VALIDATION_ERROR, errors=e.errors()
-                )
+                assert mock_response.call_args[0][0] == format_response(ResponseType.VALIDATION, errors=e.errors())
         elif response:
             assert mock_response.call_args[0][0] == response
         else:

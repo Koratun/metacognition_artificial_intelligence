@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'schema.dart';
 import 'success_fail_response.dart';
 import 'creation_response.dart';
-import 'validation_error_response.dart';
+import 'validation_response.dart';
 import 'graph_exception_response.dart';
 import 'compile_error_response.dart';
 import 'compile_error_disjointed_response.dart';
@@ -12,7 +12,7 @@ import 'compile_success_response.dart';
 enum ResponseType {
 	successFail,
 	creation,
-	validationError,
+	validation,
 	graphException,
 	compileError,
 	compileErrorDisjointed,
@@ -23,7 +23,7 @@ enum ResponseType {
 Map<ResponseType, RequestResponseSchema Function(Map<String, dynamic>)> _fromJsonMap = {
 	ResponseType.successFail: SuccessFailResponse.fromJson,
 	ResponseType.creation: CreationResponse.fromJson,
-	ResponseType.validationError: ValidationErrorResponse.fromJson,
+	ResponseType.validation: ValidationResponse.fromJson,
 	ResponseType.graphException: GraphExceptionResponse.fromJson,
 	ResponseType.compileError: CompileErrorResponse.fromJson,
 	ResponseType.compileErrorDisjointed: CompileErrorDisjointedResponse.fromJson,

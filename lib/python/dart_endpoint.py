@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from python.layers import layer_packages, layer_classes
 from python.directed_acyclic_graph import CompileErrorReason, DagException, DirectedAcyclicGraph, CompileException
 from python.schemas import (
+    MetaSchema,
     RequestResponseModel,
     SchemaEnum,
     ResponseType,
@@ -96,9 +97,17 @@ def process(command: str, payload: str):
         elif command == CommandType.UPDATE.value:
             request = UpdateLayer.parse_raw(payload)
             request_id = request.request_id
-            error = dag.get_node(request.id).layer.update_settings(request.settings)
 
-            return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id, error=error)
+            # Make sure setting given to us is applicable for this layer
+            layer = dag.get_node(request.id).layer
+            setting_schema = MetaSchema.parse_obj(layer.settings_validator.schema())
+            all_fields = list(setting_schema.properties.keys())
+            for given_field in request.settings.keys():
+                if given_field not in all_fields:
+                    raise DagException(f"{given_field} is not a valid setting field for: {layer.__name__}")
+            errors = layer.update_settings(request.settings)
+
+            return format_response(ResponseType.VALIDATION, request_id=request_id, errors=errors)
         elif command == CommandType.DELETE.value:
             request = DeleteNode.parse_raw(payload)
             request_id = request.request_id
