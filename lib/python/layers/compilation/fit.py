@@ -28,14 +28,14 @@ class Fit(Layer):
         elif isinstance(node.layer, Compile):
             return self._find_datasource(node.layer.output)
         else:
-            if len(node.upstream_nodes == 0):
+            if len(node.upstream_nodes) == 0:
                 raise DagException("No datasource found")
             return self._find_datasource(node.upstream_nodes[0])
 
     def generate_code_line(self, node_being_built: DagNode) -> str:
         datasource = self._find_datasource(node_being_built)
         try:
-            return f"history = model.fit(x={datasource.dataset.train.x}, y={datasource.dataset.train.y}, {self.construct_settings()})"
+            return f"\nhistory = model.fit(x={datasource.dataset.train.x}, y={datasource.dataset.train.y}, {self.construct_settings()})"
         except ValidationError as e:
             raise CompileException(
                 {
