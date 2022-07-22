@@ -35,7 +35,11 @@ class Fit(Layer):
     def generate_code_line(self, node_being_built: DagNode) -> str:
         datasource = self._find_datasource(node_being_built)
         try:
-            return f"\nhistory = model.fit(x={datasource.dataset.train.x}, y={datasource.dataset.train.y}, {self.construct_settings()})"
+            compile: Compile = node_being_built.upstream_nodes[0].layer
+
+            line = f"\nhistory = {compile.output.layer.name}.fit(x={datasource.dataset.train.x}, y={datasource.dataset.train.y}, "
+            line += f"validation_data=({datasource.dataset.validation.x}, {datasource.dataset.validation.y}), {self.construct_settings()})"
+            return line
         except ValidationError as e:
             raise CompileException(
                 {
