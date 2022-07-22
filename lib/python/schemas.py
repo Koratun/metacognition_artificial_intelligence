@@ -2,8 +2,8 @@ from enum import Enum
 from uuid import UUID
 from typing import Optional, Type, Any
 from pydantic import BaseModel, validator
-from python.directed_acyclic_graph import CompileErrorReason, Layer
-from python.layers.utils import Dtype
+from python.directed_acyclic_graph import CompileErrorReason
+from python.layers.utils import Dtype  # Dtype is needed here for dart schema creation!
 from humps import camelize
 from python.layers import layer_classes
 
@@ -104,6 +104,7 @@ command_model_rep = {
 
 class EventType(SchemaEnum):
     INITIALIZE_LAYERS = "initialize_layers"
+    INIT_FIT = "init_fit"
 
     @classmethod
     @property
@@ -115,8 +116,15 @@ class InitializeLayersEvent(CamelModel):
     category_list: dict[str, list[str]]
 
 
+class InitFitEvent(CamelModel):
+    # fitted: bool  # When we add saving we'll use this field
+    node_id: UUID
+    settings: dict[str, str]
+
+
 event_model_rep = {
     EventType.INITIALIZE_LAYERS: InitializeLayersEvent,
+    EventType.INIT_FIT: InitFitEvent,
 }
 
 

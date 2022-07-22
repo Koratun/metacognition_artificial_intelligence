@@ -71,32 +71,26 @@ class KerasDatasource(Layer):
             # TODO: Update this when we know how the AI will be returning data to Flutter
             lines = (
                 f"\nfrom keras.datasets import {self.datasource_name}\n\n# Loading in the {self.label} dataset"
-                + """
-def convert_bytes(num):
-    for x in ['bytes', 'KB', 'MB', 'GB']:
-        if num < 1024.0:
-            return f"{num:.2f} {x}"
-        num /= 1024.0
-
-
-class PatchProgress:
-    def __init__(self, total_size):
-        self.total_size = total_size
-        self.total_bytes = convert_bytes(self.total_size)
-
-    def update(self, progress):
-        # TODO: Update this when we know how the AI will be returning data to Flutter
-        print(f"{convert_bytes(progress)}/{self.total_bytes}: {progress/self.total_size*100:.2f}%", 
-            "Time till download is complete: {calculation goes here}")
-
-
-from mock import patch
-import keras.utils.data_utils
-
-with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
+                #                 + """
+                # def convert_bytes(num):
+                #     for x in ['bytes', 'KB', 'MB', 'GB']:
+                #         if num < 1024.0:
+                #             return f"{num:.2f} {x}"
+                #         num /= 1024.0
+                # class PatchProgress:
+                #     def __init__(self, total_size):
+                #         self.total_size = total_size
+                #         self.total_bytes = convert_bytes(self.total_size)
+                #     def update(self, progress):
+                #         # TODO: Update this when we know how the AI will be returning data to Flutter
+                #         print(f"{convert_bytes(progress)}/{self.total_bytes}: {progress/self.total_size*100:.2f}%",
+                #             "Time till download is complete: {calculation goes here}")
+                # from mock import patch
+                # import keras.utils.data_utils
+                # with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
             )
 
-            lines += f"\n\t({self.dataset.train.x}, {self.dataset.train.y}), ({self.dataset.test.x}, {self.dataset.test.y}) = {self.datasource_name}.load_data()\n\n"
+            lines += f"\n({self.dataset.train.x}, {self.dataset.train.y}), ({self.dataset.test.x}, {self.dataset.test.y}) = {self.datasource_name}.load_data()\n\n"
             lines += f"{self.dataset.validation.x}, {self.dataset.test.x} = np.split({self.dataset.test.x}, int(len({self.dataset.test.x}) * {split}))\n"
             lines += f"{self.dataset.validation.y}, {self.dataset.test.y} = np.split({self.dataset.test.y}, int(len({self.dataset.test.y}) * {split}))\n\n"
             self.constructed = True

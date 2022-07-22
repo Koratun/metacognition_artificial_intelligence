@@ -1,5 +1,8 @@
 import pytest
-from python.directed_acyclic_graph import DirectedAcyclicGraph
+from python.directed_acyclic_graph import DirectedAcyclicGraph, Compile, DagNode
+from python.layers.compilation.losses import CategoricalCrossentropy
+from python.layers.compilation.optimizer import Adagrad
+from python.layers.compilation.metrics import Accuracy
 from python.layers.dense import Dense
 from python.layers.input import Input
 from python.layers.output import Output
@@ -32,7 +35,6 @@ def basic_input():
 @pytest.fixture
 def basic_output():
     o = Output()
-    o.update_settings(dict(loss="mse"))
     return o
 
 
@@ -57,6 +59,35 @@ def map_range_image():
 
 
 @pytest.fixture
+def compile(dag: DirectedAcyclicGraph):
+    c = Compile()
+    c_node = dag.add_node(c)
+
+    loss = CategoricalCrossentropy()
+    loss_node = dag.add_node(loss)
+
+    opt = Adagrad()
+    opt_node = dag.add_node(opt)
+
+    met = Accuracy()
+    met_node = dag.add_node(met)
+
+    c_node.layer.update_settings(
+        dict(
+            loss_node_id=loss_node.id.hex,
+            optimizer_node_id=opt_node.id.hex,
+            metric_node_ids=[met_node.id.hex],
+        )
+    )
+
+    dag.connect_nodes(loss_node.id, c_node.id)
+    dag.connect_nodes(opt_node.id, c_node.id)
+    dag.connect_nodes(met_node.id, c_node.id)
+
+    return c_node
+
+
+@pytest.fixture
 def one_hot_mnist():
     h = OneHotEncode()
     h.update_settings(dict(n_classes="10"))
@@ -72,6 +103,7 @@ def simple_dag(
     mnist,
     map_range_image,
     one_hot_mnist,
+    compile: DagNode,
 ):
     data_node = dag.add_node(mnist)
     map_node = dag.add_node(map_range_image)
@@ -88,4 +120,10 @@ def simple_dag(
 
     dag.connect_nodes(input_node.id, dense_node.id)
     dag.connect_nodes(dense_node.id, output_node.id)
+
+    compile.layer.update_settings(dict(output_node_id=output_node.id.hex))
+    dag.connect_nodes(output_node.id, compile.id)
+
+    dag.fit_node.layer.update_settings(dict(epochs="10"))
+
     return dag

@@ -22,7 +22,11 @@ class PyController {
       [".\\lib\\python\\dart_endpoint.py"],
       runInShell: true,
     );
-    _python?.stdout.transform(utf8.decoder).forEach(_pyInputHandler);
+    _python?.stdout.transform(utf8.decoder).forEach((data) {
+      for (var msg in data.trimRight().split('\n')) {
+        _pyInputHandler(msg);
+      }
+    });
     _python?.stderr.transform(utf8.decoder).forEach(debugPrint);
   }
 
