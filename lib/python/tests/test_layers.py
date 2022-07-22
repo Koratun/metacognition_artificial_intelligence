@@ -7,7 +7,7 @@ def test_layers_implemented_properly():
     for layer_cls in layer_classes.values():
         if not isinstance(layer_cls, KerasDatasource):
             assert issubclass(layer_cls, Layer)
-            assert not issubclass(layer_cls.settings_validator, NamedLayerSettings) or layer_cls.type != Layer.type
+        assert not issubclass(layer_cls.settings_validator, NamedLayerSettings) or layer_cls.type != Layer.type
         assert layer_cls.settings_validator is not None
         assert issubclass(layer_cls.settings_validator, LayerSettings)
 
