@@ -1,13 +1,13 @@
 from python.layers import layer_classes
 from python.layers.datasources_and_preprocessing.datasources import KerasDatasource
-from python.directed_acyclic_graph import Layer, LayerSettings
+from python.directed_acyclic_graph import Layer, LayerSettings, NamedLayerSettings
 
 
 def test_layers_implemented_properly():
     for layer_cls in layer_classes.values():
         if not isinstance(layer_cls, KerasDatasource):
             assert issubclass(layer_cls, Layer)
-            assert layer_cls.type != Layer.type
+            assert not issubclass(layer_cls.settings_validator, NamedLayerSettings) or layer_cls.type != Layer.type
         assert layer_cls.settings_validator is not None
         assert issubclass(layer_cls.settings_validator, LayerSettings)
 
