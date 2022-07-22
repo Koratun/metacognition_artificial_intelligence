@@ -11,7 +11,7 @@ class RMSPropSettings(LayerSettings):
 
 
 class AdagradSettings(LayerSettings):
-    learning_rate: float = (0.001,)
+    learning_rate: float = 0.001
     initial_accumulator_value: float = 0.1
 
     @validator("initial_accumulator_value")
@@ -50,11 +50,14 @@ class FtrlSettings(LayerSettings):
 
 class RMSProp(Optimizer):
     settings_validator = RMSPropSettings
+    keras_module_location = "optimizers.rmsprop_v2"
 
 
 class Adagrad(Optimizer):
     settings_validator = AdagradSettings
+    keras_module_location = "optimizers.adagrad_v2"
 
 
 class Ftrl(Optimizer):
     settings_validator = FtrlSettings
+    keras_module_location = "optimizers.ftrl"
