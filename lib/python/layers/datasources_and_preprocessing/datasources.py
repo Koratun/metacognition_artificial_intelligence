@@ -90,7 +90,7 @@ class KerasDatasource(Layer):
                 # with patch(keras.utils.data_utils, 'Progbar', PatchProgress):"""
             )
 
-            lines += f"\n\t({self.dataset.train.x}, {self.dataset.train.y}), ({self.dataset.test.x}, {self.dataset.test.y}) = {self.datasource_name}.load_data()\n\n"
+            lines += f"\n({self.dataset.train.x}, {self.dataset.train.y}), ({self.dataset.test.x}, {self.dataset.test.y}) = {self.datasource_name}.load_data()\n\n"
             lines += f"{self.dataset.validation.x}, {self.dataset.test.x} = np.split({self.dataset.test.x}, int(len({self.dataset.test.x}) * {split}))\n"
             lines += f"{self.dataset.validation.y}, {self.dataset.test.y} = np.split({self.dataset.test.y}, int(len({self.dataset.test.y}) * {split}))\n\n"
             self.constructed = True
