@@ -29,7 +29,7 @@ def test_add_remove_nodes(
     dense_node = dag.add_node(basic_dense)
     output_node = dag.add_node(basic_output)
 
-    assert dag.nodes == [input_node, dense_node, output_node]
+    assert dag.nodes == [dag.fit_node, input_node, dense_node, output_node]
     assert len(dag.edges) == 0
 
     with AssertException(DagException, "Connection not found"):
@@ -72,7 +72,7 @@ def test_add_remove_nodes(
 
     dag.remove_node(dense_node.id)
 
-    assert dag.nodes == [input_node, output_node]
+    assert dag.nodes == [dag.fit_node, input_node, output_node]
     assert dag.edges == []
 
     with AssertException(DagException, "Node not found"):
@@ -81,7 +81,7 @@ def test_add_remove_nodes(
     dag.remove_node(input_node.id)
     dag.remove_node(output_node.id)
 
-    assert dag.nodes == []
+    assert dag.nodes == [dag.fit_node]
 
 
 def test_compile(simple_dag: DirectedAcyclicGraph):
