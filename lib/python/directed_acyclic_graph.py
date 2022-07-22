@@ -242,24 +242,6 @@ class CompileArgLayer(Layer):
     max_upstream_nodes = 0
 
     def generate_code_line(self, node_being_built: "DagNode") -> str:
-        if not self.check_number_downstream_nodes(len(node_being_built.downstream_nodes)):
-            raise CompileException(
-                {
-                    "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.DOWNSTREAM_NODE_COUNT,
-                    "errors": "Layer downstream node count does not meet requirements: "
-                    f"{self.min_downstream_nodes} <= {len(node_being_built.downstream_nodes)} <= {self.max_downstream_nodes}",
-                }
-            )
-        if not self.check_number_upstream_nodes(len(node_being_built.upstream_nodes)):
-            raise CompileException(
-                {
-                    "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.UPSTREAM_NODE_COUNT,
-                    "errors": "Layer upstream node count does not meet requirements: "
-                    f"{self.min_upstream_nodes} <= {len(node_being_built.upstream_nodes)} <= {self.max_upstream_nodes}",
-                }
-            )
         if not isinstance(node_being_built.downstream_nodes[0].layer, Compile):
             raise CompileException(
                 {
@@ -385,7 +367,7 @@ class DirectedAcyclicGraph:
         for n in node.downstream_nodes:
             upstream_seen = True
             for upstream_node in n.upstream_nodes:
-                if not upstream_node.seen and not isinstance(upstream_node.layer, CompileArgLayer):
+                if not upstream_node.seen:
                     upstream_seen = False
             if not upstream_seen:
                 return True
@@ -444,9 +426,11 @@ class DirectedAcyclicGraph:
             for n in start_node.upstream_nodes:
                 n.seen = True
                 self._check_graph_whole_recurse(n, up=True)
+                self._check_graph_whole_recurse(n, up=False)
             for n in start_node.downstream_nodes:
                 n.seen = True
                 self._check_graph_whole_recurse(n, up=False)
+                self._check_graph_whole_recurse(n, up=True)
             # Now check if there are any nodes in the graph that have not been seen
             disjointed_node_ids = [
                 str(n.id) for n in self.nodes if not n.seen and (n.upstream_nodes or n.downstream_nodes)
@@ -482,8 +466,11 @@ class DirectedAcyclicGraph:
         else:
             nodes = node.downstream_nodes
         for n in nodes:
+            if n.seen is True:
+                continue
             n.seen = True
             self._check_graph_whole_recurse(n, up=up)
+            self._check_graph_whole_recurse(n, up=not up)
 
     def construct_keras(self):
         if not self.edges:
