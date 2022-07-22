@@ -48,6 +48,7 @@ def main():
     compile{}
     """
     write_back(format_response(EventType.INITIALIZE_LAYERS, category_list=layer_packages))
+    write_back(format_response(EventType.INIT_FIT, node_id=dag.fit_node.id, settings=dag.fit_node.layer.settings_data))
 
     for line in fileinput.input():
         inp: str = line.rstrip()

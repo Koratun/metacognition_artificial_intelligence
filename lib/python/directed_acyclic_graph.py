@@ -158,7 +158,7 @@ class Layer:
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.SETTINGS_VALIDATION.camel(),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
                     "errors": e.errors(),
                 }
             )
@@ -196,7 +196,7 @@ class Compile(Layer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.COMPILATION_VALIDATION.camel(),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION,
                     "errors": "This compile node has already been constructed, you cannot compile a model twice.",
                 }
             )
@@ -246,7 +246,7 @@ class CompileArgLayer(Layer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.DOWNSTREAM_NODE_COUNT.camel(),
+                    "reason": CompileErrorReason.DOWNSTREAM_NODE_COUNT,
                     "errors": "Layer downstream node count does not meet requirements: "
                     f"{self.min_downstream_nodes} <= {len(node_being_built.downstream_nodes)} <= {self.max_downstream_nodes}",
                 }
@@ -255,7 +255,7 @@ class CompileArgLayer(Layer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.UPSTREAM_NODE_COUNT.camel(),
+                    "reason": CompileErrorReason.UPSTREAM_NODE_COUNT,
                     "errors": "Layer upstream node count does not meet requirements: "
                     f"{self.min_upstream_nodes} <= {len(node_being_built.upstream_nodes)} <= {self.max_upstream_nodes}",
                 }
@@ -264,7 +264,7 @@ class CompileArgLayer(Layer):
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.COMPILATION_VALIDATION.camel(),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION,
                     "errors": "Compile arguments must be connected to a Compile layer.",
                 }
             )

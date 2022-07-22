@@ -1,5 +1,14 @@
 from pydantic import ValidationError
-from python.directed_acyclic_graph import LayerSettings, Layer, DagNode, CompileException, CompileErrorReason
+from python.directed_acyclic_graph import (
+    DagException,
+    LayerSettings,
+    Layer,
+    DagNode,
+    CompileException,
+    CompileErrorReason,
+    Compile,
+)
+from python.layers.datasources_and_preprocessing.datasources import KerasDatasource
 
 
 class FitSettings(LayerSettings):
@@ -13,15 +22,25 @@ class Fit(Layer):
     min_downstream_nodes = 0
     max_downstream_nodes = 0
 
+    def _find_datasource(self, node: DagNode) -> KerasDatasource:
+        if isinstance(node.layer, KerasDatasource):
+            return node.layer
+        elif isinstance(node.layer, Compile):
+            return self._find_datasource(node.layer.output)
+        else:
+            if len(node.upstream_nodes == 0):
+                raise DagException("No datasource found")
+            return self._find_datasource(node.upstream_nodes[0])
+
     def generate_code_line(self, node_being_built: DagNode) -> str:
+        datasource = self._find_datasource(node_being_built)
         try:
-            line = "history = model.fit(" + "xdata, ydata, " + self.construct_settings() + ")"
-            return line
+            return f"history = model.fit(x={datasource.dataset.train.x}, y={datasource.dataset.train.y}, {self.construct_settings()})"
         except ValidationError as e:
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.SETTINGS_VALIDATION.camel(),
+                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
                     "errors": e.errors(),
                 }
             )
