@@ -41,7 +41,7 @@ class TestDartEndpoint:
     def test_init_layer_tiles(self, mock_response: MagicMock, mock_input: MagicMock):
         mock_input.return_value = []
         main()
-        assert mock_response.call_args[0][0] == format_response(
+        assert mock_response.mock_calls[0].args[0] == format_response(
             EventType.INITIALIZE_LAYERS, category_list=layer_packages
         )
 
