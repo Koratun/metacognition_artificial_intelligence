@@ -66,7 +66,8 @@ class _DialoguePanelState extends State<DialoguePanel> {
           Map<String, String> errors = {};
           if (response.errors != null) {
             errors = Map.fromEntries(
-              response.errors!.map((e) => MapEntry(e.loc.last, e.msg)),
+              response.errors!
+                  .map((e) => MapEntry(e.loc.last.camelCase, e.msg)),
             );
           }
           setState(() {
@@ -256,7 +257,7 @@ class _DialoguePanelState extends State<DialoguePanel> {
             ),
           ),
           DropdownButton<String>(
-            value: "0",
+            value: v,
             items: [
               DropdownMenuItem(
                 value: "0",

@@ -28,6 +28,22 @@ extension StringUtils on String {
     }
     return snaked;
   }
+
+  String get camelCase {
+    String camel = "";
+    bool toCap = false;
+    for (var c in characters) {
+      if (c == "_") {
+        toCap = true;
+      } else if (toCap) {
+        camel += c.toUpperCase();
+        toCap = false;
+      } else {
+        camel += c;
+      }
+    }
+    return camel;
+  }
 }
 
 class Main extends StatefulWidget {
