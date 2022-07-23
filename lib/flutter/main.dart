@@ -12,6 +12,24 @@ void main() {
   runApp(const Main());
 }
 
+extension StringUtils on String {
+  bool get isUpper {
+    return !contains(RegExp(r'[a-z]'));
+  }
+
+  String get snakeCase {
+    String snaked = "";
+    for (var c in characters) {
+      if (c.isUpper) {
+        snaked += "_" + c.toLowerCase();
+      } else {
+        snaked += c;
+      }
+    }
+    return snaked;
+  }
+}
+
 class Main extends StatefulWidget {
   const Main({Key? key}) : super(key: key);
 
