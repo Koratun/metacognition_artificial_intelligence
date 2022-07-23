@@ -104,7 +104,7 @@ class _DialoguePanelState extends State<DialoguePanel> {
           interface._layerState != null
               ? interface._layerState!.nodeId!
               : interface._toolbarState.fitNodeId,
-          {fieldName: v}),
+          {fieldName.snakeCase: v}),
     );
   }
 
@@ -241,13 +241,59 @@ class _DialoguePanelState extends State<DialoguePanel> {
         ],
       );
     },
+    "io": (interface, v) {
+      String fieldName = "io";
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Text(
+              "Target",
+              style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                    color: Colors.white,
+                  ),
+            ),
+          ),
+          DropdownButton<String>(
+            value: "0",
+            items: [
+              DropdownMenuItem(
+                value: "0",
+                child: Text(
+                  "X",
+                  style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                        color: Colors.white,
+                      ),
+                ),
+              ),
+              DropdownMenuItem(
+                value: "1",
+                child: Text(
+                  "Y",
+                  style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                        color: Colors.white,
+                      ),
+                ),
+              ),
+            ],
+            onChanged: (v) => pyUpdate(fieldName, interface, v!),
+          ),
+        ],
+      );
+    },
     "validationTestSplit": (interface, v) {
       String fieldName = "validationTestSplit";
       double dv = double.tryParse(v)!;
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text("Validation Test Split"),
+          Text(
+            "Validation Test Split",
+            style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                  color: Colors.white,
+                ),
+          ),
           Slider(
             value: dv,
             divisions: 10,
@@ -313,12 +359,28 @@ class _DialoguePanelState extends State<DialoguePanel> {
                           ? "${interface._layerState!.widget.type} Layer"
                           : "Fit Settings",
                       style: Theme.of(context).textTheme.headline1),
-                  for (var setting in interface._settings.entries)
+                  if (interface._layerState == null ||
+                      (interface._layerState != null &&
+                          interface._layerState!.widget.type != "Compile"))
+                    for (var setting in interface._settings.entries)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: _settingWidgets[setting.key]!(
+                          interface,
+                          setting.value,
+                        ),
+                      )
+                  else if (interface._layerState != null &&
+                      interface._layerState!.widget.type == "Compile")
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
-                      child: _settingWidgets[setting.key]!(
-                        interface,
-                        setting.value,
+                      child: Text(
+                        "The compile layer has no editable settings on its "
+                        "own. Connect output, losses, optimizers, and metrics "
+                        "layers and change their settings to affect this layer.",
+                        style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                              color: Colors.white,
+                            ),
                       ),
                     )
                 ],
