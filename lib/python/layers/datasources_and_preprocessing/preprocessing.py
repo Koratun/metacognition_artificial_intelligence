@@ -56,12 +56,16 @@ class MapRangeSettings(InputOrOutputSetting):
     new_range_min: float
     new_range_max: float
 
+    @validator("old_range_max")
+    def old_range_not_zero(cls, v, values: dict):
+        if v == values.get("old_range_min"):
+            raise ValueError("Old range must span distance greater than zero.")
+        return v
+
     @validator("new_range_max")
-    def range_not_zero(cls, v, values: dict):
+    def new_range_not_zero(cls, v, values: dict):
         if v == values.get("new_range_min"):
             raise ValueError("New range must span distance greater than zero.")
-        if values.get("old_range_max") == values.get("old_range_min"):
-            raise ValueError("Old range must span distance greater than zero.")
         return v
 
 
