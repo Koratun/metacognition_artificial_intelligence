@@ -105,7 +105,7 @@ def process(command: str, payload: str):
             all_fields = list(setting_schema.properties.keys())
             for given_field in request.settings.keys():
                 if given_field not in all_fields:
-                    raise DagException(f"{given_field} is not a valid setting field for: {layer.__name__}")
+                    raise DagException(f"{given_field} is not a valid setting field for: {layer.__class__.__name__}")
             errors = layer.update_settings(request.settings)
 
             return format_response(ResponseType.VALIDATION, request_id=request_id, errors=errors)
