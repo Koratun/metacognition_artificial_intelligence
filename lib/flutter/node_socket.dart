@@ -9,28 +9,37 @@ import 'schemas/graph_exception_response.dart';
 
 import 'console.dart';
 import 'pycontroller.dart';
+import 'layer_tile.dart';
 import 'creation_canvas.dart';
 
 class NodeSocket extends StatefulWidget {
-  final String nodeId;
+  final LayerTileState parentLayer;
+  late final String nodeId;
   final Offset centerPos;
   final bool incoming;
   final bool vertical;
-  final int minNodes;
+  late final int minNodes;
   //This is only a double so we can access the infinity property
-  final double maxNodes;
-  final Color backgroundColor;
+  late final double maxNodes;
+  late final Color backgroundColor;
 
-  const NodeSocket(
-    this.nodeId,
+  NodeSocket(
+    this.parentLayer,
     this.centerPos,
-    this.incoming,
-    this.minNodes,
-    this.maxNodes,
-    this.backgroundColor, {
+    this.incoming, {
     this.vertical = false,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    nodeId = parentLayer.nodeId!;
+    backgroundColor = parentLayer.widget.backgroundColor!;
+    if (incoming) {
+      minNodes = parentLayer.minUpstreamNodes!;
+      maxNodes = parentLayer.maxUpstreamNodes!;
+    } else {
+      minNodes = parentLayer.minDownstreamNodes!;
+      maxNodes = parentLayer.maxDownstreamNodes!;
+    }
+  }
 
   @override
   State<NodeSocket> createState() => _NodeSocketState();
@@ -39,7 +48,7 @@ class NodeSocket extends StatefulWidget {
 class _StatusColors {
   static Color get noNodes => const Color(0xFFCC0000);
   static Color get oneMoreNode => const Color.fromARGB(255, 255, 196, 0);
-  static Color get maxNodes => const Color.fromARGB(255, 76, 255, 41);
+  static Color get nodesSatisfied => const Color.fromARGB(255, 76, 255, 41);
 }
 
 class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
@@ -67,9 +76,10 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
       } else if (v == widget.minNodes - 1) {
         targetColor = _StatusColors.oneMoreNode;
       } else if (v == widget.maxNodes) {
-        targetColor = _StatusColors.maxNodes;
-      } else if (v >= widget.minNodes && v < widget.maxNodes) {
+        // If max nodes are reached, make this socket blend in with its node.
         targetColor = widget.backgroundColor;
+      } else if (v >= widget.minNodes && v < widget.maxNodes) {
+        targetColor = _StatusColors.nodesSatisfied;
       } else {
         targetColor = Color.lerp(
           _StatusColors.noNodes,
@@ -147,7 +157,8 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
             if (currentNodes == widget.maxNodes) {
               interfaceListen.cancelConnection(incomingState.widget.nodeId);
               console.log(
-                "This node has already reached its maximum number of incoming connections",
+                "This node has already reached its maximum number of "
+                "incoming connections",
                 Logging.error,
               );
             } else {
@@ -168,7 +179,9 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
                       currentNodes += 1;
                       incomingState.currentNodes += 1;
                       console.log(
-                        "Successfully connected",
+                        "Successfully connected "
+                        "${incomingState.widget.parentLayer.widget.type} to "
+                        "${widget.parentLayer.widget.type}",
                         Logging.info,
                       );
                     }
@@ -178,7 +191,8 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
                     console.log(response.error, Logging.error);
                   } else {
                     console.log(
-                      "WARNING!! Unhandled response: $response from incoming Node Socket on ${widget.nodeId}",
+                      "WARNING!! Unhandled response: $response from incoming "
+                      "Node Socket on ${widget.nodeId}",
                       Logging.devError,
                     );
                   }
