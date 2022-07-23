@@ -1,4 +1,5 @@
 from python.directed_acyclic_graph import Layer, LayerSettings, DagNode, CompileException, CompileErrorReason
+import python.layers.datasources_and_preprocessing.preprocessing as preprocessing
 from python.layers.utils import Dtype
 from pydantic import validator, ValidationError
 from typing import NamedTuple
@@ -52,6 +53,10 @@ class KerasDatasource(Layer):
 
     def __call__(self):
         return self
+
+    def validate_connected_downstream(self, node: "DagNode"):
+        if not isinstance(node.layer, preprocessing.PreprocessingLayer) and node.layer.__class__.__name__ != "Input":
+            return "Datasource nodes must connect to Preprocessing nodes or to an Input node."
 
     def generate_code_line(self, node_being_built: DagNode) -> str:
         if self.constructed:
