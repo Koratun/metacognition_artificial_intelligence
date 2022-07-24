@@ -14,6 +14,10 @@ class Output(Layer):
         # the limits being checked are positive numbers 0 <= n <= inf is always True
         return True
 
+    def validate_connected_downstream(self, node: "DagNode"):
+        if node.layer.__class__.__name__ not in ("Input", "Compile"):
+            return "The output of a model must feed directly into another model or a Compile node."
+
     def _get_inputs(self, node_being_built: DagNode) -> str:
         input_nodes: list[DagNode] = []
         for n in node_being_built.upstream_nodes:

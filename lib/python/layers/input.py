@@ -1,6 +1,14 @@
 from typing import Optional
 from python.layers.utils import Dtype
-from python.directed_acyclic_graph import NamedLayerSettings, Layer, DagNode, CompileException, CompileErrorReason
+from python.layers.output import Output
+from python.layers.datasources_and_preprocessing import datasources, preprocessing
+from python.directed_acyclic_graph import (
+    NamedLayerSettings,
+    Layer,
+    DagNode,
+    CompileException,
+    CompileErrorReason,
+)
 from pydantic import StrictInt, ValidationError
 
 
@@ -13,6 +21,14 @@ class Input(Layer):
     settings_validator = InputSettings
     type = "input"
     max_upstream_nodes = 2
+
+    def validate_connected_upstream(self, node: "DagNode"):
+        if (
+            node.layer.__class__ not in (datasources.KerasDatasource, Output)
+            and not isinstance(node.layer, preprocessing.PreprocessingLayer)
+            and node.layer.__class__.__name__ != "Compile"
+        ):
+            return "Only preprocessing layers, datasources, and other models can feed into the Input node."
 
     def generate_code_line(self, node_being_built: DagNode) -> str:
         if self.constructed:
