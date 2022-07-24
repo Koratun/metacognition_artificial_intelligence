@@ -4,8 +4,8 @@ import 'dart:ui' as ui;
 
 import 'schemas/schema.dart';
 import 'schemas/creation_response.dart';
-import 'schemas/validation_response.dart';
 
+import 'selection_panel.dart';
 import 'node_socket.dart';
 import 'dialogue_panel.dart';
 import 'console.dart';
@@ -175,7 +175,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
       foregroundSize,
       widget.backgroundColor!,
       widget.foregroundColor!,
-      widget.type!,
+      layerShortenedTitles[widget.type!] ?? widget.type!,
       widget.symbol,
     );
 
@@ -218,15 +218,12 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
             left: 0,
             top: layerTilePainter.iconSize.height / 2 - 10 + 8,
             child: NodeSocket(
-              nodeId!,
+              this,
               Offset(
                 -layerTilePainter.iconSize.width / 2,
                 0,
               ),
               true,
-              minUpstreamNodes!,
-              maxUpstreamNodes!,
-              widget.backgroundColor!,
             ),
           ));
           layerTilePainter.clipSocketPosition(SocketDirection.west);
@@ -236,15 +233,12 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
             right: 0,
             top: layerTilePainter.iconSize.height / 2 - 10 + 8,
             child: NodeSocket(
-              nodeId!,
+              this,
               Offset(
                 layerTilePainter.iconSize.width / 2,
                 0,
               ),
               false,
-              minUpstreamNodes!,
-              maxUpstreamNodes!,
-              widget.backgroundColor!,
             ),
           ));
           layerTilePainter.clipSocketPosition(SocketDirection.east);
@@ -449,9 +443,9 @@ class LayerTilePainter extends CustomPainter {
         Rect.fromLTWH(0, 0, symbol!.width * 1.0, symbol!.height * 1.0),
         Rect.fromCenter(
           center:
-              Offset(12 + foregroundSize / 2, 12 + foregroundSize * (3 / 8)),
-          width: foregroundSize / 2,
-          height: foregroundSize / 2,
+              Offset(12 + foregroundSize / 2, 12 + foregroundSize * (7 / 16)),
+          width: foregroundSize / 2 + 4,
+          height: foregroundSize / 2 + 4,
         ),
         Paint(),
       );
@@ -465,21 +459,29 @@ class LayerTilePainter extends CustomPainter {
       }
     }
 
-    // Display text with Paragraph object
-    final layerTitleBuilder = ui.ParagraphBuilder(
-      ui.ParagraphStyle(
-        textAlign: TextAlign.center,
-        fontSize: 15,
-        fontFamily: "Segoe UI",
-      ),
-    )
-      ..pushStyle(ui.TextStyle(
-        color: backgroundColor,
-        fontWeight: FontWeight.bold,
-      ))
-      ..addText(name.toUpperCase());
-    final layerTitle = layerTitleBuilder.build()
-      ..layout(ui.ParagraphConstraints(width: foregroundSize));
+    double titleSize = 16;
+    ui.Paragraph layerTitle;
+
+    do {
+      titleSize -= 0.1;
+      // Display text with Paragraph object
+      final layerTitleBuilder = ui.ParagraphBuilder(
+        ui.ParagraphStyle(
+          textAlign: TextAlign.center,
+          fontSize: titleSize,
+          fontFamily: "Segoe UI",
+          maxLines: 1,
+        ),
+      )
+        ..pushStyle(ui.TextStyle(
+          color: backgroundColor,
+          fontWeight: FontWeight.bold,
+        ))
+        ..addText(name.toUpperCase());
+      layerTitle = layerTitleBuilder.build()
+        ..layout(ui.ParagraphConstraints(width: foregroundSize));
+    } while (layerTitle.didExceedMaxLines);
+
     canvas.drawParagraph(
       layerTitle,
       Offset(12, 12 + foregroundSize - layerTitle.height),

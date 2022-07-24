@@ -1,13 +1,21 @@
 from pydantic import ValidationError, validator, StrictInt
 from python.directed_acyclic_graph import LayerSettings, DagNode, CompileException, CompileErrorReason, Layer
-from python.layers.datasources_and_preprocessing.datasources import DatasetVars, KerasDatasource
+import python.layers.datasources_and_preprocessing.datasources as dt
 from typing import Literal
 
 
 class PreprocessingLayer(Layer):
     def __init__(self):
         super().__init__()
-        self.datasource: KerasDatasource = None
+        self.datasource: dt.KerasDatasource = None
+
+    def validate_connected_upstream(self, node: "DagNode"):
+        if not isinstance(node.layer, PreprocessingLayer) and not isinstance(node.layer, dt.KerasDatasource):
+            return "Only datasources and other preprocessing nodes can connect to a preprocessing node."
+
+    def validate_connected_downstream(self, node: "DagNode"):
+        if not isinstance(node.layer, PreprocessingLayer) and node.layer.__class__.__name__ != "Input":
+            return "Preprocessing nodes must connect to other Preprocessing nodes or to an Input node."
 
     def get_datasource(self, node: DagNode):
         """
@@ -25,7 +33,7 @@ class PreprocessingLayer(Layer):
         upstream_layer = node.upstream_nodes[0].layer
         if isinstance(upstream_layer, PreprocessingLayer):
             self.datasource = upstream_layer.datasource
-        elif isinstance(upstream_layer, KerasDatasource):
+        elif isinstance(upstream_layer, dt.KerasDatasource):
             self.datasource = upstream_layer
         else:
             raise CompileException(
@@ -39,7 +47,7 @@ class PreprocessingLayer(Layer):
 
 
 class InputOrOutputSetting(LayerSettings):
-    io: Literal[0, 1] = 0  # x or y
+    io: Literal["0", "1"] = "0"  # x or y
 
 
 class MapRangeSettings(InputOrOutputSetting):
@@ -48,12 +56,16 @@ class MapRangeSettings(InputOrOutputSetting):
     new_range_min: float
     new_range_max: float
 
+    @validator("old_range_max")
+    def old_range_not_zero(cls, v, values: dict):
+        if v == values.get("old_range_min"):
+            raise ValueError("Old range must span distance greater than zero.")
+        return v
+
     @validator("new_range_max")
-    def range_not_zero(cls, v, values):
-        if v == values["new_range_min"]:
-            raise ValueError("Range must span distance greater than zero.")
-        if values["old_range_max"] == values["old_range_min"]:
-            raise ValueError("Range must span distance greater than zero.")
+    def new_range_not_zero(cls, v, values: dict):
+        if v == values.get("new_range_min"):
+            raise ValueError("New range must span distance greater than zero.")
         return v
 
 
@@ -66,9 +78,9 @@ class MapRange(PreprocessingLayer):
 
         try:
             ranges: MapRangeSettings = self.settings_validator(**self.settings_data)
-            dataset: DatasetVars = self.datasource.dataset
+            dataset: dt.DatasetVars = self.datasource.dataset
             lines = "# Mapping old range to new range\n" + "\n".join(
-                f"{dataset[i][ranges.io]} = ({dataset[i][ranges.io]} - {ranges.old_range_min}) / ({ranges.old_range_max} - {ranges.old_range_min}) "
+                f"{dataset[i][int(ranges.io)]} = ({dataset[i][int(ranges.io)]} - {ranges.old_range_min}) / ({ranges.old_range_max} - {ranges.old_range_min}) "
                 f"* ({ranges.new_range_max} - {ranges.new_range_min}) + {ranges.new_range_min}"
                 for i in range(len(dataset))
             )

@@ -2,7 +2,6 @@ from uuid import UUID, uuid4
 from enum import Enum
 from typing import Type, Optional, Literal
 import re
-from humps import camelize
 from contextlib import contextmanager
 from pydantic import BaseModel, ValidationError, validator
 from pydantic.fields import ModelField
@@ -131,6 +130,12 @@ class Layer:
                 }
             )
 
+    def validate_connected_downstream(self, node: "DagNode"):
+        return None
+
+    def validate_connected_upstream(self, node: "DagNode"):
+        return None
+
     def construct_settings(self):
         set_settings: dict = self.settings_validator(**self.settings_data).dict(exclude_defaults=True, exclude={"name"})
         return ", ".join(f"{k}={v}" for k, v in set_settings.items())
@@ -176,6 +181,7 @@ class Compile(Layer):
     type = "compile"
     min_upstream_nodes = 3
     max_upstream_nodes = inf
+    min_downstream_nodes = 0
     max_downstream_nodes = inf
 
     def __init__(self):
@@ -190,6 +196,14 @@ class Compile(Layer):
         # If it is accessed outside this context, there is a good chance
         # that python will spew out a NoneType access error
         return self.output.layer.name
+
+    def validate_connected_downstream(self, node: "DagNode"):
+        if node.layer.__class__.__name__ != "Input":
+            return "Compile must be the last node in the graph or feed into an Input node."
+
+    def validate_connected_upstream(self, node: "DagNode"):
+        if node.layer.__class__.__name__ != "Output" and not isinstance(node.layer, CompileArgLayer):
+            return "Only Output, Loss, Optimizer, and Metric nodes may connect to a compile node."
 
     def generate_code_line(self, node_being_built: "DagNode") -> str:
         if self.constructed:
@@ -240,6 +254,10 @@ class Compile(Layer):
 class CompileArgLayer(Layer):
     min_upstream_nodes = 0
     max_upstream_nodes = 0
+
+    def validate_connected_downstream(self, node: "DagNode"):
+        if not isinstance(node.layer, Compile):
+            return "Compile arguments can only be connected to a Compile node."
 
     def generate_code_line(self, node_being_built: "DagNode") -> str:
         if not isinstance(node_being_built.downstream_nodes[0].layer, Compile):
@@ -398,6 +416,14 @@ class DirectedAcyclicGraph:
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
                 raise DagException("Circular graphs not allowed")
+            elif error := source_node.layer.validate_connected_downstream(dest_node):
+                self.edges.pop()
+                source_node.disconnect_from(dest_node)
+                raise DagException(error)
+            elif error := dest_node.layer.validate_connected_upstream(source_node):
+                self.edges.pop()
+                source_node.disconnect_from(dest_node)
+                raise DagException(error)
 
     def disconnect_nodes(self, source_id: UUID, dest_id: UUID):
         source_node, dest_node = self.get_node(source_id), self.get_node(dest_id)
