@@ -32,17 +32,24 @@ Map<String, Map<String, dynamic>> layerTileAssetData = {
   "Input": {"color": const Color(0xff72efdd)},
   "Dense": {"color": const Color(0xff9ad1d4)},
   "Output": {"color": const Color(0xff4ea8de)},
-  "OneHotEncode": {"color": Color.fromARGB(255, 129, 167, 146)},
-  "MapRange": {"color": Color.fromARGB(255, 108, 175, 164)},
+  "OneHotEncode": {"color": const Color.fromARGB(255, 129, 167, 146)},
+  "MapRange": {"color": const Color.fromARGB(255, 108, 175, 164)},
   "Boston Housing": {"color": const Color(0xfffdff91)},
   "MNIST": {"color": const Color(0xffe5d9a5)},
-  "Fashion MNIST": {"color": Color.fromARGB(255, 156, 0, 0)},
+  "Fashion MNIST": {"color": const Color.fromARGB(255, 156, 0, 0)},
   "CIFAR10": {"color": const Color(0xff29b947)},
   "CIFAR100": {"color": const Color(0xff0098e7)},
   "IMDB": {"color": const Color(0xffe4e400)},
   "Compile": {"color": const Color(0xff6ab0e6)},
   "Accuracy": {"color": const Color(0xfffff08c)},
-  "BinaryCrossentropy": {"color": const Color.fromARGB(255, 116, 116, 116)},
+  "BinaryCrossentropy": {"color": const Color.fromARGB(255, 255, 205, 41)},
+  "RMSProp": {"color": const Color(0xff3360ff)},
+  "Adagrad": {"color": const Color(0xff3afecc)},
+  "Ftrl": {"color": const Color(0xff00d539)},
+  "Poisson": {"color": const Color(0xff92ff13)},
+  "LogCoshError": {"color": const Color(0xffffc313)},
+  "MeanSquaredError": {"color": const Color.fromARGB(255, 255, 217, 0)},
+  "CategoricalCrossentropy": {"color": const Color(0xffd67725)},
 };
 
 const Map<String, String> layerShortenedTitles = {
@@ -51,6 +58,9 @@ const Map<String, String> layerShortenedTitles = {
   "Boston Housing": "Boston",
   "Fashion MNIST": "Fashion",
   "BinaryCrossentropy": "Binary",
+  "LogCoshError": "LogCosh",
+  "MeanSquaredError": "MeanError",
+  "CategoricalCrossentropy": "Category",
 };
 
 class SelectionPanel extends StatefulWidget {
