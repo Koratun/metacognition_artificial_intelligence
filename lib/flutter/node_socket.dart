@@ -95,8 +95,9 @@ class _NodeSocketState extends State<NodeSocket> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    targetColor =
-        widget.minNodes > 0 ? _StatusColors.noNodes : widget.backgroundColor;
+    targetColor = widget.minNodes > 0
+        ? _StatusColors.noNodes
+        : _StatusColors.nodesSatisfied;
     currentColor = targetColor;
     lastColor = targetColor;
     colorTransition.addListener(() => setState(
