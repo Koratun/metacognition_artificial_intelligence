@@ -443,9 +443,9 @@ class LayerTilePainter extends CustomPainter {
         Rect.fromLTWH(0, 0, symbol!.width * 1.0, symbol!.height * 1.0),
         Rect.fromCenter(
           center:
-              Offset(12 + foregroundSize / 2, 12 + foregroundSize * (3 / 8)),
-          width: foregroundSize / 2,
-          height: foregroundSize / 2,
+              Offset(12 + foregroundSize / 2, 12 + foregroundSize * (7 / 16)),
+          width: foregroundSize / 2 + 4,
+          height: foregroundSize / 2 + 4,
         ),
         Paint(),
       );
