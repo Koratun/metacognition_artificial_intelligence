@@ -4,14 +4,38 @@ from pydantic import validator
 
 
 class RMSPropSettings(LayerSettings):
-    learning_rate: float = (0.001,)
-    rho: float = (0.9,)
-    momentum: float = (0.0,)
+    learning_rate: float = 0.001,
+    @validator("learning_rate")
+    def postiveV(cls,v):
+        if v > 0:
+            return v
+        else:
+            raise ValueError("The value must be greater than 0.")
+    rho: float = 0.9,
+    @validator("rho")
+    def postiveV(cls,v):
+        if v > 0:
+            return v
+        else:
+            raise ValueError("The value must be greater than 0.")
+    momentum: float = 0.0,
+    @validator("momentum")
+    def postiveV(cls,v):
+        if v > 0:
+            return v
+        else: 
+            raise ValueError("The value must be greater than 0.")
     centered: bool = False
 
 
 class AdagradSettings(LayerSettings):
-    learning_rate: float = (0.001,)
+    learning_rate: float = 0.001, 
+    @validator("learning_rate")
+    def postiveV(cls,v):
+        if v > 0:
+            return v
+        else:
+            raise ValueError("The value must be greater than 0.")
     initial_accumulator_value: float = 0.1
 
     @validator("initial_accumulator_value")
@@ -23,7 +47,13 @@ class AdagradSettings(LayerSettings):
 
 
 class FtrlSettings(LayerSettings):
-    learning_rate: float = (0.001,)
+    learning_rate: float = 0.001,
+    @validator("learning_rate")
+    def postiveV(cls,v):
+        if v > 0:
+            return v
+        else:
+            raise ValueError("The value must be greater than 0.")
     # only less than or equal to 0 for learning rate power
     learning_rate_power: float = (-0.5,)
 
@@ -46,8 +76,12 @@ class FtrlSettings(LayerSettings):
 
     # Magnitude penalty, only happen with active weights
     l2_shrinkage_regularization_strength: float = 0.0
-
-
+    @validator("l2_shrinkage_regularization_strength")
+    def postiveV(cls,v):
+        if v >= 0:
+            return v
+        else:
+            raise ValueError("The value must be greater than or equal to 0.")
 class RMSProp(Optimizer):
     settings_validator = RMSPropSettings
 

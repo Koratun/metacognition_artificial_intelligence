@@ -95,20 +95,20 @@ class TestUpdateLayer:
 
     def test_learning_rate(self):
         layer = layer_classes["RMSPropSettings"]()
-        assert layer.update_settings(dict(learning_rate="0.01"))
-        assert layer.update_settings(dict(learning_rate="0.1"))
+        assert layer.update_settings(dict(learning_rate="-0.01"))
+        assert not layer.update_settings(dict(learning_rate="0.1"))
         assert not layer.update_settings(dict(learning_rate="0.001"))
 
     def test_rho(self):
         layer = layer_classes["RMSPropSettings"]()
-        assert layer.update_settings(dict(rho="9"))
         assert layer.update_settings(dict(rho="0"))
+        assert not layer.update_settings(dict(rho="9"))
         assert not layer.update_settings(dict(rho="0.9"))
 
     def test_momentum(self):
         layer = layer_classes["RMSPropSettings"]()
-        assert layer.update_settings(dict(momentum="1"))
-        assert layer.update_settings(dict(momentum="0.5"))
+        assert layer.update_settings(dict(momentum="-1"))
+        assert  not layer.update_settings(dict(momentum="0.5"))
         assert not layer.update_settings(dict(momentum="0.0"))
 
     def test_centered(self):
@@ -131,5 +131,5 @@ class TestUpdateLayer:
 
     def test_l2_shrinkage_regularization_strength(self):
         layer = layer_classes["FtrlSettings"]()
-        assert layer.update_settings(dict(l2_shrinkage_regularization_strength="1"))
+        assert layer.update_settings(dict(l2_shrinkage_regularization_strength="-1"))
         assert not layer.update_settings(dict(l2_shrinkage_regularization_strength="0.0"))
