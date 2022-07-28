@@ -7,8 +7,8 @@ import 'schemas/init_fit_event.dart';
 import 'schemas/compile_error_disjointed_response.dart';
 import 'schemas/compile_error_response.dart';
 import 'schemas/compile_error_settings_validation_response.dart';
-import 'schemas/compile_success_response.dart';
 import 'schemas/graph_exception_response.dart';
+import 'schemas/success_fail_response.dart';
 
 import 'console.dart';
 import 'dialogue_panel.dart';
@@ -24,8 +24,8 @@ class Toolbar extends StatefulWidget {
 
 class ToolbarState extends State<Toolbar> {
   bool fitted = false;
-  late final Map<String, String> fitSettings;
-  late final String fitNodeId;
+  Map<String, String> fitSettings = {};
+  String fitNodeId = "";
   bool? _compileSuccess;
 
   @override
@@ -50,24 +50,41 @@ class ToolbarState extends State<Toolbar> {
 
   void fitFailed() => setState(() => fitted = false);
 
+  void invalidateCompile() => setState(() => _compileSuccess = null);
+
   // The errors need better work to display their contents
   void _compileRequest() =>
       PyController.request(CommandType.compile, (response) {
         var console = Provider.of<ConsoleInterface>(context, listen: false);
-        if (response is CompileSuccessResponse) {
-          console.log("Compilation succesful!", Logging.info);
+        if (response is SuccessFailResponse) {
+          console.log(
+            "Compilation succesful!",
+            Logging.info,
+          );
           setState(() => _compileSuccess = true);
         } else if (response is CompileErrorSettingsValidationResponse) {
-          console.log(response.errors.toString(), Logging.error);
+          console.log(
+            response.errors.toString(),
+            Logging.error,
+          );
           setState(() => _compileSuccess = false);
         } else if (response is CompileErrorDisjointedResponse) {
-          console.log(response.reason.name, Logging.error);
+          console.log(
+            response.reason.name + ": " + response.errors,
+            Logging.error,
+          );
           setState(() => _compileSuccess = false);
         } else if (response is CompileErrorResponse) {
-          console.log(response.reason.name, Logging.error);
+          console.log(
+            response.reason.name + ": " + response.errors,
+            Logging.error,
+          );
           setState(() => _compileSuccess = false);
         } else if (response is GraphExceptionResponse) {
-          console.log(response.error, Logging.error);
+          console.log(
+            response.error,
+            Logging.error,
+          );
           setState(() => _compileSuccess = false);
         } else {
           console.log(
@@ -131,7 +148,7 @@ class ToolbarState extends State<Toolbar> {
               borderRadius: BorderRadius.circular(5),
               onTap: _compileSuccess != null && _compileSuccess!
                   // Replace when training logic is ready
-                  ? () => debugPrint("Train")
+                  ? () => PyController.trainAI(context)
                   : null,
               child: Padding(
                 padding: const EdgeInsets.all(8),
