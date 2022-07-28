@@ -169,16 +169,8 @@ class Layer:
             )
 
 
-class CompileSettings(LayerSettings):
-    output_node_id: UUID
-    loss_node_id: UUID
-    optimizer_node_id: UUID
-    metric_node_ids: Optional[list[UUID]]
-
-
 class Compile(Layer):
-    settings_validator = CompileSettings
-    type = "compile"
+    settings_validator = LayerSettings
     min_upstream_nodes = 3
     max_upstream_nodes = inf
     min_downstream_nodes = 0
@@ -189,6 +181,7 @@ class Compile(Layer):
         self.output: DagNode = None
         self.loss: DagNode = None
         self.optimizer: DagNode = None
+        self.metrics: list[DagNode] = []
 
     @property
     def name(self):
@@ -198,12 +191,38 @@ class Compile(Layer):
         return self.output.layer.name
 
     def validate_connected_downstream(self, node: "DagNode"):
-        if node.layer.__class__.__name__ != "Input":
+        if node.layer.__class__.__name__ not in ["Input", "Fit"]:
             return "Compile must be the last node in the graph or feed into an Input node."
 
     def validate_connected_upstream(self, node: "DagNode"):
         if node.layer.__class__.__name__ != "Output" and not isinstance(node.layer, CompileArgLayer):
             return "Only Output, Loss, Optimizer, and Metric nodes may connect to a compile node."
+
+    def connect_special_node(self, node: "DagNode"):
+        if isinstance(node.layer, Loss):
+            if self.loss:
+                return "A model can only have one loss"
+            self.loss = node
+        elif isinstance(node.layer, Optimizer):
+            if self.optimizer:
+                return "A model can only have one optimizer"
+            self.optimizer = node
+        elif isinstance(node.layer, Metric):
+            self.metrics.append(node)
+        else:
+            if self.output:
+                return "A Compile node can only receive one Output node"
+            self.output = node
+
+    def disconnect_special_node(self, node: "DagNode"):
+        if isinstance(node.layer, Loss):
+            self.loss = None
+        elif isinstance(node.layer, Optimizer):
+            self.optimizer = None
+        elif isinstance(node.layer, Metric):
+            self.metrics.remove(node)
+        else:
+            self.output = None
 
     def generate_code_line(self, node_being_built: "DagNode") -> str:
         if self.constructed:
@@ -214,39 +233,29 @@ class Compile(Layer):
                     "errors": "This compile node has already been constructed, you cannot compile a model twice.",
                 }
             )
-        try:
-            # Perform setting validation
-            node_connections: CompileSettings = self.settings_validator(**self.settings_data)
-            # We can assume that all the nodes are of the correct types and that
-            # the three necessary nodes (out, loss, opt) are present since validation
-            # has already passed. The Frontend will make sure that only nodes of the correct
-            # type can be attached to the compile layer.
-            metrics: list[DagNode] = []
-            for n in node_being_built.upstream_nodes:
-                n.seen = True
-                if n.id == node_connections.output_node_id:
-                    self.output = n
-                elif n.id == node_connections.loss_node_id:
-                    self.loss = n
-                elif n.id == node_connections.optimizer_node_id:
-                    self.optimizer = n
-                elif n.id in node_connections.metric_node_ids:
-                    metrics.append(n)
-
-            line = f"{self.output.layer.name}.compile("
-            line += f"\n\toptimizer={self.optimizer.code_gen()}, "
-            line += f"\n\tloss={self.loss.code_gen()}, "
-            line += f"\n\tmetrics=[{', '.join(n.code_gen() for n in metrics)}]\n)"
-            self.constructed = True
-            return line
-        except ValidationError as e:
+        # Perform validation
+        errors = []
+        if not self.loss:
+            errors.append("No loss found")
+        if not self.optimizer:
+            errors.append("No optimizer found")
+        if not self.output:
+            errors.append("No model attached to this compile node")
+        if errors:
             raise CompileException(
                 {
                     "node_id": str(node_being_built.id),
-                    "reason": CompileErrorReason.SETTINGS_VALIDATION,
-                    "errors": e.errors(),
+                    "reason": CompileErrorReason.COMPILATION_VALIDATION,
+                    "errors": "; ".join(errors),
                 }
             )
+
+        line = f"{self.name}.compile("
+        line += f"\n\toptimizer={self.optimizer.code_gen()}, "
+        line += f"\n\tloss={self.loss.code_gen()}, "
+        line += f"\n\tmetrics=[{', '.join(n.code_gen() for n in self.metrics)}]\n)"
+        self.constructed = True
+        return line
 
 
 # These classes would normally go inside the compilation folder,
@@ -340,12 +349,17 @@ class DirectedAcyclicGraph:
         self.fit_node = self.add_node(Fit())
 
     @contextmanager
-    def _unsee(self, construct=False):
+    def _unsee(self, last_node_id: UUID = None):
+        if last_node_id:
+            # Temporarily connect the fit node with the last node
+            self.connect_nodes(last_node_id, self.fit_node.id)
         yield
         for n in self.nodes:
             n.seen = False
-            if construct:
+            if last_node_id:
                 n.layer.reset_construct()
+        if last_node_id:
+            self.disconnect_nodes(last_node_id, self.fit_node.id)
 
     def get_head_nodes(self) -> list[DagNode]:
         with self._unsee():
@@ -354,7 +368,9 @@ class DirectedAcyclicGraph:
             head_nodes = [
                 n
                 for n in self.nodes
-                if not n.seen and not isinstance(n.layer, CompileArgLayer) and (n.upstream_nodes or n.downstream_nodes)
+                if not n.seen
+                and not isinstance(n.layer, CompileArgLayer)
+                and (len(n.upstream_nodes) > 0 or len(n.downstream_nodes) > 0)
             ]
         return head_nodes
 
@@ -378,7 +394,12 @@ class DirectedAcyclicGraph:
                         return False
             else:
                 return False
-            cyclic = len([n for n in self.nodes if not n.seen and (n.upstream_nodes or n.downstream_nodes)]) == 0
+            cyclic = (
+                len(
+                    [n for n in self.nodes if not n.seen and (len(n.upstream_nodes) > 0 or len(n.downstream_nodes) > 0)]
+                )
+                == 0
+            )
             return cyclic
 
     def _check_acyclic(self, node: DagNode) -> bool:
@@ -424,12 +445,19 @@ class DirectedAcyclicGraph:
                 self.edges.pop()
                 source_node.disconnect_from(dest_node)
                 raise DagException(error)
+            if isinstance(dest_node.layer, Compile):
+                if error := dest_node.layer.connect_special_node(source_node):
+                    self.edges.pop()
+                    source_node.disconnect_from(dest_node)
+                    raise DagException(error)
 
     def disconnect_nodes(self, source_id: UUID, dest_id: UUID):
         source_node, dest_node = self.get_node(source_id), self.get_node(dest_id)
         if (source_node, dest_node) in self.edges:
             self.edges.remove((source_node, dest_node))
             source_node.disconnect_from(dest_node)
+            if isinstance(dest_node.layer, Compile):
+                dest_node.layer.disconnect_special_node(source_node)
         else:
             raise DagException("Connection not found")
 
@@ -459,7 +487,9 @@ class DirectedAcyclicGraph:
                 self._check_graph_whole_recurse(n, up=True)
             # Now check if there are any nodes in the graph that have not been seen
             disjointed_node_ids = [
-                str(n.id) for n in self.nodes if not n.seen and (n.upstream_nodes or n.downstream_nodes)
+                str(n.id)
+                for n in self.nodes
+                if not n.seen and (len(n.upstream_nodes) > 0 or len(n.downstream_nodes) > 0)
             ]
             if disjointed_node_ids:
                 raise CompileException(
@@ -475,7 +505,9 @@ class DirectedAcyclicGraph:
         with self._unsee():
             for e in self.edges:
                 e[0].seen = True
-            tail_nodes = [n for n in self.nodes if not n.seen and (n.upstream_nodes or n.downstream_nodes)]
+            tail_nodes = [
+                n for n in self.nodes if not n.seen and (len(n.upstream_nodes) > 0 or len(n.downstream_nodes) > 0)
+            ]
             if len(tail_nodes) != 1:
                 raise CompileException(
                     {
@@ -507,8 +539,9 @@ class DirectedAcyclicGraph:
         if not isinstance(last_node.layer, Compile):
             raise DagException("The graph must end with a Compile node")
 
-        # Temporarily connect the fit node with the last node
-        self.connect_nodes(last_node.id, self.fit_node.id)
+        heads = self.get_head_nodes()
+        if not heads:
+            raise DagException("Graph needs more than a compile layer!")
 
         model_file = "##~ Model code generated by MAI: DO NOT TOUCH! ~Mai\n\n"
         model_file += "import numpy as np\n"
@@ -516,13 +549,12 @@ class DirectedAcyclicGraph:
         model_file += "import keras\n"
         model_file += "from keras import layers, losses, optimizers, metrics, callbacks\n\n"
 
-        with self._unsee(construct=True):
-            for head in self.get_head_nodes():
+        with self._unsee(last_node_id=last_node.id):
+            for head in heads:
                 head.seen = True
                 model_file += head.code_gen() + "\n"
                 model_file += self._construct_keras(head)
 
-        self.disconnect_nodes(last_node.id, self.fit_node.id)
         return model_file.rstrip()
 
     def _construct_keras(self, node: DagNode):
