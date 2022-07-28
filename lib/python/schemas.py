@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import Optional, Type, Any
 from pydantic import BaseModel, validator
 from python.directed_acyclic_graph import CompileErrorReason
-from python.layers.utils import Dtype  # Dtype is needed here for dart schema creation!
+from python.layers.utils import Dtype, Activation  # these are needed here for dart schema creation!
 from humps import camelize
 from python.layers import layer_classes
 
@@ -141,7 +141,6 @@ class ResponseType(SchemaEnum):
     COMPILE_ERROR = "compile_error"
     COMPILE_ERROR_DISJOINTED = "compile_error_disjointed"
     COMPILE_ERROR_SETTINGS_VALIDATION = "compile_error_settings_validation"
-    COMPILE_SUCCESS = "compile_success"
 
     @classmethod
     @property
@@ -167,10 +166,6 @@ class CreationResponse(RequestResponseModel):
 
 class SuccessFailResponse(RequestResponseModel):
     error: Optional[str]
-
-
-class CompileSuccessResponse(RequestResponseModel):
-    py_file: str
 
 
 class ValidationError(BaseModel):
@@ -222,7 +217,6 @@ response_model_rep = {
     ResponseType.COMPILE_ERROR: CompileErrorResponse,
     ResponseType.COMPILE_ERROR_DISJOINTED: CompileErrorDisjointedResponse,
     ResponseType.COMPILE_ERROR_SETTINGS_VALIDATION: CompileErrorSettingsValidationResponse,
-    ResponseType.COMPILE_SUCCESS: CompileSuccessResponse,
 }
 
 
