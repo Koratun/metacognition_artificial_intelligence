@@ -66,7 +66,8 @@ enum Logging {
 }
 
 class ConsoleInterface extends ChangeNotifier {
-  final List<Text> _logs = [];
+  final List<Widget> _logs = [];
+  bool _liveLog = false;
 
   static const _logColors = {
     Logging.info: Colors.white,
@@ -80,13 +81,17 @@ class ConsoleInterface extends ChangeNotifier {
     if (state == Logging.devError) {
       msg = "Dev error -> $msg - This is a developer's fault!";
     }
-    _logs.insert(
-      0,
-      Text(
-        msg,
-        style: TextStyle(color: _logColors[state]),
-      ),
-    );
+    if (msg.contains(RegExp(r"\[[=>.]+\]"))) {
+      if (!_liveLog) {
+        _liveLog = true;
+        _logs.insert(0, Text(msg, style: TextStyle(color: _logColors[state]!)));
+      } else {
+        _logs[0] = Text(msg, style: TextStyle(color: _logColors[state]!));
+      }
+    } else {
+      _liveLog = false;
+      _logs.insert(0, Text(msg, style: TextStyle(color: _logColors[state])));
+    }
     notifyListeners();
   }
 }
