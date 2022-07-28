@@ -85,7 +85,7 @@ class MapRange(PreprocessingLayer):
                 for i in range(len(dataset))
             )
             self.constructed = True
-            return lines
+            return lines + "\n"
         except ValidationError as e:
             raise CompileException(
                 {
@@ -124,7 +124,10 @@ class OneHotEncode(PreprocessingLayer):
             lines += "\tfor i, y in enumerate(y_data):\n"
             lines += "\t\tencoded_y[i][y] = 1\n"
             lines += "\treturn encoded_y\n\n"
-            lines += f"{self.datasource.dataset.train.y} = one_hot_encode({self.datasource.dataset.train.y})\n\n"
+            lines += f"{self.datasource.dataset.train.y} = one_hot_encode({self.datasource.dataset.train.y})\n"
+            lines += (
+                f"{self.datasource.dataset.validation.y} = one_hot_encode({self.datasource.dataset.validation.y})\n\n"
+            )
 
             self.constructed = True
             return lines
@@ -136,3 +139,17 @@ class OneHotEncode(PreprocessingLayer):
                     "errors": e.errors(),
                 }
             )
+
+
+class NumpyFlatten(PreprocessingLayer):
+    settings_validator = LayerSettings
+
+    def generate_code_line(self, node_being_built: DagNode) -> str:
+        self.get_datasource(node_being_built)
+        dataset = self.datasource.dataset
+
+        lines = "# Flattening numpy arrays\n"
+        lines += "\n".join(
+            f"{dataset[i].x} = {dataset[i].x}.reshape({dataset[i].x}.shape[0], -1)" for i in range(len(dataset))
+        )
+        return lines + "\n"
