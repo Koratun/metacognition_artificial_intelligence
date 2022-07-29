@@ -63,7 +63,7 @@ class TestUpdateLayer:
         layer = layer_classes["MapRange"]()
         assert not layer.update_settings(
             dict(
-                io=1,
+                io="1",
                 old_range_min="0",
                 old_range_max="10",
                 new_range_min="0",
@@ -71,9 +71,9 @@ class TestUpdateLayer:
             )
         )
         assert layer.update_settings(dict(io="a"))
-        assert layer.update_settings(dict(io=2))
-        assert layer.update_settings(dict(io=0.5))
-        assert not layer.update_settings(dict(io=0))
+        assert layer.update_settings(dict(io="2"))
+        assert layer.update_settings(dict(io="0.5"))
+        assert not layer.update_settings(dict(io="0"))
         assert layer.update_settings(dict(new_range_min="1"))
         assert not layer.update_settings(dict(new_range_min="-1"))
         assert layer.update_settings(dict(old_range_min="10"))
@@ -94,42 +94,42 @@ class TestUpdateLayer:
         assert not layer.update_settings(dict(from_logits="True"))
 
     def test_learning_rate(self):
-        layer = layer_classes["RMSPropSettings"]()
-        assert layer.update_settings(dict(learning_rate="0.01"))
-        assert layer.update_settings(dict(learning_rate="0.1"))
+        layer = layer_classes["RMSProp"]()
+        assert not layer.update_settings(dict(learning_rate="0.01"))
+        assert not layer.update_settings(dict(learning_rate="0.1"))
         assert not layer.update_settings(dict(learning_rate="0.001"))
 
     def test_rho(self):
-        layer = layer_classes["RMSPropSettings"]()
-        assert layer.update_settings(dict(rho="9"))
-        assert layer.update_settings(dict(rho="0"))
+        layer = layer_classes["RMSProp"]()
+        assert not layer.update_settings(dict(rho="9"))
+        assert not layer.update_settings(dict(rho="0"))
         assert not layer.update_settings(dict(rho="0.9"))
 
     def test_momentum(self):
-        layer = layer_classes["RMSPropSettings"]()
-        assert layer.update_settings(dict(momentum="1"))
-        assert layer.update_settings(dict(momentum="0.5"))
+        layer = layer_classes["RMSProp"]()
+        assert not layer.update_settings(dict(momentum="1"))
+        assert not layer.update_settings(dict(momentum="0.5"))
         assert not layer.update_settings(dict(momentum="0.0"))
 
     def test_centered(self):
-        layer = layer_classes["RMSPropSettings"]()
+        layer = layer_classes["RMSProp"]()
         assert layer.update_settings(dict(centered="dog"))
         assert not layer.update_settings(dict(centered="True"))
         assert not layer.update_settings(dict(centered="False"))
 
     def test_initial_accumulator_value(self):
-        layer = layer_classes["AdagradSettings"]()
+        layer = layer_classes["Adagrad"]()
         assert layer.update_settings(dict(initial_accumulator_value="-1"))
         assert not layer.update_settings(dict(initial_accumulator_value="0.1"))
         assert not layer.update_settings(dict(initial_accumulator_value="1"))
 
     def test_learning_rate_power(self):
-        layer = layer_classes["FtrlSettings"]()
+        layer = layer_classes["Ftrl"]()
         assert layer.update_settings(dict(learning_rate_power="1"))
         assert not layer.update_settings(dict(learning_rate_power="-0.5"))
         assert not layer.update_settings(dict(learning_rate_power="-0.2"))
 
     def test_l2_shrinkage_regularization_strength(self):
-        layer = layer_classes["FtrlSettings"]()
-        assert layer.update_settings(dict(l2_shrinkage_regularization_strength="1"))
+        layer = layer_classes["Ftrl"]()
+        assert not layer.update_settings(dict(l2_shrinkage_regularization_strength="1"))
         assert not layer.update_settings(dict(l2_shrinkage_regularization_strength="0.0"))

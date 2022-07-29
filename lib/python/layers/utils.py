@@ -41,3 +41,15 @@ class Dtype(FormatEnum):
 
     def __str__(self):
         return "tf." + self.value
+
+
+class Activation(FormatEnum):
+    relu = "relu"
+    sigmoid = "sigmoid"
+    softmax = "softmax"
+    tanh = "tanh"
+    selu = "selu"
+    elu = "elu"
+
+    def __str__(self):
+        return f'"{self.value}"'

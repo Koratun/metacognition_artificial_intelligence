@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
 import 'dart:convert';
 
@@ -7,11 +8,14 @@ import 'schemas/event_type_enum.dart';
 import 'schemas/response_type_enum.dart';
 import 'schemas/command_type_enum.dart';
 
+import 'console.dart';
+
 //Used for debugging
 const bool _echo = true;
 
 class PyController {
   static Process? _python;
+  static Process? _ai;
   static Map<String, void Function(RequestResponseSchema)> responseActions = {};
   static Map<EventType, List<void Function(Schema)>> eventHandlers = {};
   static Map<EventType, List<Schema>> eventQueue = {};
@@ -19,7 +23,7 @@ class PyController {
   static Future<void> init() async {
     _python = await Process.start(
       ".venv\\Scripts\\python.exe",
-      [".\\lib\\python\\dart_endpoint.py"],
+      ["lib\\python\\dart_endpoint.py"],
       runInShell: true,
     );
     _python?.stdout.transform(utf8.decoder).forEach((data) {
@@ -28,6 +32,35 @@ class PyController {
       }
     });
     _python?.stderr.transform(utf8.decoder).forEach(debugPrint);
+  }
+
+  static Future<void> reset() async {
+    _python?.stdin.writeln("Exit");
+    _python?.kill();
+    await init();
+  }
+
+  static Future<void> trainAI(BuildContext context) async {
+    var console = Provider.of<ConsoleInterface>(context, listen: false);
+    console.log("Beginning training...", Logging.info);
+    _ai = await Process.start(
+      ".venv\\Scripts\\python.exe",
+      ["data\\MAI.py"],
+      runInShell: true,
+    );
+    _ai?.stdout.transform(utf8.decoder).forEach((data) {
+      for (var s in data.trim().split('\n')) {
+        if (s.contains(RegExp(r"\S"))) {
+          if (s.contains("Epoch")) {
+            s = "\n" + s;
+          }
+          console.log(s, Logging.info);
+        }
+      }
+    });
+    _ai?.stderr
+        .transform(utf8.decoder)
+        .forEach((s) => console.log(s, Logging.warn));
   }
 
   static void request(

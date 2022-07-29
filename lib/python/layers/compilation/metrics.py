@@ -7,7 +7,7 @@ class MetricsSettings(LayerSettings):
     dtype: Optional[Dtype] = None
 
 
-class Accuracy(Metric):
+class CategoricalAccuracy(Metric):
     settings_validator = MetricsSettings
 
 

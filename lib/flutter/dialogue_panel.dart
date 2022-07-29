@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'schemas/dtype_enum.dart';
+import 'schemas/activation_enum.dart';
 import 'schemas/command_type_enum.dart';
 import 'schemas/update_layer.dart';
 import 'schemas/graph_exception_response.dart';
@@ -50,6 +51,7 @@ class _DialoguePanelState extends State<DialoguePanel> {
     String v,
   ) {
     interface._settings[fieldName] = v;
+    interface._toolbarState.invalidateCompile();
     PyController.request(
       CommandType.update,
       (response) {
@@ -174,6 +176,82 @@ class _DialoguePanelState extends State<DialoguePanel> {
     );
   }
 
+  Widget _plainSwitchSetting(
+    String fieldName,
+    String label,
+    DialogueInterface interface,
+    String v,
+  ) {
+    bool on = v == "True";
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                    color: Colors.white,
+                  ),
+            )),
+        Switch(
+          value: on,
+          onChanged: (v) =>
+              pyUpdate(fieldName, interface, v ? "True" : "False"),
+        )
+      ],
+    );
+  }
+
+  Widget _dropdownFromEnum(
+    String fieldName,
+    String label,
+    String defaultLabel,
+    List<String> enumNames,
+    DialogueInterface interface,
+    String v,
+  ) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                  color: Colors.white,
+                ),
+          ),
+        ),
+        DropdownButton<String>(
+          value: v,
+          items: [
+            DropdownMenuItem(
+              value: "",
+              child: Text(
+                defaultLabel,
+                style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                      color: Colors.white,
+                    ),
+              ),
+            ),
+            for (var n in enumNames)
+              DropdownMenuItem(
+                value: n,
+                child: Text(
+                  n,
+                  style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                        color: Colors.white,
+                      ),
+                ),
+              ),
+          ],
+          onChanged: (v) => pyUpdate(fieldName, interface, v!),
+        ),
+      ],
+    );
+  }
+
   late final _settingWidgets = <
       String,
       Widget Function(
@@ -192,6 +270,20 @@ class _DialoguePanelState extends State<DialoguePanel> {
         _plainTextSetting("newRangeMin", "New range minimum", interface, v),
     "newRangeMax": (interface, v) =>
         _plainTextSetting("newRangeMax", "New range maximum", interface, v),
+    "learningRate": (interface, v) =>
+        _plainTextSetting("learningRate", "Learning Rate", interface, v),
+    "learningRatePower": (interface, v) => _plainTextSetting(
+        "learningRatePower", "Learning Rate Power", interface, v),
+    "rho": (interface, v) => _plainTextSetting("rho", "Rho: ρ", interface, v),
+    "momentum": (interface, v) =>
+        _plainTextSetting("momentum", "Momentum", interface, v),
+    "l2ShrinkageRegularizationStrength": (interface, v) => _plainTextSetting(
+        "l2ShrinkageRegularizationStrength",
+        "L2 Shrinkage Regularization Strength",
+        interface,
+        v),
+    "initialAccumulatorValue": (interface, v) => _plainTextSetting(
+        "initialAccumulatorValue", "Initial Accumulator Value", interface, v),
     "units": (interface, v) =>
         _plainIntegerSetting("units", "Units", interface, v),
     "batchSize": (interface, v) =>
@@ -200,48 +292,22 @@ class _DialoguePanelState extends State<DialoguePanel> {
         _plainIntegerSetting("epochs", "Epochs", interface, v),
     "nClasses": (interface, v) => _plainIntegerSetting(
         "nClasses", "Number of Classifications", interface, v),
-    "dtype": (interface, v) {
-      String fieldName = "dtype";
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: Text(
-              "Data Type",
-              style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                    color: Colors.white,
-                  ),
-            ),
-          ),
-          DropdownButton<String>(
-            value: "",
-            items: [
-              DropdownMenuItem(
-                value: "",
-                child: Text(
-                  "Dynamic",
-                  style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                        color: Colors.white,
-                      ),
-                ),
-              ),
-              for (var t in Dtype.values)
-                DropdownMenuItem(
-                  value: t.name,
-                  child: Text(
-                    t.name,
-                    style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                          color: Colors.white,
-                        ),
-                  ),
-                ),
-            ],
-            onChanged: (v) => pyUpdate(fieldName, interface, v!),
-          ),
-        ],
-      );
-    },
+    "dtype": (interface, v) => _dropdownFromEnum(
+          "dtype",
+          "Data Type",
+          "Dynamic",
+          Dtype.values.map((e) => e.name).toList(),
+          interface,
+          v,
+        ),
+    "activation": (interface, v) => _dropdownFromEnum(
+          "activation",
+          "Activation",
+          "Linear",
+          Activation.values.map((e) => e.name).toList(),
+          interface,
+          v,
+        ),
     "io": (interface, v) {
       String fieldName = "io";
       return Row(
@@ -304,28 +370,12 @@ class _DialoguePanelState extends State<DialoguePanel> {
         ],
       );
     },
-    "shuffle": (interface, v) {
-      String fieldName = "shuffle";
-      bool on = v == "True";
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: Text(
-                "Shuffle",
-                style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                      color: Colors.white,
-                    ),
-              )),
-          Switch(
-            value: on,
-            onChanged: (v) =>
-                pyUpdate(fieldName, interface, v ? "True" : "False"),
-          )
-        ],
-      );
-    }
+    "shuffle": (interface, v) =>
+        _plainSwitchSetting("shuffle", "Shuffle", interface, v),
+    "fromLogits": (interface, v) =>
+        _plainSwitchSetting("fromLogits", "From Logits", interface, v),
+    "centered": (interface, v) =>
+        _plainSwitchSetting("centered", "Centered", interface, v),
   };
 
   @override
@@ -404,9 +454,15 @@ class DialogueInterface extends ChangeNotifier {
   LayerTileState? _layerState;
   late final ToolbarState _toolbarState;
 
-  void displayLayerSettings(LayerTileState state) {
+  void displayLayerSettings(LayerTileState state, BuildContext context) {
     _settings = state.layerSettings!;
     _layerState = state;
+    if (_settings.isEmpty) {
+      Provider.of<ConsoleInterface>(context, listen: false).log(
+        "${state.widget.type} has no editable settings!",
+        Logging.warn,
+      );
+    }
     notifyListeners();
   }
 
