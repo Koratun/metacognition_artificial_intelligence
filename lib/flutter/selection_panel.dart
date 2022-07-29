@@ -41,7 +41,7 @@ Map<String, Map<String, dynamic>> layerTileAssetData = {
   "CIFAR100": {"color": const Color(0xff0098e7)},
   "IMDB": {"color": const Color(0xffe4e400)},
   "Compile": {"color": const Color(0xff6ab0e6)},
-  "Accuracy": {"color": const Color(0xfffff08c)},
+  "CategoricalAccuracy": {"color": const Color(0xfffff08c)},
   "BinaryCrossentropy": {"color": const Color.fromARGB(255, 255, 205, 41)},
   "RMSProp": {"color": const Color(0xff3360ff)},
   "Adagrad": {"color": const Color(0xff3afecc)},
@@ -50,6 +50,7 @@ Map<String, Map<String, dynamic>> layerTileAssetData = {
   "LogCoshError": {"color": const Color(0xffffc313)},
   "MeanSquaredError": {"color": const Color.fromARGB(255, 255, 217, 0)},
   "CategoricalCrossentropy": {"color": const Color(0xffd67725)},
+  "NumpyFlatten": {"color": const Color(0xffc5feff)},
 };
 
 const Map<String, String> layerShortenedTitles = {
@@ -61,6 +62,8 @@ const Map<String, String> layerShortenedTitles = {
   "LogCoshError": "LogCosh",
   "MeanSquaredError": "MeanError",
   "CategoricalCrossentropy": "Category",
+  "NumpyFlatten": "Flatten",
+  "CategoricalAccuracy": "CatAccuracy",
 };
 
 class SelectionPanel extends StatefulWidget {
@@ -152,22 +155,25 @@ class _SelectionPanelState extends State<SelectionPanel>
     );
   }
 
-  Widget buttonDropdown(String title, List<List<String>> dropdownItems) {
+  Widget buttonDropdown(String title, List<List<Object>> dropdownItems) {
     return WindowStyleDropdownMenu(
       dropdownWidth: 278,
       buttonTitle: title,
       dropdownItems: [
-        for (List<String> dropdown in dropdownItems)
+        for (List<Object> dropdown in dropdownItems)
           ListTile(
             mouseCursor: SystemMouseCursors.click,
-            trailing:
-                Text(dropdown[0], style: const TextStyle(color: Colors.white)),
+            trailing: Text(dropdown[0] as String,
+                style: const TextStyle(color: Colors.white)),
             title: Text(
-              dropdown[1],
+              dropdown[1] as String,
               style: const TextStyle(color: Colors.white),
             ),
             onTap: () {
-              debugPrint(dropdown[2]);
+              debugPrint(dropdown[2] as String);
+              if (dropdown.length > 3) {
+                (dropdown[3] as Function)();
+              }
             },
           )
       ],
@@ -225,7 +231,15 @@ class _SelectionPanelState extends State<SelectionPanel>
           buttonDropdown(
             'Other',
             [
-              ['Ctrl + T', 'Tools', "Tools selected"],
+              [
+                'Ctrl + R',
+                'Reset Backend',
+                'Resetting!',
+                () {
+                  PyController.reset();
+                  return null;
+                }
+              ],
               [
                 'Ctrl + Shift + P',
                 'Command Palette',

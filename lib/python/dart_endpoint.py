@@ -1,5 +1,6 @@
 import fileinput
 from sys import stderr
+import os
 import traceback
 from humps import camelize
 from pydantic import ValidationError
@@ -126,7 +127,11 @@ def process(command: str, payload: str):
         elif command == CommandType.COMPILE.value:
             request = RequestResponseModel.parse_raw(payload)
             request_id = request.request_id
-            return format_response(ResponseType.COMPILE_SUCCESS, request_id=request_id, py_file=dag.construct_keras())
+            if not os.path.exists("./data"):
+                os.mkdir("./data")
+            with open("data/MAI.py", "w") as f:
+                f.write(dag.construct_keras())
+            return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id)
     except DagException as e:
         return format_response(ResponseType.GRAPH_EXCEPTION, request_id=request_id, error=str(e))
     except CompileException as e:

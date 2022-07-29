@@ -258,7 +258,7 @@ class LayerTileState extends State<LayerTile> with TickerProviderStateMixin {
                       ? null
                       : () =>
                           Provider.of<DialogueInterface>(context, listen: false)
-                              .displayLayerSettings(this),
+                              .displayLayerSettings(this, context),
                 ),
               ),
             ),

@@ -7,7 +7,6 @@ import 'graph_exception_response.dart';
 import 'compile_error_response.dart';
 import 'compile_error_disjointed_response.dart';
 import 'compile_error_settings_validation_response.dart';
-import 'compile_success_response.dart';
 
 enum ResponseType {
 	successFail,
@@ -17,7 +16,6 @@ enum ResponseType {
 	compileError,
 	compileErrorDisjointed,
 	compileErrorSettingsValidation,
-	compileSuccess,
 }
 
 Map<ResponseType, RequestResponseSchema Function(Map<String, dynamic>)> _fromJsonMap = {
@@ -28,7 +26,6 @@ Map<ResponseType, RequestResponseSchema Function(Map<String, dynamic>)> _fromJso
 	ResponseType.compileError: CompileErrorResponse.fromJson,
 	ResponseType.compileErrorDisjointed: CompileErrorDisjointedResponse.fromJson,
 	ResponseType.compileErrorSettingsValidation: CompileErrorSettingsValidationResponse.fromJson,
-	ResponseType.compileSuccess: CompileSuccessResponse.fromJson,
 };
 
 extension ResponseTypeExtension on ResponseType {
