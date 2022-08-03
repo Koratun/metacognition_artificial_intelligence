@@ -42,12 +42,23 @@ class PyController {
 
   static Future<void> trainAI(BuildContext context) async {
     var console = Provider.of<ConsoleInterface>(context, listen: false);
-    console.log("Beginning training...", Logging.info);
+    console.log("Loading model...", Logging.info);
     _ai = await Process.start(
       ".venv\\Scripts\\python.exe",
       ["data\\MAI.py"],
       runInShell: true,
     );
+    _ai?.exitCode.then((exitCode) {
+      if (exitCode != 0) {
+        console.log(
+          "An error occurred while training this model. Error code $exitCode",
+          Logging.error,
+        );
+      } else {
+        console.log("Training complete!", Logging.info);
+      }
+    });
+    console.log("Beginning training...", Logging.info);
     _ai?.stdout.transform(utf8.decoder).forEach((data) {
       for (var s in data.trim().split('\n')) {
         if (s.contains(RegExp(r"\S"))) {
