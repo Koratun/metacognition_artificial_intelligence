@@ -134,7 +134,7 @@ class _TutorialState extends State<Tutorial> {
               .tutorial = Tutorial(
             false,
             widget.data,
-            selected: true,
+            selected: false,
             tileState: this,
           ),
         ),
@@ -146,20 +146,13 @@ class _TutorialState extends State<Tutorial> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        widget.data.title,
-                        style: Theme.of(context).textTheme.headline1,
-                      ),
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.only(bottom: 30),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  widget.data.title,
+                  style: Theme.of(context).textTheme.headline1,
+                ),
               ),
             ),
             Expanded(
