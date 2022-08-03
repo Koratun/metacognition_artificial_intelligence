@@ -58,7 +58,6 @@ class PyController {
         console.log("Training complete!", Logging.info);
       }
     });
-    console.log("Beginning training...", Logging.info);
     _ai?.stdout.transform(utf8.decoder).forEach((data) {
       for (var s in data.trim().split('\n')) {
         if (s.contains(RegExp(r"\S"))) {
