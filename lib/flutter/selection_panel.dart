@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
 import 'package:image/image.dart' as im;
+import 'dart:io';
+import 'dart:convert';
 
 import 'schemas/event_type_enum.dart';
 import 'schemas/initialize_layers_event.dart';
@@ -10,6 +12,9 @@ import 'schemas/initialize_layers_event.dart';
 import 'window_style_dropdown_menu.dart';
 import 'console.dart';
 import 'layer_tile.dart';
+import 'dialogue_panel.dart';
+import 'tutorial_data.dart';
+import 'tutorial.dart';
 import 'main.dart';
 import 'pycontroller.dart';
 
@@ -78,6 +83,7 @@ class _SelectionPanelState extends State<SelectionPanel>
   String _selectedCategory = categoryNames[0];
 
   Map<String, List<String>>? _categoryList;
+  final List<TutorialData> tutorialData = [];
 
   Future<ui.Image> loadRawImage(String layerName) async {
     ByteData data =
@@ -97,9 +103,21 @@ class _SelectionPanelState extends State<SelectionPanel>
     return fi.image;
   }
 
+  Future<List<TutorialData>> loadTutorials() async {
+    return await Directory("assets/tutorials")
+        .list()
+        .skipWhile((element) => !element.path.endsWith(".json"))
+        .map((d) => d.path.substring(d.path.lastIndexOf(RegExp(r'\\|/')) + 1))
+        .asyncMap((f) async =>
+            json.decode(await rootBundle.loadString("assets/tutorials/$f")))
+        .map((j) => TutorialData.fromJson(j))
+        .toList();
+  }
+
   @override
   void initState() {
     super.initState();
+    loadTutorials().then((tuts) => setState(() => tutorialData.addAll(tuts)));
     for (var layerName in layerTileAssetData.keys) {
       loadRawImage(layerName).then((value) =>
           setState(() => layerTileAssetData[layerName]!["symbol"] = value));
@@ -256,53 +274,72 @@ class _SelectionPanelState extends State<SelectionPanel>
       children: categoryNames.map((e) => _buildLayerCategory(e)).toList(),
     );
 
-    final ScrollController scrollController = ScrollController();
+    Widget selectableTiles;
 
-    final layerTiles = GridView.builder(
-      controller: scrollController,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisExtent: 100,
-      ),
-      itemCount: _categoryList == null
-          ? 21
-          : _categoryList![_selectedCategory] == null
-              ? 21
-              : _categoryList![_selectedCategory]!.length,
-      itemBuilder: (BuildContext context, int i) {
-        const _entranceTime = 500;
-        final _millesecondsToWait = i * 100;
-
-        final AnimationController _entranceController = AnimationController(
-          vsync: this,
-          duration: Duration(milliseconds: _millesecondsToWait + _entranceTime),
-        );
-
-        final Animation<double> _entranceAnimation = CurvedAnimation(
-          parent: _entranceController,
-          curve: DramaticEntrance(_millesecondsToWait / _entranceTime),
-        );
-
-        final String? name = _categoryList == null
-            ? null
-            : _categoryList![_selectedCategory] == null
-                ? null
-                : _categoryList![_selectedCategory]![i];
-
-        return Center(
-          child: LayerTile.gridChild(
-            i,
-            _selectedCategory,
-            _entranceAnimation,
-            _entranceController,
-            backgroundColor: categoryColors[_selectedCategory],
-            foregroundColor: layerTileAssetData[name]?['color'],
-            symbol: layerTileAssetData[name]?['symbol'],
-            type: name,
+    if (_selectedCategory == categoryNames[0]) {
+      selectableTiles = Consumer<DialogueInterface>(
+        builder: (context, interface, child) => Material(
+          child: ListView(
+            children: [
+              for (var d in tutorialData)
+                Tutorial(true, d,
+                    selected: interface.tutorial == null
+                        ? d.shortId == "mai"
+                        : interface.tutorial!.data.shortId == d.shortId),
+            ],
           ),
-        );
-      },
-    );
+        ),
+      );
+    } else {
+      final ScrollController scrollController = ScrollController();
+
+      selectableTiles = GridView.builder(
+        controller: scrollController,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisExtent: 100,
+        ),
+        itemCount: _categoryList == null
+            ? 21
+            : _categoryList![_selectedCategory] == null
+                ? 21
+                : _categoryList![_selectedCategory]!.length,
+        itemBuilder: (BuildContext context, int i) {
+          const _entranceTime = 500;
+          final _millesecondsToWait = i * 100;
+
+          final AnimationController _entranceController = AnimationController(
+            vsync: this,
+            duration:
+                Duration(milliseconds: _millesecondsToWait + _entranceTime),
+          );
+
+          final Animation<double> _entranceAnimation = CurvedAnimation(
+            parent: _entranceController,
+            curve: DramaticEntrance(_millesecondsToWait / _entranceTime),
+          );
+
+          final String? name = _categoryList == null
+              ? null
+              : _categoryList![_selectedCategory] == null
+                  ? null
+                  : _categoryList![_selectedCategory]![i];
+
+          return Center(
+            child: LayerTile.gridChild(
+              i,
+              _selectedCategory,
+              _entranceAnimation,
+              _entranceController,
+              backgroundColor: categoryColors[_selectedCategory],
+              foregroundColor: layerTileAssetData[name]?['color'],
+              symbol: layerTileAssetData[name]?['symbol'],
+              type: name,
+            ),
+          );
+        },
+      );
+    }
 
     return LimitedBox(
       maxHeight: MediaQuery.of(context).size.height,
@@ -316,7 +353,7 @@ class _SelectionPanelState extends State<SelectionPanel>
             toolbar,
             categories,
             Expanded(
-              child: layerTiles,
+              child: selectableTiles,
             ),
           ],
         ),
