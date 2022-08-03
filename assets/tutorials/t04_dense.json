@@ -1,0 +1,87 @@
+{
+    "title": "A Dense Subject",
+    "shortId": "desnse",
+    "displayItemType": "image",
+    "displayData": "layer_tiles/Dense.png",
+    "displayColor": "ff0000ff",
+    "meat": [
+        [
+            {
+                "type": "text",
+                "data": [
+                    "With your newfound knowledge in matrices, let's learn about ",
+                    "the Dense layer. The dense layer is a single matrix ",
+                    "filled with weights the AI uses to learn."
+                ]
+            },
+            {
+                "type": "image",
+                "data": [
+                    "tutorials/Dense Matrix.png"
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "The size of this matrix is contolled by two factors: The ",
+                    "size of the data, and you. If you had 32 samples of data ",
+                    "that all contained 20 integers, then the number of columns ",
+                    "in the dense matrix would be 20 to match the size of the input. ",
+                    "The number of samples doesn't matter as the AI will compute ",
+                    "all of their losses simultaneously through the various matrices. "
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "The rows in a dense matrix are controlled by you! Let's take a look. ",
+                    "Go to the 'Core' category on the left in the selection panel and drag ",
+                    "a Dense layer onto the Creation Canvas."
+                ]
+            }
+        ],
+        [
+            {
+                "type": "text",
+                "data": [
+                    "Now when you click on any layer in the Creation Canvas its settings ",
+                    "will be brought up here in the dialogue panel. A button will appear ",
+                    "so that you can easily get back to the tutorial. You will see that ",
+                    "a Dense layer has only a few settings: Variable Name, Units, and Activation. ",
+                    "Variable Name is purely cosmetic and need not change unless you want ",
+                    "to change the variable name this layer is assigned in the python file ",
+                    "that will be generated later."
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "The 'Units' setting is what controls the number of rows in the Dense matrix. ",
+                    "You may enter any number that you wish. Higher numbers allow the AI to learn ",
+                    "more about the data it is processing, however, this can lead to overfitting, ",
+                    "which is a problem every AI faces that we will discuss how to combat later on."
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "Typically, a few Dense layers are placed right after each other with each layer ",
+                    "down the line having fewer and fewer nodes (rows). This allows the AI ",
+                    "to pick out the truly important features of the data and even combine ",
+                    "different features it recognizes into a larger feature. For example, say ",
+                    "that two weights on the first Dense layer independently can recognize a ",
+                    "semi-circle and a line, which on their own doesn't mean much, but a ",
+                    "higher order Dense layer can take those two features and recognize that ",
+                    "together they form the letter 'b'!"
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "The activation setting is something the AI needs with every layer to prepare ",
+                    "it for the next layer. For now we will leave it on Linear and come back to it later."
+                ]
+            }
+        ]
+    ]
+}

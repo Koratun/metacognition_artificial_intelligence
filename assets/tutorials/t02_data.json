@@ -1,0 +1,29 @@
+{
+    "title": "The Lifeblood of Artificial Intelligence",
+    "shortId": "data",
+    "displayItemType": "image",
+    "displayData": "layer_tiles/OneHotEncode.png",
+    "displayColor": "ff00ff00",
+    "meat": [
+        [
+            {
+                "type": "text",
+                "data": [
+                    "One of the first and most important things you will learn about AI ",
+                    "is that it runs on data. Without data, AI is nothing. Data comes ",
+                    "in many shapes and sizes and in the real world is rarely neatly organized, ",
+                    "unless someone else has already organized it. "
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "AI needs data because that is what it learns from. If you think about it ",
+                    "we all need data in order to learn. Learning math required you to listen ",
+                    "(auditory data) and watch (visual data) a teacher explain it to you. Even now ",
+                    "you are consuming the textual data of this tutorial to learn about AI! [WIP]"
+                ]
+            }
+        ]
+    ]
+}
