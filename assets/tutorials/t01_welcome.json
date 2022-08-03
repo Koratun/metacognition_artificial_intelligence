@@ -1,0 +1,57 @@
+{
+    "title": "Welcome to MAI!",
+    "shortId": "mai",
+    "displayItemType": "text",
+    "displayData": "MAI",
+    "displayColor": "ffffffff",
+    "meat": [
+        [
+            {
+                "type": "text",
+                "data": [
+                    "Hello! And welcome to Metacognition Artificial Intelligence!"
+                ]
+            },
+            {
+                "type": "image",
+                "data": [
+                    "tutorials/MAI Logo.png"
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "This program is designed to help people who know nothing about AI ",
+                    "to learn and design their own AI from scratch with no programming ",
+                    "knowledge required (although it is a plus)!"
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "If you ever have a question about how something works in this ",
+                    "app or in AI in general go to the tutorials list on the left ",
+                    "and start learning!"
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "Click the 'Continue' button down below to start your first tutorial! ",
+                    "Don't worry, if you want to review this tutorial or previous sections of it ",
+                    "just click the 'Back' button or select this tutorial again at any time!"
+                ]
+            }
+        ],
+        [
+            {
+                "type": "text",
+                "data": [
+                    "First off, what even is AI? What are we doing here? Artificial Intelligence ",
+                    "is a rapidly expanding field that not many people know how to get into. ",
+                    "[WIP]"
+                ]
+            }
+        ]
+    ]
+}

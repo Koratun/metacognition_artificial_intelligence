@@ -1,0 +1,43 @@
+{
+    "title": "The Math Part",
+    "shortId": "math",
+    "displayItemType": "text",
+    "displayData": "+-",
+    "displayColor": "ffff0000",
+    "meat": [
+        [
+            {
+                "type": "text",
+                "data": [
+                    "The magic behind AI is math. But do not worry! We're making the AI ",
+                    "do most of the math for us (and this program does some of the behind ",
+                    "the scenes math for you). However, in order to understand how different ",
+                    "aspects of AI work you will need to learn at least conceptually how the math works. ",
+                    "If you want to delve deeper than this app into artificial intelligence, then ",
+                    "you will need to learn much more math than we will discuss here."
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "The two math concepts that really make AI run probably gave you ",
+                    "nightmares in high school: Calculus and Matrices. If those words ",
+                    "bring back trauma, there is no need to seek out your therapist. We ",
+                    "are not going to make you do anything more complex than multiplication. "
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "Calculus is what enables AI to learn from its mistakes, it can ",
+                    "see how far its predictions were off from the real answer and perform ",
+                    "some calculus to see how much it needs to adjust its calculations. ",
+                    "This is called the loss of the model. The lower the loss, the more accurate ",
+                    "the AI is becoming. Loss can be calculated in a variety of different ",
+                    "ways depending on the needs of your model that will be discussed later on. ",
+                    "[WIP]"
+                ]
+            }
+        ]
+    ]
+}
