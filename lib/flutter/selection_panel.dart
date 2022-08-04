@@ -83,7 +83,7 @@ class _SelectionPanelState extends State<SelectionPanel>
   String _selectedCategory = categoryNames[0];
 
   Map<String, List<String>>? _categoryList;
-  final List<TutorialData> tutorialData = [];
+  final Map<TutorialData, bool> tutorialData = {};
 
   Future<ui.Image> loadRawImage(String layerName) async {
     ByteData data =
@@ -117,7 +117,8 @@ class _SelectionPanelState extends State<SelectionPanel>
   @override
   void initState() {
     super.initState();
-    loadTutorials().then((tuts) => setState(() => tutorialData.addAll(tuts)));
+    loadTutorials().then((tuts) => setState(
+        () => tutorialData.addEntries(tuts.map((e) => MapEntry(e, false)))));
     for (var layerName in layerTileAssetData.keys) {
       loadRawImage(layerName).then((value) =>
           setState(() => layerTileAssetData[layerName]!["symbol"] = value));
@@ -281,11 +282,17 @@ class _SelectionPanelState extends State<SelectionPanel>
         builder: (context, interface, child) => Material(
           child: ListView(
             children: [
-              for (var d in tutorialData)
-                Tutorial(true, d,
-                    selected: interface.tutorial == null
-                        ? d.shortId == "mai"
-                        : interface.tutorial!.data.shortId == d.shortId),
+              for (var d in tutorialData.keys)
+                Tutorial(
+                  true,
+                  d,
+                  selected: interface.tutorial == null
+                      ? d.shortId == "mai"
+                      : interface.tutorial!.data.shortId == d.shortId,
+                  completed: tutorialData[d]!,
+                  completedCallback: () =>
+                      setState(() => tutorialData[d] = true),
+                )
             ],
           ),
         ),
