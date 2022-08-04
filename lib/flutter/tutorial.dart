@@ -8,16 +8,17 @@ class Tutorial extends StatefulWidget {
   final bool selectionPanel;
   final bool selected;
   final TutorialData data;
-  final _TutorialState? _tileState;
+  final bool completed;
+  final void Function() completedCallback;
 
   const Tutorial(
     this.selectionPanel,
     this.data, {
     required this.selected,
-    tileState,
+    required this.completed,
+    required this.completedCallback,
     Key? key,
-  })  : _tileState = tileState,
-        super(key: key);
+  }) : super(key: key);
 
   @override
   State<Tutorial> createState() => _TutorialState();
@@ -26,9 +27,6 @@ class Tutorial extends StatefulWidget {
 class _TutorialState extends State<Tutorial> {
   int totalPages = 0;
   int page = 0;
-  bool completed = false;
-
-  void setCompleted() => setState(() => completed = true);
 
   @override
   void initState() {
@@ -39,7 +37,8 @@ class _TutorialState extends State<Tutorial> {
         false,
         widget.data,
         selected: false,
-        tileState: this,
+        completed: widget.completed,
+        completedCallback: widget.completedCallback,
       ));
       Future.delayed(Duration.zero, interface.loaded);
     }
@@ -125,17 +124,20 @@ class _TutorialState extends State<Tutorial> {
             style: Theme.of(context).textTheme.headline6,
           ),
           minVerticalPadding: 15,
-          tileColor: completed ? Colors.green.shade900 : Colors.blue.shade900,
-          hoverColor: completed ? Colors.green.shade800 : Colors.blue.shade800,
+          tileColor:
+              widget.completed ? Colors.green.shade900 : Colors.blue.shade900,
+          hoverColor:
+              widget.completed ? Colors.green.shade800 : Colors.blue.shade800,
           selectedTileColor:
-              completed ? Colors.green.shade700 : Colors.blue.shade700,
+              widget.completed ? Colors.green.shade700 : Colors.blue.shade700,
           selected: widget.selected,
           onTap: () => Provider.of<DialogueInterface>(context, listen: false)
               .tutorial = Tutorial(
             false,
             widget.data,
             selected: false,
-            tileState: this,
+            completed: widget.completed,
+            completedCallback: widget.completedCallback,
           ),
         ),
       );
@@ -178,8 +180,7 @@ class _TutorialState extends State<Tutorial> {
                         : () => setState(() {
                               page += 1;
                               if (page == totalPages - 1) {
-                                completed = true;
-                                widget._tileState!.setCompleted();
+                                widget.completedCallback();
                               }
                             }),
                     child: const Text("Continue")),
