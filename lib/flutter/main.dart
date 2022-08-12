@@ -100,7 +100,7 @@ class _MainState extends State<Main> with TickerProviderStateMixin {
         primaryColor: mainColors,
         backgroundColor: mainColors[900],
         canvasColor: Colors.black,
-        textTheme: Typography.blackRedmond,
+        textTheme: Typography.whiteRedmond,
       ),
       home: Scaffold(
         body: Builder(

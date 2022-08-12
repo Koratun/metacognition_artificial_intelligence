@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 import 'schemas/dtype_enum.dart';
 import 'schemas/activation_enum.dart';
@@ -12,6 +13,7 @@ import 'schemas/validation_response.dart';
 import 'layer_tile.dart';
 import 'toolbar.dart';
 import 'console.dart';
+import 'tutorial.dart';
 import 'pycontroller.dart';
 import 'main.dart';
 
@@ -380,9 +382,53 @@ class _DialoguePanelState extends State<DialoguePanel> {
 
   @override
   Widget build(BuildContext context) {
-    Widget dialogue = const Text(
-      "Welcome to MAI!",
-      style: TextStyle(fontSize: 24, color: Colors.white),
+    Widget dialogue = Shimmer.fromColors(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Container(
+              width: double.infinity,
+              height: 40,
+              color: Colors.white,
+            ),
+          ),
+          for (int _ = 0; _ < 5; _++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Container(
+                width: double.infinity,
+                height: 16,
+                color: Colors.white,
+                padding: const EdgeInsets.only(bottom: 5),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 10, bottom: 15),
+            child: Center(
+              child: Container(
+                width: 150,
+                height: 150,
+                color: Colors.white,
+                padding: const EdgeInsets.only(top: 10, bottom: 15),
+              ),
+            ),
+          ),
+          for (int _ = 0; _ < 5; _++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Container(
+                width: double.infinity,
+                height: 16,
+                color: Colors.white,
+                padding: const EdgeInsets.only(bottom: 5),
+              ),
+            ),
+        ],
+      ),
+      baseColor: const Color.fromARGB(0, 33, 149, 243),
+      highlightColor: const Color.fromARGB(125, 187, 222, 251),
     );
 
     return Theme(
@@ -410,32 +456,19 @@ class _DialoguePanelState extends State<DialoguePanel> {
                           ? "${interface._layerState!.widget.type} Layer"
                           : "Fit Settings",
                       style: Theme.of(context).textTheme.headline1),
-                  if (interface._layerState == null ||
-                      (interface._layerState != null &&
-                          interface._layerState!.widget.type != "Compile"))
-                    for (var setting in interface._settings.entries)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: _settingWidgets[setting.key]!(
-                          interface,
-                          setting.value,
-                        ),
-                      )
-                  else if (interface._layerState != null &&
-                      interface._layerState!.widget.type == "Compile")
+                  for (var setting in interface._settings.entries)
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
-                      child: Text(
-                        "The compile layer has no editable settings on its "
-                        "own. Connect output, losses, optimizers, and metrics "
-                        "layers and change their settings to affect this layer.",
-                        style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                              color: Colors.white,
-                            ),
+                      child: _settingWidgets[setting.key]!(
+                        interface,
+                        setting.value,
                       ),
                     )
                 ],
               );
+            } else if (interface._layerState == null &&
+                interface.tutorial != null) {
+              dialogue = interface.tutorial!;
             }
 
             return Padding(
@@ -453,6 +486,7 @@ class DialogueInterface extends ChangeNotifier {
   Map<String, String> _settings = {};
   LayerTileState? _layerState;
   late final ToolbarState _toolbarState;
+  Tutorial? _tutorial;
 
   void displayLayerSettings(LayerTileState state, BuildContext context) {
     _settings = state.layerSettings!;
@@ -473,6 +507,19 @@ class DialogueInterface extends ChangeNotifier {
   void displayFitSettings() {
     _settings = _toolbarState.fitSettings;
     _layerState = null;
+    notifyListeners();
+  }
+
+  void initTutorial(Tutorial t) => _tutorial = t;
+
+  void loaded() => notifyListeners();
+
+  Tutorial? get tutorial => _tutorial;
+
+  set tutorial(Tutorial? t) {
+    _settings = {};
+    _layerState = null;
+    _tutorial = t;
     notifyListeners();
   }
 }

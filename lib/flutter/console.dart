@@ -42,6 +42,7 @@ class _ConsoleState extends State<Console> {
               child: Consumer<ConsoleInterface>(
                 builder: (context, interface, child) {
                   return ListView.builder(
+                    controller: ScrollController(),
                     reverse: true,
                     addAutomaticKeepAlives: false,
                     cacheExtent: 100,

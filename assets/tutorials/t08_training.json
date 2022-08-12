@@ -1,0 +1,91 @@
+{
+    "title": "Engage Warp Drive!",
+    "shortId": "train",
+    "displayItemType": "icon",
+    "displayData": "e559",
+    "displayColor": "ff3eb9c7",
+    "meat": [
+        [
+            {
+                "type": "text",
+                "data": [
+                    "Your model is complete! Now how do you train it? Well first, ",
+                    "there is one more thing you need to configure: The Training ",
+                    "Settings! These are also commonly called the Fit settings ",
+                    "since the AI will try to 'fit' itself to the data. You can ",
+                    "find these by clicking the gray gear in the toolbar at the top."
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "This will bring up the last three settings you need to consider. ",
+                    "The batch size is the number of samples that the AI will compute ",
+                    "together at the same time. Higher sizes will train faster, but ",
+                    "are more likely to be less accurate. Vice versa is also true: ",
+                    "Lower sizes will train more slowly, but are more likely to ",
+                    "be more accurate. "
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "Epoch is just a fancy word for a single iteration or repitition ",
+                    "of something. Here you control how long the AI will train for in epochs. ",
+                    "Some AI models will be able to minimize their loss in only a few epochs ",
+                    "while others may take hundreds, thousands, or even millions of epochs. ",
+                    "10 is a good starting point for us. "
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "Finally, the Shuffle setting. This shuffles the order the AI model ",
+                    "receives its training data in and prevents it from just memorizing ",
+                    "the order of the answers by accident. Similar to how someone could ",
+                    "cheat on a test by simply memorizing the order of the answers without ",
+                    "learning how to actually get to those answers. It is recommended to keep ",
+                    "this on, but you are always free to experiment."
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "When you are confident in your Fit settings and the button next to the ",
+                    "gray gear has activated, continue to the next page."
+                ]
+            }
+        ],
+        [
+            {
+                "type": "text",
+                "data": [
+                    "That yellow button in the top center of your screen is the Compile button. ",
+                    "When you click that button, MAI will check through your entire AI model for ",
+                    "any errors and if it finds any it will turn red and tell you what went wrong ",
+                    "below in the console. But if everything checks out it will turn green, write ",
+                    "the code for the AI, and present you with the Train button which is the third ",
+                    "and final button on the AI toolbar."
+                ]
+            },
+            {
+                "type": "text",
+                "data": [
+                    "Go ahead and press Compile! If it turns red, look at the console and try to ",
+                    "fix what it indicates. Go back and read through the other tutorials if needed. ",
+                    "Once you have the green, go ahead and smack that train button and go to the last page!"
+                ]
+            }
+        ],
+        [
+            {
+                "type": "text",
+                "data": [
+                    "Congratulations! You created an AI model from scratch! You've learned ",
+                    "about matrices, losses, optimizers, preprocessing, and a whole boatload ",
+                    "of other great skills for your beginning into the field of AI!"
+                ]
+            }
+        ]
+    ]
+}
