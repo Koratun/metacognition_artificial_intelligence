@@ -56,6 +56,8 @@ class CommandType(SchemaEnum):
     CONNECT = "connect"
     DISCONNECT = "disconnect"
     COMPILE = "compile"
+    SAVE = "save"
+    LOAD = "load"
 
     @classmethod
     @property
@@ -87,6 +89,14 @@ class Connection(RequestResponseModel):
     dest_id: UUID
 
 
+class SaveFile(RequestResponseModel):
+    gui_locations: dict[UUID, list[float]]
+
+
+class LoadFile(RequestResponseModel):
+    filename: str
+
+
 command_model_rep = {
     CommandType.CREATE: CreateLayer,
     CommandType.UPDATE: UpdateLayer,
@@ -94,6 +104,8 @@ command_model_rep = {
     CommandType.CONNECT: Connection,
     CommandType.DISCONNECT: Connection,
     CommandType.COMPILE: RequestResponseModel,
+    CommandType.SAVE: SaveFile,
+    CommandType.LOAD: LoadFile,
 }
 
 

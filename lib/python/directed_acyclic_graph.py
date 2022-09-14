@@ -74,7 +74,7 @@ class Layer:
         self.settings_data = self.get_settings_data_fields()
 
     @classmethod
-    def get_settings_data_fields(cls) -> dict:
+    def get_settings_data_fields(cls) -> dict[str, str]:
         response: dict[str, dict] = cls.settings_validator.schema()["properties"]
         default_fields = {}
         for k, v in response.items():
@@ -343,10 +343,13 @@ from python.layers.compilation.fit import Fit
 
 
 class DirectedAcyclicGraph:
-    def __init__(self):
+    def __init__(self, loadpath: str = None):
         self.nodes: list[DagNode] = []
         self.edges: list[tuple[DagNode, DagNode]] = []
         self.fit_node = self.add_node(Fit())
+
+        if loadpath:
+            self.load(loadpath)
 
     @contextmanager
     def _unsee(self, last_node_id: UUID = None):
@@ -570,3 +573,66 @@ class DirectedAcyclicGraph:
                 model_file += self._construct_keras(n)
 
         return model_file + "\n"
+
+    def save(self, gui_locations: dict[UUID, list[float]]):
+        file = ""
+
+        def _escape(s: str):
+            return s.replace("\\", "\\\\").replace(",", "\\,")
+
+        for n in self.nodes:
+            file += (
+                n.layer.__class__.__name__
+                + "("
+                + ",".join(f"{k}={_escape(v)}" for k, v in n.layer.settings_data.items())
+                + f")<{n.id}>"
+                + ("(" + ",".join(str(v) for v in loc) + ")" if (loc := gui_locations.get(n.id)) else "")
+                + "\n"
+            )
+
+        file += "<->\n"
+        for e in self.edges:
+            file += f"<{e[0].id}><{e[1].id}>\n"
+
+        return file
+
+    def load(self, filepath: str):
+        from python.layers import layer_classes
+
+        with open(filepath, "r") as f:
+            data = f.read().splitlines()
+
+        def _unescape(s: str):
+            return s.replace("\\,", ",").replace("\\\\", "\\")
+
+        gui_locations = {}
+        connecting = False
+        for entry in data:
+            if entry == "<->":
+                connecting = True
+                continue
+
+            if not connecting:
+                layer_str = entry[: entry.find("(")]
+                layer = layer_classes[layer_str]()
+
+                settings_strs = re.split(r"[^\\],", entry[entry.find("(") + 1 : entry.rfind(")<")])
+                settings = {kv[0]: _unescape(kv[1]) for s in settings_strs for kv in s.split("=", maxsplit=1)}
+
+                layer.settings_data = settings
+
+                node_id = UUID(entry[entry.rfind("<") + 1 : entry.rfind(">")])
+
+                if layer_str == "Fit":
+                    self.fit_node.layer = layer
+                    self.fit_node.id = node_id
+                else:
+                    node = self.add_node(layer)
+                    node.id = node_id
+
+                if entry[-2] == ")":
+                    gui_locations[node_id] = entry[entry.rfind("(") + 1 : -2].split(",")
+            else:
+                source_id = UUID(entry[entry.find("<") + 1 : entry.find(">")])
+                dest_id = UUID(entry[entry.rfind("<") + 1 : entry.rfind(">")])
+                self.connect_nodes(source_id, dest_id)

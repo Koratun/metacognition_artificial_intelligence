@@ -87,3 +87,8 @@ def test_add_remove_nodes(
 def test_compile(simple_dag: DirectedAcyclicGraph):
     with open("MAI.py", "w") as f:
         f.write(simple_dag.construct_keras())
+
+
+def test_save(simple_dag: DirectedAcyclicGraph):
+    with open("model.dat", "w") as f:
+        f.write(simple_dag.save({}))

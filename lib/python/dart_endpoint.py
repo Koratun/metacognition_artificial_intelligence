@@ -17,6 +17,8 @@ from python.schemas import (
     UpdateLayer,
     DeleteNode,
     Connection,
+    SaveFile,
+    LoadFile,
 )
 
 
@@ -131,6 +133,21 @@ def process(command: str, payload: str):
                 os.mkdir("./data")
             with open("data/MAI.py", "w") as f:
                 f.write(dag.construct_keras())
+            return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id)
+        elif command == CommandType.SAVE.value:
+            request = SaveFile.parse_raw(payload)
+            request_id = request.request_id
+            if not os.path.exists("./data"):
+                os.mkdir("./data")
+            with open("data/model.dat", "w") as f:
+                f.write(dag.save(request.gui_locations))
+            return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id)
+        elif command == CommandType.LOAD.value:
+            request = LoadFile.parse_raw(payload)
+            request_id = request.request_id
+            if not os.path.exists(f"data/{request.filename}"):
+                return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id, errors="File not found")
+            dag = DirectedAcyclicGraph(loadpath=f"data/{request.filename}")
             return format_response(ResponseType.SUCCESS_FAIL, request_id=request_id)
     except DagException as e:
         return format_response(ResponseType.GRAPH_EXCEPTION, request_id=request_id, error=str(e))
