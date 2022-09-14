@@ -54,3 +54,5 @@ __pycache__/
 logs/
 
 NvidiaCUDA.exe
+MAI.py
+.vscode/
